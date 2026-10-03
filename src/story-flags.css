@@ -1,0 +1,35 @@
+/* === STORY:FLAGS CSS BEGIN === */
+.fg-lead { margin: 4px 0 8px; }
+.fg-stats { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 10px; }
+.fg-card { margin-top: 14px; }
+.fg-card > .section-h { margin-top: 0; }
+.fg-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel2); margin-bottom: 8px; }
+.fg-row.unbound { border-color: var(--warn); }
+.fg-info { flex: 1 1 220px; min-width: 0; }
+.fg-info > strong { display: block; overflow-wrap: anywhere; }
+.fg-info > small { display: block; color: var(--ink2); font-size: .82rem; margin-top: 2px; overflow-wrap: anywhere; }
+.fg-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 4px; min-width: 0; }
+.fg-link { min-width: 0; max-width: 100%; justify-content: flex-start; padding: 0 8px; text-align: left; white-space: normal; overflow-wrap: anywhere; line-height: 1.2; color: var(--accent); }
+.fg-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.fg-search { margin: 6px 0 8px; }
+.fg-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.fg-filter .btn[aria-pressed=true] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.fg-count { margin: 4px 0 8px; }
+.fg-item { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel2); margin-bottom: 8px; min-width: 0; }
+.fg-head { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; width: 100%; height: auto; min-height: 44px; padding: 8px 12px; white-space: normal; text-align: left; background: transparent; border-color: transparent; }
+.fg-head:hover { background: var(--accent-soft); border-color: transparent; }
+.fg-name { overflow-wrap: anywhere; }
+.fg-meta { display: flex; flex-wrap: wrap; gap: 4px; font-weight: 400; }
+.fg-body { padding: 4px 12px 12px; border-top: 1px solid var(--line); }
+.fg-body[hidden] { display: none; }
+.fg-src { margin-top: 10px; }
+.fg-src-h { margin: 0 0 4px; font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+.fg-srclist { margin: 0; padding-left: 1.1em; }
+.fg-srclist li { margin: 4px 0; overflow-wrap: anywhere; }
+.fg-srclist small { color: var(--ink2); }
+.fg-none { margin: 2px 0; }
+.fg-bacts { margin-top: 12px; }
+.fg-pair { display: flex; gap: 8px; margin-top: 6px; }
+.fg-pair .inp { min-width: 0; flex: 1 1 0; }
+.fg-body .kv code.id, .fg-info code.id { overflow-wrap: anywhere; }
+/* === STORY:FLAGS CSS END === */

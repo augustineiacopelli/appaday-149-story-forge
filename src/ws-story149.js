@@ -132,6 +132,7 @@
     var b = cur();
     if (!b) throw new Error('No project is open.');
     STORY.ensure(b);
+    if (STORY.flags && STORY.readiness(b) === true) STORY.flags.sync(b);
     if (status === 'final') {
       var why = finalBlock(b);
       if (why) throw new Error(why);
@@ -293,7 +294,10 @@
     card.appendChild(el('h3', 'section-h', 'Gate keys to bind'));
     keys.forEach(function (k) { var g = ENGINE_STORY.gates.parse(k); (by[g.kind] = by[g.kind] || []).push(g); });
     Object.keys(by).forEach(function (k) { by[k].sort(function (x, y) { return (order[x.chapter] || 0) - (order[y.chapter] || 0); }); });
-    card.appendChild(el('p', 'muted', esc('Day 148\'s progression names ' + plural(keys.length, 'world local gate key') + '. Phase 2 binds each one to a story flag, so every gate in Day 150 reads the story\'s state.')));
+    var sum = STORY.flags.summary(b);
+    card.appendChild(el('p', 'muted', esc('Day 148\'s progression names ' + plural(keys.length, 'world local gate key') + '. Each one is bound to a story flag, so every gate in Day 150 reads the story\'s state.')));
+    card.appendChild(el('p', null, chip(sum.unbound ? 'chip-warning' : 'chip-ok', sum.bound + ' of ' + sum.gateKeys + ' bound') + ' ' + chip('chip-muted', plural(sum.derived, 'save slot'))));
+    card.appendChild(button('Open Flags', 'key', '', function () { Kit.go('flags'); }));
     card.appendChild(el('div', null, kv(['chapter', 'seal', 'ship', 'airship', 'other'].filter(function (k) { return by[k]; }).map(function (k) {
       return [GATE_LABEL[k], by[k].map(function (g) { return chip(k === 'other' ? 'chip-warning' : 'chip-muted', g.chapter ? chName(g.chapter) : g.key, g.key); }).join(' ')];
     }))));
@@ -306,7 +310,7 @@
     card.appendChild(el('h3', 'section-h', 'Side quests'));
     if (!qs.length) { card.appendChild(el('div', 'empty-line', 'No side quest seeds in the Rules.')); return card; }
     card.appendChild(table([{ label: 'Quest' }, { label: 'Giver' }, { label: 'Completion flag' }], qs.map(function (q) {
-      var fl = q.flag ? (STORY.records.get(q.flag, b) ? esc(nameOf(q.flag)) : chip('chip-broken', q.flag)) : chip('chip-muted', 'Phase 2 fills');
+      var fl = q.flag ? (STORY.records.get(q.flag, b) ? esc(nameOf(q.flag)) : chip('chip-broken', q.flag)) : chip('chip-muted', 'not filled yet');
       return '<tr><th scope="row">' + esc(q.name || q.id) + '<small class="s9-sub">' + esc(chName(q.chapter)) + '</small></th><td>' + esc(nameOf(q.giver, 'none')) + '</td><td>' + fl + '</td></tr>';
     })));
     return card;
@@ -368,7 +372,8 @@
     sizeBody(z);
     host.appendChild(z);
   }
-  STORY.jumpStory = function () { return Kit.go('export'); };
+  // Binding problems open the Flags tab; everything else about the namespace is on Validation and Export.
+  STORY.jumpStory = function (fieldPath) { return /^bindings/.test(fieldPath || '') ? Kit.go('flags') : Kit.go('export'); };
 
   function renderDev(host) {
     var p = el('section', 'panel');

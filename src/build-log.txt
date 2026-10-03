@@ -171,4 +171,32 @@ SESSION 1 / PHASE 1 (2026-10-03, Opus): ENGINE:STORY CORE. COMPLETE.
     who sets (ENGINE_STORY.cmd.refs and cond.reads over every page, quest, and ending). Remember Kit.bundle.touch after
     every edit so STORY.engineIndex rebuilds.
 === END SESSION 1 ===
+=== SESSION 2 / PHASE 2 (2026-10-03, Sonnet) ===
+Flags and gate bindings. New: src/story-scaffold.js (STORY.flags), src/ws-flags.js (Flags tab), src/story-flags.css.
+Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, jumpStory, sync before export). Engine
+  untouched (engine-story.js still 67,681 chars).
+  Four generated flag families, all structural IDs from ENGINE_STORY.ids.structural('flg_', key): flg|gate|<gateKey>
+    (kind gate, 0 to 1), flg|quest|<qst> (kind quest, derived quest, 0 to INT_MAX), flg|once|<evt> (kind story, derived
+    once), flg|done|<sdq> (kind quest, 0 to 1, the completion flag of a side quest seed). IDs read flg_flg_..., the
+    doubled prefix being the storyfx and Day 148 convention. Hand made flags use Kit.ids.mint, origin user.
+  DECISION, sync: runs on Kit load when STORY.readiness(b) is true, and before every export. Creates what is missing,
+    drops stale generated flags of its four families, binds every gate key (a binding whose flag exists is kept), drops
+    bindings for gate keys the world no longer has, fills sdq_.flag. Idempotent; touches the bundle only when it changed.
+    An author's edit to a generated flag (name, default, range, notes) is never overwritten; authored flags are never
+    removed.
+  DECISION, sdq_.flag: a live flg_ that differs from the generated one is kept (same rule Day 148 uses for givers); a
+    dangling or empty value is replaced by the generated flag.
+  Cross reference: STORY.flags.xref reads world progression (requires, grants, start), quests, dialogue, events, NPC
+    dialogue, endings, and lists the engine as reader and setter of derived slots.
+  Validator story.flags: errors for an unbound gate key, a binding to a missing flag, a bad display item, range order,
+    default outside range, blank name; warnings for a shared flag and a stale binding.
+  MUST DO in later phases: after scaffolding quests (Phase 3) and events (Phase 5) call STORY.flags.sync(b) so their
+    slot flags appear; Phase 7 replaces STORY.checks. Remember Kit.bundle.touch after every edit.
+  Tests: test/phase2.js 77 of 77 (sync, preservation, mutators, slots, xref, validator, Flags tab under jsdom, round
+    trip through Days 146, 147, 148). test/phase0.js 89 of 89 (expectations updated for auto binding; export now syncs
+    first so a reopened Draft is identical). test/phase1.js 85 of 85. test/layout.js 24 of 24 views at 390 and 1280,
+    now including an expanded flag and the flag dialog.
+  Next: Phase 3 (quests): scaffold qst_ from the main chapters and side quest seeds, stages with exitWhen, completeFlag
+    from the bound flags, then call STORY.flags.sync.
+=== END SESSION 2 ===
 === END BUILD LOG ===

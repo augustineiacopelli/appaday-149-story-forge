@@ -172,6 +172,34 @@ SESSION 1 / PHASE 1 (2026-10-03, Opus): ENGINE:STORY CORE. COMPLETE.
     who sets (ENGINE_STORY.cmd.refs and cond.reads over every page, quest, and ending). Remember Kit.bundle.touch after
     every edit so STORY.engineIndex rebuilds.
 === END SESSION 1 ===
+=== SESSION 2 / PHASE 2 (2026-10-03, Sonnet) ===
+Flags and gate bindings. New: src/story-scaffold.js (STORY.flags), src/ws-flags.js (Flags tab), src/story-flags.css.
+Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, jumpStory, sync before export). Engine
+  untouched (engine-story.js still 67,681 chars).
+  Four generated flag families, all structural IDs from ENGINE_STORY.ids.structural('flg_', key): flg|gate|<gateKey>
+    (kind gate, 0 to 1), flg|quest|<qst> (kind quest, derived quest, 0 to INT_MAX), flg|once|<evt> (kind story, derived
+    once), flg|done|<sdq> (kind quest, 0 to 1, the completion flag of a side quest seed). IDs read flg_flg_..., the
+    doubled prefix being the storyfx and Day 148 convention. Hand made flags use Kit.ids.mint, origin user.
+  DECISION, sync: runs on Kit load when STORY.readiness(b) is true, and before every export. Creates what is missing,
+    drops stale generated flags of its four families, binds every gate key (a binding whose flag exists is kept), drops
+    bindings for gate keys the world no longer has, fills sdq_.flag. Idempotent; touches the bundle only when it changed.
+    An author's edit to a generated flag (name, default, range, notes) is never overwritten; authored flags are never
+    removed.
+  DECISION, sdq_.flag: a live flg_ that differs from the generated one is kept (same rule Day 148 uses for givers); a
+    dangling or empty value is replaced by the generated flag.
+  Cross reference: STORY.flags.xref reads world progression (requires, grants, start), quests, dialogue, events, NPC
+    dialogue, endings, and lists the engine as reader and setter of derived slots.
+  Validator story.flags: errors for an unbound gate key, a binding to a missing flag, a bad display item, range order,
+    default outside range, blank name; warnings for a shared flag and a stale binding.
+  MUST DO in later phases: after scaffolding quests (Phase 3) and events (Phase 5) call STORY.flags.sync(b) so their
+    slot flags appear; Phase 7 replaces STORY.checks. Remember Kit.bundle.touch after every edit.
+  Tests: test/phase2.js 77 of 77 (sync, preservation, mutators, slots, xref, validator, Flags tab under jsdom, round
+    trip through Days 146, 147, 148). test/phase0.js 89 of 89 (expectations updated for auto binding; export now syncs
+    first so a reopened Draft is identical). test/phase1.js 85 of 85. test/layout.js 24 of 24 views at 390 and 1280,
+    now including an expanded flag and the flag dialog.
+  Next: Phase 3 (quests): scaffold qst_ from the main chapters and side quest seeds, stages with exitWhen, completeFlag
+    from the bound flags, then call STORY.flags.sync.
+=== END SESSION 2 ===
 === END BUILD LOG ===
 -->
 <!doctype html>
@@ -502,7 +530,41 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
 .brand-title { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 @media (max-width: 520px) { .brand-title { font-size: 1.02rem; letter-spacing: .03em; } .brand-num { display: none; } }
 /* === STORY:SHELL CSS END === */
-
+/* === STORY:FLAGS CSS BEGIN === */
+.fg-lead { margin: 4px 0 8px; }
+.fg-stats { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 10px; }
+.fg-card { margin-top: 14px; }
+.fg-card > .section-h { margin-top: 0; }
+.fg-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel2); margin-bottom: 8px; }
+.fg-row.unbound { border-color: var(--warn); }
+.fg-info { flex: 1 1 220px; min-width: 0; }
+.fg-info > strong { display: block; overflow-wrap: anywhere; }
+.fg-info > small { display: block; color: var(--ink2); font-size: .82rem; margin-top: 2px; overflow-wrap: anywhere; }
+.fg-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 4px; min-width: 0; }
+.fg-link { min-width: 0; max-width: 100%; justify-content: flex-start; padding: 0 8px; text-align: left; white-space: normal; overflow-wrap: anywhere; line-height: 1.2; color: var(--accent); }
+.fg-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.fg-search { margin: 6px 0 8px; }
+.fg-filter { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.fg-filter .btn[aria-pressed=true] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.fg-count { margin: 4px 0 8px; }
+.fg-item { border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel2); margin-bottom: 8px; min-width: 0; }
+.fg-head { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; width: 100%; height: auto; min-height: 44px; padding: 8px 12px; white-space: normal; text-align: left; background: transparent; border-color: transparent; }
+.fg-head:hover { background: var(--accent-soft); border-color: transparent; }
+.fg-name { overflow-wrap: anywhere; }
+.fg-meta { display: flex; flex-wrap: wrap; gap: 4px; font-weight: 400; }
+.fg-body { padding: 4px 12px 12px; border-top: 1px solid var(--line); }
+.fg-body[hidden] { display: none; }
+.fg-src { margin-top: 10px; }
+.fg-src-h { margin: 0 0 4px; font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+.fg-srclist { margin: 0; padding-left: 1.1em; }
+.fg-srclist li { margin: 4px 0; overflow-wrap: anywhere; }
+.fg-srclist small { color: var(--ink2); }
+.fg-none { margin: 2px 0; }
+.fg-bacts { margin-top: 12px; }
+.fg-pair { display: flex; gap: 8px; margin-top: 6px; }
+.fg-pair .inp { min-width: 0; flex: 1 1 0; }
+.fg-body .kv code.id, .fg-info code.id { overflow-wrap: anywhere; }
+/* === STORY:FLAGS CSS END === */
 </style>
 </head>
 <body>
@@ -4250,6 +4312,7 @@ var ENGINE_STORY = (function () {
     { key: 'origin', label: 'Origin', type: 'enum', values: ['generated', 'user'] },
     { key: 'tags', label: 'Tags', type: 'list', of: { type: 'text', max: 40 }, itemLabel: 'Tag' }
   ];
+  STORY.ENVELOPE_FIELDS = ENVELOPE_FIELDS;
   STORY.PREFIXES.forEach(function (p) {
     var info = Kit.codex.PREFIXES[p];
     if (!info || info.ns !== 'story' || info.forge !== STORY.FORGE) throw new Error('KIT:CORE no longer reserves ' + p + ' for forge 149 in namespace story.');
@@ -4695,7 +4758,728 @@ var ENGINE_STORY = (function () {
   };
 })();
 // === STORY:DEMO END ===
+// === STORY:SCAFFOLD BEGIN ===
+(function () {
+  'use strict';
+  // Phase 2: flags and gate bindings. This fence builds the flg_ records the rest of the story stands on and never edits a
+  // world record. Three families of flag are generated, each from a structural key (ENGINE_STORY.ids.structural, the way
+  // Day 148 builds world IDs), so running the sync again never renames anything:
+  //   flg|gate|<gate key>     one per Day 148 gate key: chapter:<chp>, item:seal:<chp>, vehicle:ship, vehicle:airship
+  //   flg|quest|<qst>         the save slot that packs a quest's stage, failed state, and closed branches (engine derived)
+  //   flg|once|<evt>          the save slot that packs which once pages of an event have run (engine derived)
+  //   flg|done|<sdq>          the completion flag of the quest generated for a side quest seed
+  // story.bindings maps every gate key to {flg, itm}: the flag that stands for the gate and, for a seal, an optional
+  // display item from the Rules. story.scaffold records what the sync made, by structural key, so a rerun keeps edits and
+  // drops what the world or the quests no longer ask for. Later phases add their own families to the same map; this fence
+  // only ever touches the four families above. Filling sdq_.flag is the one write outside the story namespace.
+  var U = Kit.util, ES = ENGINE_STORY;
+  function cur() { return Kit.bundle.current(); }
+  var F = STORY.flags = {};
+  F.KINDS = ['gate', 'quest', 'story', 'counter'];
+  F.INT_MIN = -2147483648;
+  F.INT_MAX = 2147483647;
+  F.FAMILIES = ['flg|gate|', 'flg|quest|', 'flg|once|', 'flg|done|'];
+  function isInt(v) { return typeof v === 'number' && isFinite(v) && Math.floor(v) === v && v >= F.INT_MIN && v <= F.INT_MAX; }
+  F.isInt = isInt;
+  function extend(a, b) { Object.keys(b || {}).forEach(function (k) { a[k] = b[k]; }); return a; }
+  function sortedObj(o) { var r = {}; Object.keys(o || {}).sort().forEach(function (k) { r[k] = o[k]; }); return r; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
 
+  // ---------------------------------------------------------------- the Codex type
+  // Phase 0 registered StoryFlag with the envelope alone. Phase 2 gives it its own fields, so the record validates and any
+  // Codex view of it shows them. Days 146 to 148 never read these fields; they only index the record.
+  var FLAG_FIELDS = [
+    { key: 'kind', label: 'Kind', type: 'enum', values: F.KINDS, required: true, help: 'gate: a Day 148 gate. quest: quest progress. story: a story fact. counter: a number the story counts with.' },
+    { key: 'default', label: 'Default', type: 'int', min: F.INT_MIN, max: F.INT_MAX, help: 'The value a new game starts with.' },
+    { key: 'range', label: 'Range', type: 'list', of: { type: 'int', min: F.INT_MIN, max: F.INT_MAX }, min: 2, max: 2, itemLabel: 'Bound', help: 'Lowest, then highest. A write outside the range is clamped to it.' },
+    { key: 'gate', label: 'Gate key', type: 'text', max: 160, help: 'The Day 148 gate key this flag stands for.' },
+    { key: 'derived', label: 'Save slot', type: 'enum', values: ['quest', 'once'], help: 'The engine packs quest progress or once pages into this flag for Day 146 saves.' },
+    { key: 'of', label: 'Slot of', type: 'text', max: 160, help: 'The quest or event this save slot belongs to.' },
+    { key: 'notes', label: 'Note', type: 'longtext', max: 600 }
+  ];
+  Kit.codex.register({ name: STORY.TYPES['flg_'].name, prefix: 'flg_', label: STORY.TYPES['flg_'].label, ns: 'story', forge: STORY.FORGE, group: 'story', dependsOn: [], fields: U.clone(STORY.ENVELOPE_FIELDS).concat(FLAG_FIELDS) });
+
+  // ---------------------------------------------------------------- what the sync wants
+  F.idFor = function (key) { return ES.ids.structural('flg_', key); };
+  F.gateId = function (gateKey) { return F.idFor('flg|gate|' + gateKey); };
+  F.doneId = function (sdq) { return F.idFor('flg|done|' + sdq); };
+  function chapterName(id, b) { var c = STORY.chapters(b).filter(function (x) { return x.id === id; })[0]; return c ? (c.name || id) : id; }
+  function hasChapter(id, b) { return STORY.chapters(b).some(function (x) { return x.id === id; }); }
+  function gateWant(k, b) {
+    var p = ES.gates.parse(k), body = { kind: 'gate', 'default': 0, range: [0, 1], gate: k, notes: 'Stands for the Day 148 gate key ' + k + '. One means the gate is open.' }, name;
+    if (p.kind === 'chapter') name = 'Chapter gate: ' + chapterName(p.chapter, b);
+    else if (p.kind === 'seal') name = 'Seal: ' + chapterName(p.chapter, b);
+    else if (p.kind === 'ship') name = 'Vehicle gate: Ship';
+    else if (p.kind === 'airship') name = 'Vehicle gate: Airship';
+    else name = 'Gate: ' + k;
+    if (p.chapter && hasChapter(p.chapter, b)) body.chapter = p.chapter;
+    return { key: 'flg|gate|' + k, family: 'gate', name: name, body: body };
+  }
+  // Every flag the sync generates for this bundle, in a stable order: [{key, family, name, body}].
+  F.wanted = function (b) {
+    b = b || cur();
+    var out = [], g = STORY.world.graph(b);
+    if (g) ES.gates.keys(g).forEach(function (k) { out.push(gateWant(k, b)); });
+    ES.save.slots(STORY.engineIndex(b)).forEach(function (sl) {
+      var rec = STORY.records.get(sl.of, b), nm = rec && rec.name || sl.of, body = { 'default': 0, range: [0, F.INT_MAX], of: sl.of };
+      if (rec && typeof rec.chapter === 'string' && hasChapter(rec.chapter, b)) body.chapter = rec.chapter;
+      if (sl.kind === 'quest') {
+        body.kind = 'quest'; body.derived = 'quest';
+        body.notes = 'Packs the stage, the failed state, and the closed branches of this quest into one whole number for the save. The engine writes it; do not set it by hand.';
+        out.push({ key: 'flg|quest|' + sl.of, family: 'quest', name: 'Save slot: ' + nm, body: body });
+      } else {
+        body.kind = 'story'; body.derived = 'once';
+        body.notes = 'One bit for each once page of this event that has run. The engine writes it; do not set it by hand.';
+        out.push({ key: 'flg|once|' + sl.of, family: 'once', name: 'Save slot: once pages of ' + nm, body: body });
+      }
+    });
+    STORY.rules('sdq_', b).forEach(function (q) {
+      var body = { kind: 'quest', 'default': 0, range: [0, 1], notes: 'Set when the quest for the side quest seed ' + (q.name || q.id) + ' is finished. The seed\'s completion flag points here.' };
+      if (typeof q.chapter === 'string' && hasChapter(q.chapter, b)) body.chapter = q.chapter;
+      out.push({ key: 'flg|done|' + q.id, family: 'done', name: (q.name || q.id) + ' completed', body: body });
+    });
+    return out;
+  };
+
+  // ---------------------------------------------------------------- the sync
+  // Makes what is missing and drops what the world and the quests no longer ask for, binds every gate key, and fills each
+  // side quest seed's completion flag. Idempotent: a second run changes nothing and does not touch the bundle. Never edits
+  // a flag that exists (a name, default, range, or note an author changed stays), never removes an authored flag, and
+  // keeps a binding or a completion flag someone chose that still resolves. Returns a report.
+  F.sync = function (b) {
+    b = b || cur();
+    var rep = { created: [], removed: [], bound: [], rebound: [], dropped: [], sdq: { filled: [], kept: [] }, changed: false, skipped: null };
+    if (!b) { rep.skipped = 'no bundle'; return rep; }
+    STORY.ensure(b);
+    var g = STORY.world.graph(b);
+    if (!g) { rep.skipped = 'The world has no progression graph.'; return rep; }
+    var s = b.story, R = s.records.flg_, scaf = s.scaffold, want = {}, W = F.wanted(b);
+    W.forEach(function (w) { want[w.key] = w; });
+    W.forEach(function (w) {
+      var id = F.idFor(w.key);
+      if (!R[id]) { R[id] = STORY.envelope('flg_', w.key, w.name, w.body); rep.created.push(id); }
+      if (scaf[w.key] !== id) { scaf[w.key] = id; rep.changed = true; }
+    });
+    Object.keys(scaf).sort().forEach(function (k) {
+      if (!F.FAMILIES.some(function (f) { return k.indexOf(f) === 0; }) || want[k]) return;
+      var id = scaf[k];
+      if (R[id] && R[id].origin === 'generated') { delete R[id]; rep.removed.push(id); }
+      delete scaf[k]; rep.changed = true;
+    });
+    var keys = ES.gates.keys(g), live = {};
+    keys.forEach(function (k) {
+      live[k] = 1;
+      var id = F.gateId(k), bd = s.bindings[k];
+      if (U.isObj(bd) && typeof bd.flg === 'string' && R[bd.flg]) { rep.bound.push(k); return; }
+      var nb = { flg: id };
+      if (U.isObj(bd) && typeof bd.itm === 'string') nb.itm = bd.itm;
+      s.bindings[k] = nb; rep.rebound.push(k);
+    });
+    Object.keys(s.bindings).sort().forEach(function (k) { if (!live[k]) { delete s.bindings[k]; rep.dropped.push(k); } });
+    STORY.rules('sdq_', b).forEach(function (q) {
+      var id = F.doneId(q.id), have = q.flag, mine = typeof have === 'string' && Kit.ids.prefixOf(have) === 'flg_' && !!R[have];
+      if (mine && have !== id) { rep.sdq.kept.push(q.id); return; }
+      if (have !== id) { q.flag = id; rep.sdq.filled.push(q.id); }
+    });
+    var edited = rep.created.length || rep.removed.length || rep.rebound.length || rep.dropped.length || rep.sdq.filled.length || rep.changed;
+    if (edited) {
+      s.records.flg_ = sortedObj(R); s.bindings = sortedObj(s.bindings); s.scaffold = sortedObj(scaf);
+      rep.changed = true;
+      if (b === cur()) Kit.bundle.touch('story-flags');
+    }
+    return rep;
+  };
+  F.reportText = function (rep) {
+    if (rep.skipped) return 'Nothing to bind: ' + rep.skipped;
+    if (!rep.changed) return 'Every gate key is bound and every flag is in place.';
+    var bits = [];
+    if (rep.created.length) bits.push(plural(rep.created.length, 'flag') + ' made');
+    if (rep.rebound.length) bits.push(plural(rep.rebound.length, 'gate key') + ' bound');
+    if (rep.removed.length) bits.push(plural(rep.removed.length, 'flag') + ' dropped');
+    if (rep.dropped.length) bits.push(plural(rep.dropped.length, 'binding') + ' dropped');
+    if (rep.sdq.filled.length) bits.push(plural(rep.sdq.filled.length, 'side quest') + ' given a completion flag');
+    return bits.join(', ') + '.';
+  };
+
+  // ---------------------------------------------------------------- the binding table
+  var KIND_ORDER = { chapter: 0, seal: 1, ship: 2, airship: 3, other: 4 };
+  // One row per gate key the world names, unbound ones first: {key, kind, chapter, flg, flagName, bound, itm, itmOk,
+  // shared (other keys on the same flag), generated (the structural flag)}.
+  F.bindingRows = function (b) {
+    b = b || cur();
+    var g = STORY.world.graph(b), s = b && b.story;
+    if (!g || !s) return [];
+    var order = {}, users = {};
+    STORY.chapters(b).forEach(function (c, i) { order[c.id] = i; });
+    var keys = ES.gates.keys(g);
+    keys.forEach(function (k) { var bd = s.bindings[k]; if (U.isObj(bd) && bd.flg) (users[bd.flg] = users[bd.flg] || []).push(k); });
+    var rows = keys.map(function (k) {
+      var p = ES.gates.parse(k), bd = U.isObj(s.bindings[k]) ? s.bindings[k] : null, rec = bd && bd.flg ? s.records.flg_[bd.flg] : null;
+      return { key: k, kind: p.kind, chapter: p.chapter, flg: bd && bd.flg || null, flagName: rec ? rec.name : null, bound: !!rec, itm: bd && bd.itm || null,
+        itmOk: !(bd && bd.itm) || !!STORY.rules('itm_', b).filter(function (x) { return x.id === bd.itm; })[0],
+        shared: bd && bd.flg ? users[bd.flg].filter(function (x) { return x !== k; }) : [], generated: !!(bd && bd.flg === F.gateId(k)) };
+    });
+    rows.sort(function (x, y) {
+      if (x.bound !== y.bound) return x.bound ? 1 : -1;
+      if (KIND_ORDER[x.kind] !== KIND_ORDER[y.kind]) return KIND_ORDER[x.kind] - KIND_ORDER[y.kind];
+      var ox = order[x.chapter] === undefined ? 99 : order[x.chapter], oy = order[y.chapter] === undefined ? 99 : order[y.chapter];
+      return ox - oy || (x.key < y.key ? -1 : x.key > y.key ? 1 : 0);
+    });
+    return rows;
+  };
+  F.label = function (row, b) {
+    if (row.kind === 'chapter') return 'Chapter gate: ' + chapterName(row.chapter, b);
+    if (row.kind === 'seal') return 'Seal: ' + chapterName(row.chapter, b);
+    if (row.kind === 'ship') return 'Vehicle gate: Ship';
+    if (row.kind === 'airship') return 'Vehicle gate: Airship';
+    return 'Gate: ' + row.key;
+  };
+  // Points a gate key at another flag (one that exists), keeping its display item.
+  F.bind = function (key, flg, b) {
+    b = b || cur();
+    if (!b || !b.story || !STORY.world.graph(b) || ES.gates.keys(STORY.world.graph(b)).indexOf(key) < 0) return { ok: false, message: key + ' is not a gate key of this world.' };
+    if (Kit.ids.prefixOf(flg) !== 'flg_' || !b.story.records.flg_[flg]) return { ok: false, message: 'Choose a flag that exists.' };
+    var old = b.story.bindings[key], nb = { flg: flg };
+    if (U.isObj(old) && old.itm) nb.itm = old.itm;
+    b.story.bindings[key] = nb; b.story.bindings = sortedObj(b.story.bindings);
+    if (b === cur()) Kit.bundle.touch('story-binding');
+    return { ok: true };
+  };
+  // Goes back to the generated flag for the gate key, making it when it is missing.
+  F.resetBinding = function (key, b) {
+    b = b || cur();
+    if (!b || !b.story) return { ok: false, message: 'No story is open.' };
+    var id = F.gateId(key);
+    if (!b.story.records.flg_[id]) F.sync(b);
+    return F.bind(key, id, b);
+  };
+  // A seal's display item: an itm_ from the Rules, or null to clear it.
+  F.setItem = function (key, itm, b) {
+    b = b || cur();
+    var bd = b && b.story && b.story.bindings[key];
+    if (!U.isObj(bd) || !bd.flg) return { ok: false, message: 'Bind the gate key to a flag first.' };
+    if (itm) {
+      if (Kit.ids.prefixOf(itm) !== 'itm_' || !STORY.rules('itm_', b).some(function (x) { return x.id === itm; })) return { ok: false, message: 'Choose an item from the Rules.' };
+      bd.itm = itm;
+    } else delete bd.itm;
+    if (b === cur()) Kit.bundle.touch('story-binding');
+    return { ok: true };
+  };
+
+  // ---------------------------------------------------------------- side quest completion flags
+  F.sdqRows = function (b) {
+    b = b || cur();
+    var R = b && b.story ? b.story.records.flg_ : {};
+    return STORY.rules('sdq_', b).map(function (q) {
+      var id = F.doneId(q.id), have = q.flag || null;
+      return { sdq: q.id, name: q.name || q.id, chapter: q.chapter || null, flg: have, flagName: have && R[have] ? R[have].name : null, exists: !!(have && R[have]), generated: have === id, custom: !!have && have !== id, giver: q.giver || null };
+    });
+  };
+  F.setSdqFlag = function (sdq, flg, b) {
+    b = b || cur();
+    var q = b && b.rules && b.rules.sdq_ && b.rules.sdq_[sdq];
+    if (!q) return { ok: false, message: 'That side quest seed does not exist.' };
+    if (Kit.ids.prefixOf(flg) !== 'flg_' || !b.story.records.flg_[flg]) return { ok: false, message: 'Choose a flag that exists.' };
+    q.flag = flg;
+    if (b === cur()) Kit.bundle.touch('story-sdq-flag');
+    return { ok: true };
+  };
+  F.resetSdqFlag = function (sdq, b) {
+    b = b || cur();
+    var q = b && b.rules && b.rules.sdq_ && b.rules.sdq_[sdq];
+    if (!q) return { ok: false, message: 'That side quest seed does not exist.' };
+    q.flag = F.doneId(sdq);
+    var rep = F.sync(b);
+    if (!rep.changed && b === cur()) Kit.bundle.touch('story-sdq-flag');
+    return { ok: true };
+  };
+
+  // ---------------------------------------------------------------- records
+  F.check = function (rec) {
+    var out = [];
+    if (!U.isObj(rec) || typeof rec.name !== 'string' || !rec.name.trim()) out.push({ code: 'name', path: 'name', message: 'A flag needs a name.' });
+    if (!U.isObj(rec) || F.KINDS.indexOf(rec.kind) < 0) out.push({ code: 'kind', path: 'kind', message: 'Kind must be gate, quest, story, or counter.' });
+    if (!U.isObj(rec)) return out;
+    if (rec['default'] !== undefined && !isInt(rec['default'])) out.push({ code: 'default', path: 'default', message: 'The default must be a whole number.' });
+    if (rec.range !== undefined) {
+      var r = rec.range;
+      if (!Array.isArray(r) || r.length !== 2 || !isInt(r[0]) || !isInt(r[1])) out.push({ code: 'range', path: 'range', message: 'The range must be two whole numbers, lowest first.' });
+      else if (r[0] > r[1]) out.push({ code: 'range-order', path: 'range', message: 'The range minimum ' + r[0] + ' is above its maximum ' + r[1] + '.' });
+      else if (isInt(rec['default']) && (rec['default'] < r[0] || rec['default'] > r[1])) out.push({ code: 'default-range', path: 'default', message: 'The default ' + rec['default'] + ' is outside the range ' + r[0] + ' to ' + r[1] + '.' });
+    }
+    return out;
+  };
+  // Edits a flag: patch holds name, kind, default, range (a pair, or null to remove it), and notes. Refused with the
+  // problems when the result would not pass F.check; nothing is written then.
+  F.update = function (id, patch, b) {
+    b = b || cur();
+    var rec = b && b.story && b.story.records.flg_[id];
+    if (!rec) return { ok: false, problems: [{ code: 'missing', path: 'id', message: 'That flag does not exist.' }] };
+    var next = U.clone(rec);
+    ['name', 'kind', 'default', 'notes'].forEach(function (k) { if (patch[k] !== undefined) next[k] = patch[k]; });
+    if (patch.name !== undefined) next.name = String(patch.name).trim();
+    if (patch.range !== undefined) { if (patch.range === null) delete next.range; else next.range = patch.range; }
+    var probs = F.check(next);
+    if (probs.length) return { ok: false, problems: probs };
+    b.story.records.flg_[id] = next;
+    if (b === cur()) { Kit.index.invalidate(); Kit.bundle.touch('story-flag'); }
+    return { ok: true, record: next };
+  };
+  // A flag an author makes by hand: minted ID, origin 'user', which the sync keeps as it is.
+  F.add = function (spec, b) {
+    b = b || cur();
+    STORY.ensure(b);
+    spec = spec || {};
+    var body = { kind: spec.kind || 'story', 'default': spec['default'] === undefined ? 0 : spec['default'] };
+    if (spec.range) body.range = spec.range;
+    if (spec.notes) body.notes = spec.notes;
+    var probe = extend({ name: spec.name }, body), probs = F.check(probe);
+    if (probs.length) return { ok: false, problems: probs };
+    var rec = STORY.authored('flg_', String(spec.name).trim(), body);
+    b.story.records.flg_[rec.id] = rec; b.story.records.flg_ = sortedObj(b.story.records.flg_);
+    if (b === cur()) { Kit.index.invalidate(); Kit.bundle.touch('story-flag'); }
+    return { ok: true, record: rec };
+  };
+  // Removes a flag. A generated flag is made again by the next sync (a gate flag, a save slot, a completion flag), so only
+  // the record goes; the gate keys and side quests that pointed at it are returned so the caller can say so.
+  F.remove = function (id, b) {
+    b = b || cur();
+    var R = b && b.story && b.story.records.flg_;
+    if (!R || !R[id]) return { ok: false, message: 'That flag does not exist.' };
+    var gates = Object.keys(b.story.bindings).sort().filter(function (k) { return U.isObj(b.story.bindings[k]) && b.story.bindings[k].flg === id; });
+    var sdq = STORY.rules('sdq_', b).filter(function (q) { return q.flag === id; }).map(function (q) { return q.id; });
+    delete R[id];
+    if (b === cur()) { Kit.index.invalidate(); Kit.bundle.touch('story-flag'); }
+    return { ok: true, gates: gates, sdq: sdq };
+  };
+
+  // ---------------------------------------------------------------- who reads, who sets
+  // Built from the condition and command trees of everything that can read or set a flag, and from Day 148's progression
+  // (a node requires a gate flag and grants another). {flg: {reads: [src], sets: [src]}} where src is {kind, id, label,
+  // where, tab}. Derived save slots list the engine as their one user. Lists are sorted and hold no duplicates.
+  F.xref = function (b) {
+    b = b || cur();
+    var out = {}, s = b && b.story;
+    if (!s) return out;
+    function bucket(flg) { return out[flg] || (out[flg] = { reads: [], sets: [], seen: {} }); }
+    function add(flg, side, src) {
+      if (typeof flg !== 'string') return;
+      var bk = bucket(flg), key = side + '|' + src.kind + '|' + src.id + '|' + src.where;
+      if (bk.seen[key]) return;
+      bk.seen[key] = 1; bk[side].push(src);
+    }
+    function reads(tree, src) { ES.cond.reads(tree).flags.forEach(function (f) { add(f, 'reads', src); }); }
+    function cmds(list, src) {
+      if (!Array.isArray(list)) return;
+      var r = ES.cmd.refs(list);
+      r.reads.flags.forEach(function (f) { add(f, 'reads', src); });
+      r.sets.flags.forEach(function (f) { add(f, 'sets', src); });
+    }
+    function setsOf(list, src) { if (Array.isArray(list)) list.forEach(function (x) { if (U.isObj(x)) add(x.flg, 'sets', src); }); }
+    var g = STORY.world.graph(b);
+    if (g) {
+      var byGate = {};
+      Object.keys(s.bindings).sort().forEach(function (k) { if (U.isObj(s.bindings[k]) && s.bindings[k].flg) byGate[k] = s.bindings[k].flg; });
+      g.nodes.forEach(function (n) {
+        var label = n.record && STORY.nameOf(n.record, '') || n.key, mk = function (where) { return { kind: 'world', id: n.key, label: label, where: where, tab: 'start' }; };
+        (n.requires || []).forEach(function (k) { if (byGate[k]) add(byGate[k], 'reads', mk('requires')); });
+        (n.grants || []).forEach(function (k) { if (byGate[k]) add(byGate[k], 'sets', mk('grants')); });
+      });
+      (g.start || []).forEach(function (k) { if (byGate[k]) add(byGate[k], 'sets', { kind: 'world', id: 'start', label: 'A new game', where: 'opens at the start', tab: 'start' }); });
+    }
+    STORY.records.list('qst_', b).forEach(function (q) {
+      var base = { kind: 'quest', id: q.id, label: q.name || q.id, tab: 'quests' };
+      function src(where) { return { kind: base.kind, id: base.id, label: base.label, tab: base.tab, where: where }; }
+      (q.stages || []).forEach(function (st, i) {
+        if (!U.isObj(st)) return;
+        var nm = 'stage ' + (st.key || i);
+        if (st.exitWhen !== undefined) reads(st.exitWhen, src(nm + ' exitWhen'));
+        setsOf(st.sets, src(nm + ' sets'));
+      });
+      (q.branches || []).forEach(function (br) { if (U.isObj(br)) (br.outcomes || []).forEach(function (o) { if (U.isObj(o)) setsOf(o.sets, src('branch ' + (br.key || '') + '.' + (o.key || ''))); }); });
+      if (U.isObj(q.fail)) { if (q.fail.cond !== undefined) reads(q.fail.cond, src('fail when')); setsOf(q.fail.sets, src('fail sets')); }
+      if (typeof q.completeFlag === 'string') add(q.completeFlag, 'sets', src('completes'));
+    });
+    STORY.records.list('dlg_', b).forEach(function (d) {
+      var nodes = U.isObj(d.nodes) ? d.nodes : {};
+      Object.keys(nodes).sort().forEach(function (nk) {
+        var n = nodes[nk];
+        if (!U.isObj(n)) return;
+        var src = { kind: 'dialogue', id: d.id, label: d.name || d.id, tab: 'dialogue', where: 'node ' + nk };
+        cmds(n.cmds, src);
+        (n.choices || []).forEach(function (c) { if (!U.isObj(c)) return; if (c.cond !== undefined) reads(c.cond, src); cmds(c.cmds, src); });
+      });
+    });
+    STORY.records.list('evt_', b).forEach(function (e) {
+      (e.pages || []).forEach(function (p, i) {
+        if (!U.isObj(p)) return;
+        var src = { kind: 'event', id: e.id, label: e.name || e.id, tab: 'events', where: 'page ' + (i + 1) };
+        if (p.cond !== undefined) reads(p.cond, src);
+        cmds(p.cmds, src);
+      });
+    });
+    Object.keys(s.npcDialogue || {}).sort().forEach(function (npc) {
+      (Array.isArray(s.npcDialogue[npc]) ? s.npcDialogue[npc] : []).forEach(function (p, i) {
+        if (U.isObj(p) && p.cond !== undefined) reads(p.cond, { kind: 'npc', id: npc, label: STORY.nameOf(npc, npc), tab: 'dialogue', where: 'page ' + (i + 1) });
+      });
+    });
+    STORY.records.list('end_', b).forEach(function (e) { if (e.cond !== undefined) reads(e.cond, { kind: 'ending', id: e.id, label: e.name || e.id, tab: 'start', where: 'condition' }); });
+    STORY.records.list('flg_', b).forEach(function (f) {
+      if (f.derived) { var src = { kind: 'engine', id: 'engine', label: 'The story engine', tab: 'flags', where: 'save slot' }; add(f.id, 'reads', src); add(f.id, 'sets', src); }
+    });
+    var res = {};
+    Object.keys(out).sort().forEach(function (k) {
+      function order(a, z) { return a.kind < z.kind ? -1 : a.kind > z.kind ? 1 : a.label < z.label ? -1 : a.label > z.label ? 1 : a.where < z.where ? -1 : a.where > z.where ? 1 : 0; }
+      res[k] = { reads: out[k].reads.sort(order), sets: out[k].sets.sort(order) };
+    });
+    return res;
+  };
+
+  F.summary = function (b) {
+    b = b || cur();
+    var recs = STORY.records.list('flg_', b), rows = F.bindingRows(b), xr = F.xref(b), by = {}, derived = 0, authored = 0, neverRead = [], neverSet = [];
+    F.KINDS.forEach(function (k) { by[k] = 0; });
+    recs.forEach(function (r) {
+      if (by[r.kind] !== undefined) by[r.kind]++;
+      if (r.derived) derived++;
+      if (r.origin === 'user') authored++;
+      var x = xr[r.id] || { reads: [], sets: [] };
+      if (!r.derived && !x.reads.length) neverRead.push(r.id);
+      if (!r.derived && !x.sets.length) neverSet.push(r.id);
+    });
+    return { total: recs.length, byKind: by, derived: derived, authored: authored, gateKeys: rows.length, bound: rows.filter(function (r) { return r.bound; }).length,
+      unbound: rows.filter(function (r) { return !r.bound; }).length, shared: rows.filter(function (r) { return r.shared.length; }).length, neverRead: neverRead, neverSet: neverSet };
+  };
+
+  // ---------------------------------------------------------------- validation
+  // Cross field mistakes the Codex field checks cannot see, and the bindings. An unbound gate key is an error: Day 150
+  // would never know when that gate opens.
+  Kit.validate.register('story.flags', function (b, ctx) {
+    var s = b.story;
+    if (!s || !U.isObj(s.records)) return;
+    Object.keys(s.records.flg_ || {}).sort().forEach(function (id) {
+      F.check(s.records.flg_[id]).forEach(function (p) {
+        if (p.code === 'range-order' || p.code === 'default-range' || p.code === 'name') ctx.add({ recordId: id, fieldPath: p.path, message: p.message, level: 'error' });
+      });
+    });
+    var g = STORY.world.graph(b);
+    if (!g) return;
+    var keys = ES.gates.keys(g), users = {}, items = {};
+    STORY.rules('itm_', b).forEach(function (x) { items[x.id] = 1; });
+    keys.forEach(function (k) {
+      var bd = s.bindings && s.bindings[k];
+      if (!U.isObj(bd) || typeof bd.flg !== 'string' || !bd.flg) { ctx.add({ recordId: 'story', fieldPath: 'bindings.' + k, message: 'Gate key ' + k + ' is not bound to a story flag.', level: 'error' }); return; }
+      if (!s.records.flg_[bd.flg]) { ctx.add({ recordId: 'story', fieldPath: 'bindings.' + k, message: 'Gate key ' + k + ' is bound to ' + bd.flg + ', which does not exist.', level: 'error' }); return; }
+      (users[bd.flg] = users[bd.flg] || []).push(k);
+      if (bd.itm && !items[bd.itm]) ctx.add({ recordId: 'story', fieldPath: 'bindings.' + k + '.itm', message: 'The display item ' + bd.itm + ' for gate key ' + k + ' is not an item in the Rules.', level: 'error' });
+    });
+    Object.keys(users).sort().forEach(function (f) { if (users[f].length > 1) ctx.add({ recordId: 'story', fieldPath: 'bindings.' + users[f][0], message: 'Gate keys ' + users[f].join(' and ') + ' share one flag (' + f + '), so they always open together.', level: 'warning' }); });
+    Object.keys(s.bindings || {}).sort().forEach(function (k) { if (keys.indexOf(k) < 0) ctx.add({ recordId: 'story', fieldPath: 'bindings.' + k, message: 'A binding for ' + k + ', a gate key the world no longer names.', level: 'warning' }); });
+  });
+
+  // ---------------------------------------------------------------- when the story opens
+  // Opening a finished world binds it: every gate key gets its flag, the save slots get theirs, and each side quest seed
+  // gets its completion flag. Idempotent, so a bundle that is already bound is left alone.
+  Kit.on('load', function (b) {
+    if (STORY.readiness(b) !== true) return;
+    F.sync(b);
+  });
+})();
+// === STORY:SCAFFOLD END ===
+// === WS:FLAGS BEGIN ===
+(function () {
+  'use strict';
+  // The Flags tab: the binding table (every Day 148 gate key and the flag that stands for it, unbound keys first), the
+  // completion flag of each side quest seed, and every flag with who reads it and who sets it. Logic lives in
+  // STORY.flags (src/story-scaffold.js); this file only draws it and calls it.
+  var U = Kit.util, el = U.el, esc = U.esc, F = STORY.flags;
+  function cur() { return Kit.bundle.current(); }
+  function UI() { return STORY.ui; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  var st = STORY.flagsUi = { filter: 'all', q: '', open: {}, focus: null };
+  var FILTERS = [['all', 'All'], ['gate', 'Gates'], ['quest', 'Quest'], ['story', 'Story'], ['counter', 'Counters'], ['slots', 'Save slots'], ['yours', 'Yours']];
+  var SRC_KIND = { world: 'World', quest: 'Quest', dialogue: 'Dialogue', event: 'Event', npc: 'Person', ending: 'Ending', engine: 'Engine' };
+
+  function nameOf(id, fb) { return STORY.nameOf ? STORY.nameOf(id, fb) : (fb || id); }
+  function chName(id) { var c = STORY.chapters().filter(function (x) { return x.id === id; })[0]; return c ? c.name || id : id; }
+  function note(host, cls, text) { host.appendChild(el('p', cls, esc(text))); }
+
+  // ---------------------------------------------------------------- dialogs
+  function field(label, input, help, id) {
+    var f = el('div', 'field'), l = el('label', 'field-label', esc(label));
+    if (id) { input.id = id; l.htmlFor = id; }
+    f.appendChild(l); f.appendChild(input);
+    if (help) f.appendChild(el('div', 'field-help', esc(help)));
+    return f;
+  }
+  function numInput(value, label) {
+    var i = el('input', 'inp'); i.type = 'number'; i.step = '1'; i.inputMode = 'numeric'; i.value = value === undefined || value === null ? '' : String(value); i.setAttribute('aria-label', label);
+    return i;
+  }
+  function editFlag(rec) {
+    var isNew = !rec, derived = !!(rec && rec.derived), lockKind = !!(rec && rec.origin === 'generated');
+    var name, kind, def, lim, min, max, notes, msg;
+    Kit.ui.dialog({
+      title: isNew ? 'Add a flag' : 'Edit flag',
+      body: function (body) {
+        name = el('input', 'inp'); name.type = 'text'; name.value = rec ? rec.name : ''; name.maxLength = 80; name.placeholder = 'The ring was returned';
+        body.appendChild(field('Name', name, 'What a person reading a condition sees.', 'fgName'));
+        kind = el('select', 'inp');
+        F.KINDS.forEach(function (k) { var o = el('option', null, esc(k)); o.value = k; kind.appendChild(o); });
+        kind.value = rec ? rec.kind : 'story';
+        kind.disabled = lockKind || derived;
+        body.appendChild(field('Kind', kind, 'gate: a Day 148 gate. quest: quest progress. story: a fact the story remembers. counter: a number the story counts with.', 'fgKind'));
+        def = numInput(rec ? rec['default'] : 0, 'Default value');
+        def.disabled = derived;
+        body.appendChild(field('Default', def, 'The value a new game starts with. Whole numbers only.', 'fgDef'));
+        var hasRange = !!(rec && Array.isArray(rec.range));
+        lim = UI().toggle('Limit the range', hasRange, function (on) { min.disabled = max.disabled = !on || derived; });
+        lim.querySelector('input').disabled = derived;
+        min = numInput(hasRange ? rec.range[0] : 0, 'Lowest value'); max = numInput(hasRange ? rec.range[1] : 1, 'Highest value');
+        min.disabled = max.disabled = !hasRange || derived;
+        var pair = el('div', 'fg-pair'); pair.appendChild(min); pair.appendChild(max);
+        var rf = el('div', 'field'); rf.appendChild(lim); rf.appendChild(pair);
+        rf.appendChild(el('div', 'field-help', 'Lowest, then highest. A write outside the range is clamped to it.'));
+        body.appendChild(rf);
+        notes = el('textarea', 'inp'); notes.value = rec && rec.notes || ''; notes.maxLength = 600;
+        body.appendChild(field('Note', notes, 'Optional. Why this flag exists and who should set it.', 'fgNotes'));
+        if (derived) body.appendChild(el('p', 'muted', 'The engine packs quest progress into this flag for Day 146 saves, so only its name and note can change.'));
+        msg = el('div', 'field-msg'); body.appendChild(msg);
+      },
+      actions: [
+        { label: 'Cancel', kind: 'ghost', value: null },
+        { label: isNew ? 'Add flag' : 'Save', kind: 'primary', onClick: function () {
+          var d = def.value.trim() === '' ? 0 : Number(def.value), r;
+          if (lim.querySelector('input').checked && !derived) r = [min.value.trim() === '' ? NaN : Number(min.value), max.value.trim() === '' ? NaN : Number(max.value)];
+          var res;
+          if (isNew) res = F.add({ name: name.value, kind: kind.value, 'default': d, range: r, notes: notes.value.trim() });
+          else {
+            var patch = { name: name.value, notes: notes.value.trim() };
+            if (!derived) { patch.kind = kind.value; patch['default'] = d; patch.range = r === undefined ? null : r; }
+            res = F.update(rec.id, patch);
+          }
+          if (!res.ok) { msg.innerHTML = '<span class="msg msg-error">' + esc(res.problems.map(function (p) { return p.message; }).join(' ')) + '</span>'; return false; }
+          if (isNew) st.open[res.record.id] = true;
+          Kit.ui.toast(isNew ? 'Flag added.' : 'Flag saved.', 'ok');
+          Kit.rerender();
+        } }
+      ]
+    });
+  }
+  function deleteFlag(rec, x) {
+    var uses = x.reads.length + x.sets.length, extra = rec.origin === 'generated' ? ' The next regeneration makes it again.' : '';
+    Kit.ui.confirm({ title: 'Delete this flag?', okLabel: 'Delete flag', message: '"' + rec.name + '" ' + (uses ? 'is used in ' + plural(uses, 'place') + ', and each would show a missing flag.' : 'is not used anywhere.') + extra }).then(function (ok) {
+      if (!ok) return;
+      var r = F.remove(rec.id);
+      if (!r.ok) { Kit.ui.toast(r.message, 'warn'); return; }
+      var left = r.gates.length ? ' ' + plural(r.gates.length, 'gate key') + ' now unbound.' : '';
+      Kit.ui.toast('Flag deleted.' + left, r.gates.length ? 'warn' : 'ok');
+      Kit.rerender();
+    });
+  }
+
+  // ---------------------------------------------------------------- the binding table
+  function bindRow(r, b) {
+    var row = el('div', 'fg-row' + (r.bound ? '' : ' unbound'));
+    var info = el('div', 'fg-info');
+    info.appendChild(el('strong', null, esc(F.label(r, b))));
+    info.appendChild(el('small', null, '<code class="id">' + esc(r.key) + '</code>'));
+    var line = el('div', 'fg-line');
+    if (r.bound) {
+      var open = el('button', 'btn btn-ghost fg-link', '<span>' + esc(r.flagName) + '</span>'); open.type = 'button'; open.title = 'Open this flag';
+      open.addEventListener('click', function () { STORY.WS.flags.focus(r.flg); });
+      line.appendChild(open);
+      line.insertAdjacentHTML('beforeend', UI().chip(r.generated ? 'chip-muted' : 'chip-accent', r.generated ? 'Generated' : 'Chosen'));
+      if (r.shared.length) line.insertAdjacentHTML('beforeend', ' ' + UI().chip('chip-warning', 'Shared with ' + r.shared.length, 'Gate keys on one flag always open together: ' + r.shared.join(', ')));
+    } else line.insertAdjacentHTML('beforeend', UI().chip('chip-warning', 'Unbound', 'No flag stands for this gate key, so Day 150 could never tell when it opens.'));
+    info.appendChild(line);
+    if (r.kind === 'seal') {
+      var it = el('div', 'fg-line');
+      it.innerHTML = r.itm ? '<span class="muted">Shows as</span> ' + esc(nameOf(r.itm, r.itm)) + (r.itmOk ? '' : ' ' + UI().chip('chip-broken', 'Not in the Rules')) : '<span class="muted">No display item</span>';
+      info.appendChild(it);
+    }
+    row.appendChild(info);
+    var acts = el('div', 'fg-acts');
+    acts.appendChild(UI().button(r.bound ? 'Change flag' : 'Choose flag', null, '', function () {
+      Kit.ui.pickRef({ prefix: 'flg_', title: 'Flag for ' + F.label(r, b), current: r.flg }).then(function (v) {
+        if (!v) return;
+        var res = F.bind(r.key, v);
+        if (!res.ok) Kit.ui.toast(res.message, 'warn'); else Kit.rerender();
+      });
+    }));
+    if (!r.generated) acts.appendChild(UI().button('Use generated', null, 'btn-ghost', function () {
+      var res = F.resetBinding(r.key);
+      if (!res.ok) Kit.ui.toast(res.message, 'warn'); else Kit.rerender();
+    }));
+    if (r.kind === 'seal' && r.bound) {
+      acts.appendChild(UI().button(r.itm ? 'Change item' : 'Show an item', null, 'btn-ghost', function () {
+        Kit.ui.pickRef({ prefix: 'itm_', title: 'Item for ' + F.label(r, b), current: r.itm }).then(function (v) {
+          if (v === undefined) return;
+          var res = F.setItem(r.key, v);
+          if (!res.ok) Kit.ui.toast(res.message, 'warn'); else Kit.rerender();
+        });
+      }));
+    }
+    row.appendChild(acts);
+    return row;
+  }
+  function bindingsPanel(b, sum) {
+    var p = el('section', 'panel fg-card'), rows = F.bindingRows(b);
+    p.appendChild(el('h3', 'section-h', 'Gate bindings'));
+    if (!rows.length) { p.appendChild(el('div', 'empty-line', 'The world names no gate keys yet.')); return p; }
+    note(p, 'muted', 'Day 148\'s progression names ' + plural(rows.length, 'world local gate key') + '. Each one stands for a story flag, so every gate in Day 150 reads the story\'s state. A seal can also show an item from the Rules. Unbound keys are listed first.');
+    if (sum.unbound) p.appendChild(el('p', 'msg msg-warning', esc(plural(sum.unbound, 'gate key') + ' without a flag. Regenerate the bindings, or choose a flag for each.')));
+    rows.forEach(function (r) { p.appendChild(bindRow(r, b)); });
+    return p;
+  }
+
+  // ---------------------------------------------------------------- side quest completion flags
+  function sdqPanel(b) {
+    var rows = F.sdqRows(b), p = el('section', 'panel fg-card');
+    p.appendChild(el('h3', 'section-h', 'Side quest completion flags'));
+    if (!rows.length) { p.appendChild(el('div', 'empty-line', 'No side quest seeds in the Rules.')); return p; }
+    note(p, 'muted', 'Each side quest seed gets the completion flag of the quest generated for it. A flag you choose that still exists is kept the next time the bindings are regenerated.');
+    rows.forEach(function (r) {
+      var row = el('div', 'fg-row');
+      var info = el('div', 'fg-info');
+      info.appendChild(el('strong', null, esc(r.name)));
+      info.appendChild(el('small', null, esc(chName(r.chapter) + (r.giver ? ', given by ' + nameOf(r.giver, r.giver) : ''))));
+      var line = el('div', 'fg-line');
+      if (r.exists) {
+        var open = el('button', 'btn btn-ghost fg-link', '<span>' + esc(r.flagName) + '</span>'); open.type = 'button'; open.title = 'Open this flag';
+        open.addEventListener('click', function () { STORY.WS.flags.focus(r.flg); });
+        line.appendChild(open);
+        line.insertAdjacentHTML('beforeend', UI().chip(r.generated ? 'chip-muted' : 'chip-accent', r.generated ? 'Generated' : 'Chosen'));
+      } else line.insertAdjacentHTML('beforeend', UI().chip('chip-warning', r.flg ? 'Missing flag' : 'No flag yet'));
+      info.appendChild(line);
+      row.appendChild(info);
+      var acts = el('div', 'fg-acts');
+      acts.appendChild(UI().button('Choose flag', null, '', function () {
+        Kit.ui.pickRef({ prefix: 'flg_', title: 'Completion flag for ' + r.name, current: r.flg }).then(function (v) {
+          if (!v) return;
+          var res = F.setSdqFlag(r.sdq, v);
+          if (!res.ok) Kit.ui.toast(res.message, 'warn'); else Kit.rerender();
+        });
+      }));
+      if (!r.generated) acts.appendChild(UI().button('Use generated', null, 'btn-ghost', function () { F.resetSdqFlag(r.sdq); Kit.rerender(); }));
+      row.appendChild(acts);
+      p.appendChild(row);
+    });
+    return p;
+  }
+
+  // ---------------------------------------------------------------- the flag list
+  function srcList(title, list) {
+    var d = el('div', 'fg-src');
+    d.appendChild(el('h4', 'fg-src-h', esc(title) + ' (' + list.length + ')'));
+    if (!list.length) { d.appendChild(el('p', 'muted fg-none', 'Nothing yet.')); return d; }
+    var ul = el('ul', 'fg-srclist');
+    list.slice(0, 8).forEach(function (s) {
+      ul.appendChild(el('li', null, UI().chip('chip-muted', SRC_KIND[s.kind] || s.kind) + ' <span>' + esc(s.label) + '</span> <small>' + esc(s.where) + '</small>'));
+    });
+    if (list.length > 8) ul.appendChild(el('li', 'muted', 'and ' + (list.length - 8) + ' more'));
+    d.appendChild(ul);
+    return d;
+  }
+  function flagItem(r, xr, b) {
+    var x = xr[r.id] || { reads: [], sets: [] }, wrap = el('div', 'fg-item'), open = !!st.open[r.id];
+    wrap.dataset.flg = r.id;
+    var meta = UI().chip('chip-accent', r.derived ? 'save slot' : r.kind) + (r.origin === 'user' ? ' ' + UI().chip('chip-muted', 'yours') : '') + ' ' + UI().chip('chip-muted', 'default ' + (r['default'] === undefined ? 0 : r['default'])) +
+      (Array.isArray(r.range) ? ' ' + UI().chip('chip-muted', r.range[0] + ' to ' + r.range[1]) : '') + ' ' + UI().chip(x.reads.length ? 'chip-muted' : 'chip-warning', 'read ' + x.reads.length) + ' ' + UI().chip(x.sets.length ? 'chip-muted' : 'chip-warning', 'set ' + x.sets.length);
+    var head = el('button', 'btn fg-head', '<span class="fg-name">' + esc(r.name) + '</span><span class="fg-meta">' + meta + '</span>');
+    head.type = 'button'; head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    var body = el('div', 'fg-body'); body.hidden = !open;
+    var kvp = [['ID', '<code class="id">' + esc(r.id) + '</code>'], ['Kind', esc(r.derived ? 'save slot of ' + r.derived : r.kind)], ['Default', esc(String(r['default'] === undefined ? 0 : r['default']))],
+      ['Range', Array.isArray(r.range) ? esc(r.range[0] + ' to ' + r.range[1]) : '<span class="muted">none</span>']];
+    if (r.gate) kvp.push(['Gate key', '<code class="id">' + esc(r.gate) + '</code>']);
+    if (r.of) kvp.push(['Slot of', esc(nameOf(r.of, r.of))]);
+    if (r.chapter) kvp.push(['Chapter', esc(chName(r.chapter))]);
+    kvp.push(['Origin', esc(r.origin === 'user' ? 'Made by hand' : 'Generated')]);
+    body.appendChild(el('div', null, UI().kv(kvp)));
+    if (r.notes) body.appendChild(el('p', 'muted', esc(r.notes)));
+    body.appendChild(srcList('Who reads it', x.reads));
+    body.appendChild(srcList('Who sets it', x.sets));
+    var acts = el('div', 'btn-row fg-bacts');
+    acts.appendChild(UI().button('Edit', 'edit', '', function () { editFlag(r); }));
+    if (r.derived) acts.appendChild(el('span', 'muted fg-none', 'The engine makes and drops this slot.'));
+    else acts.appendChild(UI().button('Delete', 'trash', 'btn-danger', function () { deleteFlag(r, x); }));
+    body.appendChild(acts);
+    head.addEventListener('click', function () { st.open[r.id] = body.hidden; body.hidden = !body.hidden; head.setAttribute('aria-expanded', body.hidden ? 'false' : 'true'); });
+    wrap.appendChild(head); wrap.appendChild(body);
+    return wrap;
+  }
+  function visible(r) {
+    var f = st.filter, q = st.q.trim().toLowerCase();
+    if (f === 'slots' ? !r.derived : f === 'yours' ? r.origin !== 'user' : f !== 'all' && (r.kind !== f || r.derived)) return false;
+    if (!q) return true;
+    return [r.name, r.id, r.gate || '', r.notes || ''].join(' ').toLowerCase().indexOf(q) >= 0;
+  }
+  function listPanel(b, sum, xr) {
+    var p = el('section', 'panel fg-card'), recs = STORY.records.list('flg_', b);
+    p.appendChild(el('h3', 'section-h', 'All flags'));
+    note(p, 'muted', 'Every flag is a whole number. Open one to see who reads it and who sets it, built from the conditions and commands of every quest, dialogue, event, and ending, and from Day 148\'s progression. Save slots belong to the engine: it packs quest progress and once pages into them so Day 146 saves resolve.');
+    var search = el('input', 'inp fg-search'); search.type = 'search'; search.placeholder = 'Search flags'; search.value = st.q; search.setAttribute('aria-label', 'Search flags');
+    p.appendChild(search);
+    var bar = el('div', 'fg-filter');
+    FILTERS.forEach(function (f) {
+      var bt = el('button', 'btn', esc(f[1])); bt.type = 'button'; bt.setAttribute('aria-pressed', st.filter === f[0] ? 'true' : 'false');
+      bt.addEventListener('click', function () { st.filter = f[0]; Array.prototype.forEach.call(bar.children, function (c, i) { c.setAttribute('aria-pressed', FILTERS[i][0] === st.filter ? 'true' : 'false'); }); paint(); });
+      bar.appendChild(bt);
+    });
+    p.appendChild(bar);
+    var list = el('div', 'fg-list'), count = el('p', 'muted fg-count');
+    p.appendChild(count); p.appendChild(list);
+    function paint() {
+      U.clear(list);
+      var shown = recs.filter(visible);
+      count.textContent = shown.length === recs.length ? plural(recs.length, 'flag') : shown.length + ' of ' + plural(recs.length, 'flag');
+      if (!shown.length) list.appendChild(el('div', 'empty-line', recs.length ? 'No flag matches.' : 'No flags yet. Opening a finished world makes one for every gate key.'));
+      shown.forEach(function (r) { list.appendChild(flagItem(r, xr, b)); });
+    }
+    search.addEventListener('input', function () { st.q = search.value; paint(); });
+    paint();
+    return p;
+  }
+
+  // ---------------------------------------------------------------- the tab
+  function render(host) {
+    var b = cur(), sum = F.summary(b), xr = F.xref(b);
+    var head = el('section', 'panel');
+    head.innerHTML = '<h2 class="panel-title">Flags</h2><p class="muted fg-lead">Flags are whole numbers the story keeps: which gates are open, how far each quest has come, and the facts and counters a conversation can test. Each Day 148 gate key is bound to one flag here, so the world and the story agree on what is open.</p>';
+    head.appendChild(el('div', 'fg-stats', UI().chip('chip-accent', plural(sum.total, 'flag')) + ' ' +
+      UI().chip(sum.unbound ? 'chip-warning' : 'chip-ok', sum.bound + ' of ' + sum.gateKeys + ' gate keys bound') + ' ' +
+      UI().chip('chip-muted', plural(sum.derived, 'save slot')) + (sum.authored ? ' ' + UI().chip('chip-muted', sum.authored + ' made by hand') : '') +
+      (sum.neverRead.length ? ' ' + UI().chip('chip-warning', sum.neverRead.length + ' never read', 'Set but nothing reads them yet. Quests, dialogue, and events arrive in later phases.') : '') +
+      (sum.neverSet.length ? ' ' + UI().chip('chip-warning', sum.neverSet.length + ' never set', 'Read but nothing sets them yet.') : '')));
+    var row = el('div', 'btn-row');
+    row.appendChild(UI().button('Add flag', 'plus', 'btn-primary', function () { editFlag(null); }));
+    row.appendChild(UI().button('Regenerate bindings', 'check', '', function () {
+      var rep = F.sync();
+      Kit.ui.toast(F.reportText(rep), rep.skipped ? 'warn' : 'ok', 5000);
+      Kit.rerender();
+    }));
+    head.appendChild(row);
+    host.appendChild(head);
+    host.appendChild(bindingsPanel(b, sum));
+    host.appendChild(sdqPanel(b));
+    host.appendChild(listPanel(b, sum, xr));
+    if (st.focus) {
+      var id = st.focus, node = host.querySelector('[data-flg="' + id + '"]');
+      st.focus = null;
+      if (node) { if (typeof node.scrollIntoView === 'function') node.scrollIntoView({ block: 'center' }); var hb = node.querySelector('.fg-head'); if (hb) try { hb.focus({ preventScroll: true }); } catch (e) {} }
+    }
+  }
+  function focus(rid) {
+    if (!rid) return;
+    st.open[rid] = true; st.filter = 'all'; st.q = ''; st.focus = rid;
+    Kit.rerender();
+  }
+  STORY.WS = STORY.WS || {};
+  STORY.WS.flags = { render: render, focus: focus };
+  // A flag ID in a validation card (or anywhere else) opens the Flags tab on that flag.
+  Kit.jump.register({ test: function (rid) { return Kit.ids.prefixOf(rid) === 'flg_'; }, name: function (rid) { return nameOf(rid, rid); }, go: function (rid) { if (!Kit.go('flags')) return false; focus(rid); return true; } });
+})();
+// === WS:FLAGS END ===
 // === WS:STORY149 BEGIN ===
 (function () {
   'use strict';
@@ -4830,6 +5614,7 @@ var ENGINE_STORY = (function () {
     var b = cur();
     if (!b) throw new Error('No project is open.');
     STORY.ensure(b);
+    if (STORY.flags && STORY.readiness(b) === true) STORY.flags.sync(b);
     if (status === 'final') {
       var why = finalBlock(b);
       if (why) throw new Error(why);
@@ -4991,7 +5776,10 @@ var ENGINE_STORY = (function () {
     card.appendChild(el('h3', 'section-h', 'Gate keys to bind'));
     keys.forEach(function (k) { var g = ENGINE_STORY.gates.parse(k); (by[g.kind] = by[g.kind] || []).push(g); });
     Object.keys(by).forEach(function (k) { by[k].sort(function (x, y) { return (order[x.chapter] || 0) - (order[y.chapter] || 0); }); });
-    card.appendChild(el('p', 'muted', esc('Day 148\'s progression names ' + plural(keys.length, 'world local gate key') + '. Phase 2 binds each one to a story flag, so every gate in Day 150 reads the story\'s state.')));
+    var sum = STORY.flags.summary(b);
+    card.appendChild(el('p', 'muted', esc('Day 148\'s progression names ' + plural(keys.length, 'world local gate key') + '. Each one is bound to a story flag, so every gate in Day 150 reads the story\'s state.')));
+    card.appendChild(el('p', null, chip(sum.unbound ? 'chip-warning' : 'chip-ok', sum.bound + ' of ' + sum.gateKeys + ' bound') + ' ' + chip('chip-muted', plural(sum.derived, 'save slot'))));
+    card.appendChild(button('Open Flags', 'key', '', function () { Kit.go('flags'); }));
     card.appendChild(el('div', null, kv(['chapter', 'seal', 'ship', 'airship', 'other'].filter(function (k) { return by[k]; }).map(function (k) {
       return [GATE_LABEL[k], by[k].map(function (g) { return chip(k === 'other' ? 'chip-warning' : 'chip-muted', g.chapter ? chName(g.chapter) : g.key, g.key); }).join(' ')];
     }))));
@@ -5004,7 +5792,7 @@ var ENGINE_STORY = (function () {
     card.appendChild(el('h3', 'section-h', 'Side quests'));
     if (!qs.length) { card.appendChild(el('div', 'empty-line', 'No side quest seeds in the Rules.')); return card; }
     card.appendChild(table([{ label: 'Quest' }, { label: 'Giver' }, { label: 'Completion flag' }], qs.map(function (q) {
-      var fl = q.flag ? (STORY.records.get(q.flag, b) ? esc(nameOf(q.flag)) : chip('chip-broken', q.flag)) : chip('chip-muted', 'Phase 2 fills');
+      var fl = q.flag ? (STORY.records.get(q.flag, b) ? esc(nameOf(q.flag)) : chip('chip-broken', q.flag)) : chip('chip-muted', 'not filled yet');
       return '<tr><th scope="row">' + esc(q.name || q.id) + '<small class="s9-sub">' + esc(chName(q.chapter)) + '</small></th><td>' + esc(nameOf(q.giver, 'none')) + '</td><td>' + fl + '</td></tr>';
     })));
     return card;
@@ -5066,7 +5854,8 @@ var ENGINE_STORY = (function () {
     sizeBody(z);
     host.appendChild(z);
   }
-  STORY.jumpStory = function () { return Kit.go('export'); };
+  // Binding problems open the Flags tab; everything else about the namespace is on Validation and Export.
+  STORY.jumpStory = function (fieldPath) { return /^bindings/.test(fieldPath || '') ? Kit.go('flags') : Kit.go('export'); };
 
   function renderDev(host) {
     var p = el('section', 'panel');

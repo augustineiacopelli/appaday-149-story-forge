@@ -1,0 +1,595 @@
+{
+ "passed": 77,
+ "total": 77,
+ "results": [
+  {
+   "name": "the three new sources exist and are pure ASCII",
+   "ok": true
+  },
+  {
+   "name": "no forbidden APIs in the new JavaScript (roundRect, ellipse, confirm, eval, bare remove)",
+   "ok": true,
+   "detail": [
+    null,
+    null
+   ]
+  },
+  {
+   "name": "build.js lists story-scaffold.js after story-store.js and ws-flags.js after ws-story149 shell files",
+   "ok": true
+  },
+  {
+   "name": "index.html carries the STORY:SCAFFOLD, WS:FLAGS and STORY:FLAGS CSS fences",
+   "ok": true
+  },
+  {
+   "name": "engine-story.js is unchanged by Phase 2 (equal to the committed file)",
+   "ok": true
+  },
+  {
+   "name": "boots with no page errors and STORY.flags is the Phase 2 API",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "flg_ is the StoryFlag Codex type",
+   "ok": true
+  },
+  {
+   "name": "opening the forge binds every gate key: 14 keys, each with a flag that exists",
+   "ok": true,
+   "detail": [
+    14,
+    14
+   ]
+  },
+  {
+   "name": "every gate flag ID equals ENGINE_STORY.ids.structural of flg|gate|<key> and is kind gate, default 0, range 0 to 1",
+   "ok": true
+  },
+  {
+   "name": "the engine slot flags: flg|quest|<qst> and flg|once|<evt> exist only for story records; none yet here",
+   "ok": true
+  },
+  {
+   "name": "both side quest seeds got the generated completion flag, and the records exist",
+   "ok": true,
+   "detail": [
+    "flg_flg_done_sdq_frozen_lantern_l6q4_cso1",
+    "flg_flg_done_sdq_lost_ring_r3q1_1ma5"
+   ]
+  },
+  {
+   "name": "records, bindings, and scaffold are key sorted, and the scaffold names each generated flag",
+   "ok": true
+  },
+  {
+   "name": "flag records are indexed by KIT:CORE under story.records.flg_",
+   "ok": true
+  },
+  {
+   "name": "the sync writes only story and sdq_.flag: charter, codex, art, world and the rest of rules are identical",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "a second sync changes nothing: empty report, same story bytes, no touch",
+   "ok": true,
+   "detail": {
+    "created": [],
+    "removed": [],
+    "bound": [
+     "chapter:chp_the_far_shore_izf4",
+     "chapter:chp_the_frost_reach_f7k1",
+     "chapter:chp_the_last_light_l9t3",
+     "chapter:chp_the_lowlands_auem",
+     "chapter:chp_the_marches_m4r2",
+     "chapter:chp_the_sunken_coast_s2c9",
+     "item:seal:chp_the_far_shore_izf4",
+     "item:seal:chp_the_frost_reach_f7k1",
+     "item:seal:chp_the_last_light_l9t3",
+     "item:seal:chp_the_lowlands_auem",
+     "item:seal:chp_the_marches_m4r2",
+     "item:seal:chp_the_sunken_coast_s2c9",
+     "vehicle:airship",
+     "vehicle:ship"
+    ],
+    "rebound": [],
+    "dropped": [],
+    "sdq": {
+     "filled": [],
+     "kept": []
+    },
+    "changed": false,
+    "skipped": null
+   }
+  },
+  {
+   "name": "the first sync report names what it did through reportText",
+   "ok": true
+  },
+  {
+   "name": "two fresh pages importing the same Final get byte identical story namespaces",
+   "ok": true
+  },
+  {
+   "name": "the demo (no side quest seeds): all gate keys bound, nothing else written to rules",
+   "ok": true
+  },
+  {
+   "name": "sync on a bundle that was never opened here creates 14 gate flags and 2 completion flags",
+   "ok": true,
+   "detail": {
+    "created": [
+     "flg_flg_gate_chapter_chp_the_far_shore_izf4_qdn1",
+     "flg_flg_gate_chapter_chp_the_frost_reach_f7k_0axg",
+     "flg_flg_gate_chapter_chp_the_last_light_l9t3_22l8",
+     "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
+     "flg_flg_gate_chapter_chp_the_marches_m4r2_minw",
+     "flg_flg_gate_chapter_chp_the_sunken_coast_s2_3utm",
+     "flg_flg_gate_item_seal_chp_the_far_shore_izf_tz57",
+     "flg_flg_gate_item_seal_chp_the_frost_reach_f_z70o",
+     "flg_flg_gate_item_seal_chp_the_last_light_l9_uf4c",
+     "flg_flg_gate_item_seal_chp_the_lowlands_auem_0r61",
+     "flg_flg_gate_item_seal_chp_the_marches_m4r2_t3lr",
+     "flg_flg_gate_item_seal_chp_the_sunken_coast_hsp0",
+     "flg_flg_gate_vehicle_airship_713s",
+     "flg_flg_gate_vehicle_ship_iqdm",
+     "flg_flg_done_sdq_frozen_lantern_l6q4_cso1",
+     "flg_flg_done_sdq_lost_ring_r3q1_1ma5"
+    ],
+    "removed": [],
+    "bound": [],
+    "rebound": [
+     "chapter:chp_the_far_shore_izf4",
+     "chapter:chp_the_frost_reach_f7k1",
+     "chapter:chp_the_last_light_l9t3",
+     "chapter:chp_the_lowlands_auem",
+     "chapter:chp_the_marches_m4r2",
+     "chapter:chp_the_sunken_coast_s2c9",
+     "item:seal:chp_the_far_shore_izf4",
+     "item:seal:chp_the_frost_reach_f7k1",
+     "item:seal:chp_the_last_light_l9t3",
+     "item:seal:chp_the_lowlands_auem",
+     "item:seal:chp_the_marches_m4r2",
+     "item:seal:chp_the_sunken_coast_s2c9",
+     "vehicle:airship",
+     "vehicle:ship"
+    ],
+    "dropped": [],
+    "sdq": {
+     "filled": [
+      "sdq_frozen_lantern_l6q4",
+      "sdq_lost_ring_r3q1"
+     ],
+     "kept": []
+    },
+    "changed": true,
+    "skipped": null
+   }
+  },
+  {
+   "name": "an author edit to a generated flag (name, notes, range) is never overwritten by a later sync",
+   "ok": true
+  },
+  {
+   "name": "a hand made flag has a minted ID, origin user, and survives sync",
+   "ok": true
+  },
+  {
+   "name": "F.bind points a gate key at a hand made flag and the sync keeps that choice",
+   "ok": true
+  },
+  {
+   "name": "F.setItem shows an existing itm_ on a seal key, keeps through sync, and clears with null",
+   "ok": true
+  },
+  {
+   "name": "F.setItem refuses a non item and an unbound key",
+   "ok": true
+  },
+  {
+   "name": "an sdq_.flag someone else chose (a live flg_) is kept, the other seed keeps the generated flag",
+   "ok": true
+  },
+  {
+   "name": "a dangling sdq_.flag is replaced with the generated one and reported as filled",
+   "ok": true,
+   "detail": {
+    "filled": [
+     "sdq_frozen_lantern_l6q4"
+    ],
+    "kept": []
+   }
+  },
+  {
+   "name": "F.setSdqFlag and F.resetSdqFlag choose and restore, refusing unknown seeds and missing flags",
+   "ok": true
+  },
+  {
+   "name": "a deleted side quest seed drops its generated completion flag from records and scaffold",
+   "ok": true,
+   "detail": {
+    "created": [],
+    "removed": [
+     "flg_flg_done_sdq_lost_ring_r3q1_1ma5"
+    ],
+    "bound": [
+     "chapter:chp_the_far_shore_izf4",
+     "chapter:chp_the_frost_reach_f7k1",
+     "chapter:chp_the_last_light_l9t3",
+     "chapter:chp_the_lowlands_auem",
+     "chapter:chp_the_marches_m4r2",
+     "chapter:chp_the_sunken_coast_s2c9",
+     "item:seal:chp_the_far_shore_izf4",
+     "item:seal:chp_the_frost_reach_f7k1",
+     "item:seal:chp_the_last_light_l9t3",
+     "item:seal:chp_the_lowlands_auem",
+     "item:seal:chp_the_marches_m4r2",
+     "item:seal:chp_the_sunken_coast_s2c9",
+     "vehicle:airship",
+     "vehicle:ship"
+    ],
+    "rebound": [],
+    "dropped": [],
+    "sdq": {
+     "filled": [],
+     "kept": []
+    },
+    "changed": true,
+    "skipped": null
+   }
+  },
+  {
+   "name": "a binding for a gate key the world no longer has is dropped and reported",
+   "ok": true,
+   "detail": [
+    "chapter:chp_ghost_0000"
+   ]
+  },
+  {
+   "name": "the next sync recreates the missing gate flag and rebinds the key",
+   "ok": true,
+   "detail": {
+    "created": [
+     "flg_flg_gate_chapter_chp_the_last_light_l9t3_22l8"
+    ],
+    "removed": [],
+    "bound": [
+     "chapter:chp_the_far_shore_izf4",
+     "chapter:chp_the_frost_reach_f7k1",
+     "chapter:chp_the_last_light_l9t3",
+     "chapter:chp_the_lowlands_auem",
+     "chapter:chp_the_marches_m4r2",
+     "chapter:chp_the_sunken_coast_s2c9",
+     "item:seal:chp_the_far_shore_izf4",
+     "item:seal:chp_the_frost_reach_f7k1",
+     "item:seal:chp_the_last_light_l9t3",
+     "item:seal:chp_the_lowlands_auem",
+     "item:seal:chp_the_marches_m4r2",
+     "item:seal:chp_the_sunken_coast_s2c9",
+     "vehicle:airship",
+     "vehicle:ship"
+    ],
+    "rebound": [],
+    "dropped": [],
+    "sdq": {
+     "filled": [],
+     "kept": []
+    },
+    "changed": true,
+    "skipped": null
+   }
+  },
+  {
+   "name": "F.resetBinding goes back to the generated flag, making it if needed",
+   "ok": true
+  },
+  {
+   "name": "F.bind refuses an unknown gate key and a flag that does not exist",
+   "ok": true
+  },
+  {
+   "name": "F.check names each problem code: name, kind, default, range, range-order, default-range",
+   "ok": true
+  },
+  {
+   "name": "F.update applies name, kind, default, range, and notes, and range null removes the range",
+   "ok": true
+  },
+  {
+   "name": "F.update refuses a bad result and writes nothing",
+   "ok": true
+  },
+  {
+   "name": "F.update and F.remove refuse an unknown flag; F.add refuses a blank name and a bad range",
+   "ok": true
+  },
+  {
+   "name": "F.remove deletes the record and returns the gate keys that pointed at it; sync makes a generated flag again",
+   "ok": true
+  },
+  {
+   "name": "a story quest gets flg|quest|<qst> (kind quest, derived quest, limit 0 to the largest int) and an event with no once pages gets no flg|once|",
+   "ok": true,
+   "detail": {
+    "flg|done|sdq_frozen_lantern_l6q4": "flg_flg_done_sdq_frozen_lantern_l6q4_cso1",
+    "flg|done|sdq_lost_ring_r3q1": "flg_flg_done_sdq_lost_ring_r3q1_1ma5",
+    "flg|gate|chapter:chp_the_far_shore_izf4": "flg_flg_gate_chapter_chp_the_far_shore_izf4_qdn1",
+    "flg|gate|chapter:chp_the_frost_reach_f7k1": "flg_flg_gate_chapter_chp_the_frost_reach_f7k_0axg",
+    "flg|gate|chapter:chp_the_last_light_l9t3": "flg_flg_gate_chapter_chp_the_last_light_l9t3_22l8",
+    "flg|gate|chapter:chp_the_lowlands_auem": "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
+    "flg|gate|chapter:chp_the_marches_m4r2": "flg_flg_gate_chapter_chp_the_marches_m4r2_minw",
+    "flg|gate|chapter:chp_the_sunken_coast_s2c9": "flg_flg_gate_chapter_chp_the_sunken_coast_s2_3utm",
+    "flg|gate|item:seal:chp_the_far_shore_izf4": "flg_flg_gate_item_seal_chp_the_far_shore_izf_tz57",
+    "flg|gate|item:seal:chp_the_frost_reach_f7k1": "flg_flg_gate_item_seal_chp_the_frost_reach_f_z70o",
+    "flg|gate|item:seal:chp_the_last_light_l9t3": "flg_flg_gate_item_seal_chp_the_last_light_l9_uf4c",
+    "flg|gate|item:seal:chp_the_lowlands_auem": "flg_flg_gate_item_seal_chp_the_lowlands_auem_0r61",
+    "flg|gate|item:seal:chp_the_marches_m4r2": "flg_flg_gate_item_seal_chp_the_marches_m4r2_t3lr",
+    "flg|gate|item:seal:chp_the_sunken_coast_s2c9": "flg_flg_gate_item_seal_chp_the_sunken_coast_hsp0",
+    "flg|gate|vehicle:airship": "flg_flg_gate_vehicle_airship_713s",
+    "flg|gate|vehicle:ship": "flg_flg_gate_vehicle_ship_iqdm"
+   }
+  },
+  {
+   "name": "slot flags ID with ENGINE_STORY.ids.structural of the engine slot key",
+   "ok": true
+  },
+  {
+   "name": "removing the quest drops its slot flag on the next sync",
+   "ok": true
+  },
+  {
+   "name": "xref lists only flags that exist, each with reads and sets arrays of {kind, id, where}, no duplicates",
+   "ok": true,
+   "detail": 14
+  },
+  {
+   "name": "xref reads Day 148 progression: each chapter gate flag is read by one node and set by one node",
+   "ok": true
+  },
+  {
+   "name": "xref is deterministic: two runs are byte identical",
+   "ok": true
+  },
+  {
+   "name": "F.summary counts flags, gate keys, bound keys, and slot flags",
+   "ok": true,
+   "detail": {
+    "total": 16,
+    "byKind": {
+     "gate": 14,
+     "quest": 2,
+     "story": 0,
+     "counter": 0
+    },
+    "derived": 0,
+    "authored": 0,
+    "gateKeys": 14,
+    "bound": 14,
+    "unbound": 0,
+    "shared": 0,
+    "neverRead": [
+     "flg_flg_done_sdq_frozen_lantern_l6q4_cso1",
+     "flg_flg_done_sdq_lost_ring_r3q1_1ma5",
+     "flg_flg_gate_vehicle_airship_713s"
+    ],
+    "neverSet": [
+     "flg_flg_done_sdq_frozen_lantern_l6q4_cso1",
+     "flg_flg_done_sdq_lost_ring_r3q1_1ma5"
+    ]
+   }
+  },
+  {
+   "name": "the world and story validate with 0 errors and 0 broken (sdq_.flag read as forward while story is closed)",
+   "ok": true,
+   "detail": {
+    "errors": 0,
+    "broken": 0,
+    "forward": 2,
+    "warnings": 0
+   }
+  },
+  {
+   "name": "an unbound gate key is a story.flags error at bindings.<key>",
+   "ok": true,
+   "detail": [
+    {
+     "recordId": "story",
+     "fieldPath": "bindings.chapter:chp_the_sunken_coast_s2c9",
+     "message": "Gate key chapter:chp_the_sunken_coast_s2c9 is bound to flg_flg_gate_chapter_chp_the_sunken_coast_s2_3utm, which does not exist.",
+     "level": "error"
+    }
+   ]
+  },
+  {
+   "name": "a range with min above max is an error",
+   "ok": true
+  },
+  {
+   "name": "a blank name is an error",
+   "ok": true
+  },
+  {
+   "name": "two gate keys sharing one flag is a warning, not an error",
+   "ok": true,
+   "detail": [
+    "Gate keys item:seal:chp_the_far_shore_izf4 and item:seal:chp_the_frost_reach_f7k1 share one flag (flg_flg_gate_item_seal_chp_the_far_shore_izf_tz57), so they always open together."
+   ]
+  },
+  {
+   "name": "a display item that is not an item is an error",
+   "ok": true,
+   "detail": [
+    {
+     "recordId": "story",
+     "fieldPath": "bindings.item:seal:chp_the_far_shore_izf4.itm",
+     "message": "The display item itm_gone_zz99 for gate key item:seal:chp_the_far_shore_izf4 is not an item in the Rules.",
+     "level": "error"
+    }
+   ]
+  },
+  {
+   "name": "Kit.jump resolves a flg_ ID to the Flags tab",
+   "ok": true
+  },
+  {
+   "name": "the Flags tab is unlocked and renders with no page errors",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "the Gate bindings panel lists all 14 keys",
+   "ok": true,
+   "detail": 16
+  },
+  {
+   "name": "Add flag and Regenerate bindings buttons are present and 44px tall by class",
+   "ok": true
+  },
+  {
+   "name": "an unbound gate key is listed first and carries the Unbound chip",
+   "ok": true,
+   "detail": "Seal: The Last Lightitem:seal:chp_the_last_light_l9t3UnboundNo display itemChoos"
+  },
+  {
+   "name": "Regenerate bindings repairs it: flag recreated, nothing unbound, the notice says so",
+   "ok": true,
+   "detail": null
+  },
+  {
+   "name": "All flags lists every flag record as an expandable item",
+   "ok": true,
+   "detail": [
+    16,
+    16
+   ]
+  },
+  {
+   "name": "the Gates filter shows only gate flags",
+   "ok": true,
+   "detail": 14
+  },
+  {
+   "name": "the Quest filter shows the completion flags",
+   "ok": true,
+   "detail": 2
+  },
+  {
+   "name": "search narrows the list by name or ID, and the Yours filter shows hand made flags only",
+   "ok": true,
+   "detail": [
+    1,
+    0
+   ]
+  },
+  {
+   "name": "expanding an item shows its reads and sets lists and Edit and Delete",
+   "ok": true
+  },
+  {
+   "name": "Edit opens a dialog with Name, Kind, Default, a range switch and Note",
+   "ok": true,
+   "detail": "Edit flagNameWhat a person reading a condition sees.Kindgatequeststorycountergate: a Day 148 gate. quest: quest progress"
+  },
+  {
+   "name": "Save in the dialog writes the new name to the record",
+   "ok": true
+  },
+  {
+   "name": "Add flag makes a hand made flag with origin user",
+   "ok": true
+  },
+  {
+   "name": "the Start card says 14 of 14 bound and offers Open Flags; the side quest table shows the flag names",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "name": "Open Flags goes to the Flags tab",
+   "ok": true
+  },
+  {
+   "name": "STORY.jumpStory sends bindings paths to Flags and others to Export",
+   "ok": true
+  },
+  {
+   "name": "no page errors after the whole tour",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "a bundle that is not a ready Day 148 Final is refused at import, so the sync never runs on it",
+   "ok": true
+  },
+  {
+   "name": "twenty syncs of a settled bundle take under a second",
+   "ok": true,
+   "detail": 30
+  },
+  {
+   "name": "the Draft carries the flags, the bindings, and the slot flag of the hand made quest",
+   "ok": true
+  },
+  {
+   "name": "Day 146 opens the Draft with the flags: hash verified, no errors, no broken references, namespaces identical",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "s": {
+     "errors": 0,
+     "broken": 0,
+     "forward": 2,
+     "warnings": 1
+    },
+    "e": [],
+    "same": [],
+    "err": null
+   }
+  },
+  {
+   "name": "Day 146 sees every sdq_.flag as a flg_ record or forward, never broken",
+   "ok": true
+  },
+  {
+   "name": "Day 147 opens the Draft with the flags: hash verified, no errors, no broken references, namespaces identical",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "s": {
+     "errors": 0,
+     "broken": 0,
+     "forward": 2,
+     "warnings": 0
+    },
+    "e": [],
+    "same": [],
+    "err": null
+   }
+  },
+  {
+   "name": "Day 147 sees every sdq_.flag as a flg_ record or forward, never broken",
+   "ok": true
+  },
+  {
+   "name": "Day 148 opens the Draft with the flags: hash verified, no errors, no broken references, namespaces identical",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "s": {
+     "errors": 0,
+     "broken": 0,
+     "forward": 2,
+     "warnings": 1
+    },
+    "e": [],
+    "same": [],
+    "err": null
+   }
+  },
+  {
+   "name": "Day 148 sees every sdq_.flag as a flg_ record or forward, never broken",
+   "ok": true
+  }
+ ]
+}

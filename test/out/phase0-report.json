@@ -17,9 +17,9 @@
         1,
         139593,
         207119,
-        235548,
-        881813,
-        911577
+        235591,
+        929837,
+        960159
       ]
     },
     {
@@ -223,7 +223,18 @@
     },
     {
       "name": "import fills the story skeleton and nothing else",
-      "ok": true
+      "ok": true,
+      "detail": {
+        "kd": [
+          "updatedAt"
+        ],
+        "c": 5,
+        "f": 5,
+        "q": 0,
+        "bi": 5,
+        "g": 5,
+        "o": "generated,generated,generated,generated,generated"
+      }
     },
     {
       "name": "the demo validates with no errors or broken references, and the world check is clean",
@@ -266,7 +277,7 @@
       "ok": true,
       "detail": [
         "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
-        "qst_a_hand_made_quest_prco"
+        "qst_a_hand_made_quest_rg26"
       ]
     },
     {
@@ -323,7 +334,7 @@
         },
         "149": {
           "status": "draft",
-          "exportedAt": "2026-10-03T13:31:23.779Z",
+          "exportedAt": "2026-10-03T13:52:24.235Z",
           "storyVersion": "1.0.0",
           "engineVersion": "1.0.0",
           "charterVersion": 1,
@@ -346,7 +357,7 @@
       "ok": true,
       "detail": {
         "forge": 149,
-        "bundleHash": "13348b4253ff8b8011aa2c00f2a414d1cc3c144fcb1927da01bb90b293487b31",
+        "bundleHash": "30c6a89fc08daa28c918119bce928b8e7368d042641c732f9e70124403387e4f",
         "storyVersion": "1.0.0",
         "generator": {
           "name": "appaday-149-story",
@@ -359,19 +370,25 @@
           "generatorVersion": "1.0.0",
           "seed": 42
         },
-        "exportedAt": "2026-10-03T13:31:23.803Z",
+        "exportedAt": "2026-10-03T13:52:24.258Z",
         "created": [
+          "flg_flg_gate_chapter_chp_the_far_shore_izf4_qdn1",
           "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
-          "qst_a_hand_made_quest_prco"
+          "flg_flg_gate_item_seal_chp_the_far_shore_izf_tz57",
+          "flg_flg_gate_item_seal_chp_the_lowlands_auem_0r61",
+          "flg_flg_gate_vehicle_ship_iqdm",
+          "flg_flg_quest_qst_a_hand_made_quest_rg26_1ypn",
+          "qst_a_hand_made_quest_rg26"
         ],
         "referenced": [
+          "chp_the_far_shore_izf4",
           "chp_the_lowlands_auem"
         ],
         "unresolved": [],
         "forward": [],
         "storyOpened": false,
         "counts": {
-          "flg_": 1,
+          "flg_": 6,
           "qst_": 1,
           "dlg_": 0,
           "evt_": 0,
@@ -519,17 +536,23 @@
     {
       "name": "149 reopens the Day 146 re-export: hash verified, every namespace identical to the 149 Draft",
       "ok": true,
-      "detail": []
+      "detail": [
+        []
+      ]
     },
     {
       "name": "149 reopens the Day 147 re-export: hash verified, every namespace identical to the 149 Draft",
       "ok": true,
-      "detail": []
+      "detail": [
+        []
+      ]
     },
     {
       "name": "149 reopens the Day 148 re-export: hash verified, every namespace identical to the 149 Draft",
       "ok": true,
-      "detail": []
+      "detail": [
+        []
+      ]
     },
     {
       "name": "a Day 148 Draft re-export is refused here (it is no longer a Day 148 Final), with the reason",
@@ -565,11 +588,9 @@
       }
     },
     {
-      "name": "Draft keeps story closed and the manifest lists the missing flag as unresolved",
+      "name": "Draft keeps story closed; export repairs a dangling sdq_.flag to the generated one, so nothing is unresolved",
       "ok": true,
-      "detail": [
-        "flg_missing_zz99"
-      ]
+      "detail": []
     },
     {
       "name": "Day 146 imports it: 0 broken, both flags forward and owed by 149",
@@ -585,8 +606,8 @@
         "errors": [],
         "broken": [],
         "forward": [
-          "flg_flg_quest_sdq_frozen_lantern_l6q4_done_i53c",
-          "flg_missing_zz99"
+          "flg_flg_done_sdq_lost_ring_r3q1_1ma5",
+          "flg_flg_quest_sdq_frozen_lantern_l6q4_done_i53c"
         ],
         "pageErrors": []
       }

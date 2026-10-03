@@ -34,6 +34,12 @@ const ROOT = require('path').join(__dirname, '..');
       report.push(Object.assign({ w }, await audit(t)));
       if (t === 'start' || t === 'export') await pg.screenshot({ path: ROOT + '/test/out/phase0-' + t + '-' + w + '.png', fullPage: true });
     }
+    await pg.evaluate(() => window.Kit.go('flags')); await pg.waitForTimeout(100);
+    await pg.evaluate(() => { const h = document.querySelector('.fg-item .fg-head'); if (h) h.click(); }); await pg.waitForTimeout(100);
+    report.push(Object.assign({ w }, await audit('flags expanded')));
+    await pg.evaluate(() => { const e = Array.from(document.querySelectorAll('#ws button')).find((x) => /^Edit/.test(x.textContent)); if (e) e.click(); }); await pg.waitForTimeout(150);
+    report.push(Object.assign({ w }, await audit('flag dialog')));
+    await pg.evaluate(() => window.Kit.ui.closeTop()); await pg.waitForTimeout(100);
     await pg.evaluate(() => window.Kit.openExport()); await pg.waitForTimeout(200);
     report.push(Object.assign({ w }, await audit('export dialog')));
     await pg.evaluate(() => window.Kit.ui.closeTop()); await pg.waitForTimeout(100);

@@ -118,7 +118,7 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   const src = JSON.parse(demoText);
   check('a Day 148 Final export imports with its hash verified', imp.matches === true && b.kit.title === 'Demo Saga');
   check('import leaves charter, codex, rules, art, and world canonically identical', !sameNs(b, src).length, sameNs(b, src));
-  check('import fills the story skeleton and nothing else', canon(Object.keys(b).sort()) === canon(Object.keys(src).sort()) && b.story.version === '1.0.0' && STORY.count(b) === 0 && canon(b.kit) === canon(src.kit));
+  check('import fills the story skeleton and nothing else', canon(Object.keys(b).sort()) === canon(Object.keys(src).sort()) && b.story.version === '1.0.0' && STORY.count(b) === Object.keys(b.story.records.flg_).length && !Object.keys(b.story.records.qst_).length && Object.keys(b.story.bindings).length === ES.gates.keys(b.world.progression).length && Object.values(b.story.records.flg_).every((x) => x.origin === 'generated') && Object.keys(b.kit).every((k) => k === 'updatedAt' || canon(b.kit[k]) === canon(src.kit[k])), { kd: Object.keys(b.kit).filter((k) => canon(b.kit[k]) !== canon(src.kit[k])), c: STORY.count(b), f: Object.keys(b.story.records.flg_).length, q: Object.keys(b.story.records.qst_).length, bi: Object.keys(b.story.bindings).length, g: ES.gates.keys(b.world.progression).length, o: Object.values(b.story.records.flg_).map((x) => x.origin).join() });
   let res = Kit.refreshValidation();
   check('the demo validates with no errors or broken references, and the world check is clean', !res.errors.length && !res.broken.length && !STORY.worldCheck(b).length, Kit.validate.summary(res));
   check('the four continent fixture imports too', gate(fourText) === 'accepted' && Kit.bundle.current().charter.sections.chapters.length === 6);
@@ -126,7 +126,7 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   let ws = d.getElementById('ws').textContent;
   check('Start: world check clean with record counts, six chapters, 13.0 hours at the floor, The Marches an empty slot', /World checkClean/.test(ws) && /reg_ 6twn_ 7dgn_ 18npc_ 87map_ 32/.test(ws) && /13\.0 hours of main story/.test(ws) && /The chapters reach the 12 hour floor/.test(ws) && /The Marches[^]*?empty slot/.test(ws) && d.querySelectorAll('.s9-wide tbody tr').length === 6, ws.slice(0, 400));
   check('Start: 14 gate keys to bind by kind, the empty boss slot named, both side quests with giver and no flag yet, one ending', /names 14 world local gate keys/.test(ws) && /Chapter keys/.test(ws) && /Seals/.test(ws) && /Ship/.test(ws) && /Airship/.test(ws) && /1 boss dungeon with an empty troop slot: The Marches/.test(ws) &&
-    (ws.match(/Phase 2 fills/g) || []).length === 2 && /The lost ring/.test(ws) && /Delivered/.test(ws));
+    !/not filled yet/.test(ws) && /Completion flag/.test(ws) && /The lost ring/.test(ws) && /Delivered/.test(ws));
   check('later tabs unlock once a ready bundle is loaded', !d.querySelectorAll('#tabs .tab.locked').length);
   for (const t of ['flags', 'quests', 'dialogue', 'events']) { Kit.go(t); await wait(5); }
   check('Flags, Quests, Dialogue, Events are stubs naming their phase', Kit.active() === 'events' && /Arrives in Phase 5/.test(d.getElementById('ws').textContent));
@@ -156,7 +156,7 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   check('Draft stamps forge 149 and leaves forges 146, 147, and 148 untouched', db.kit.forges['149'].status === 'draft' && db.kit.forges['149'].engineVersion === '1.0.0' && db.kit.forges['149'].worldGeneratorVersion === '1.0.0' && ['146', '147', '148'].every((f) => canon(db.kit.forges[f]) === canon(src.kit.forges[f])), db.kit.forges);
   check('Draft leaves story out of kit.opened', db.kit.opened.join() === 'charter,rules,art,world', db.kit.opened);
   check('manifest: forge 149, hash equals the bundle hash, created story IDs, the chapter referenced, nothing unresolved, world clean, load order',
-    man.forge === 149 && man.bundleHash === db.kit.contentHash && canon(man.created) === canon([flg.id, qst.id].sort()) && !man.unresolved.length && man.referenced.indexOf(chp) >= 0 && man.worldCheck.clean && man.world.seed === 42 &&
+    man.forge === 149 && man.bundleHash === db.kit.contentHash && man.created.indexOf(flg.id) >= 0 && man.created.indexOf(qst.id) >= 0 && man.created.length === STORY.count(db) && !man.unresolved.length && man.referenced.indexOf(chp) >= 0 && man.worldCheck.clean && man.world.seed === 42 &&
     canon(man.loadOrder) === canon(['engine-render.js', 'engine-audio.js', 'engine-world.js', 'engine-story.js']) && man.checks === null && man.day150 === null, man);
   const engOut = draft.files[2].text;
   check('exported engine-story.js is the page fence under a header carrying the bundle hash, the repository file plus that line', engOut.endsWith(engFence) && engOut.indexOf('/* Bundle hash ' + draft.hash + ' */\n') > 0 &&
@@ -164,7 +164,7 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   let finalErr = null; try { Kit.buildExport('final'); } catch (e) { finalErr = e.message; }
   check('Final is refused until Phase 7 proves the story, with a readable reason', /not been proven yet/.test(finalErr || '') && Kit.bundle.current().kit.opened.indexOf('story') < 0, finalErr);
   Kit.go('export'); await wait(20); ws = d.getElementById('ws').textContent;
-  check('the Validation and Export tab: counts, world clean, the Final block, Draft and Final cards, manifest preview, size', /0 errors/.test(ws) && /World clean/.test(ws) && /not been proven yet/.test(ws) && /Created2 story IDs/.test(ws) && /Unresolved0/.test(ws) && /engine-render\.js, engine-audio\.js, engine-world\.js, engine-story\.js/.test(ws) && d.querySelectorAll('#ws input[name=s9Status]').length === 2 && d.querySelector('#ws input[value=final]').disabled);
+  check('the Validation and Export tab: counts, world clean, the Final block, Draft and Final cards, manifest preview, size', /0 errors/.test(ws) && /World clean/.test(ws) && /not been proven yet/.test(ws) && /Created\d+ story IDs/.test(ws) && /Unresolved0/.test(ws) && /engine-render\.js, engine-audio\.js, engine-world\.js, engine-story\.js/.test(ws) && d.querySelectorAll('#ws input[name=s9Status]').length === 2 && d.querySelector('#ws input[value=final]').disabled);
 
   // ---------------------------------------------------------------- 5. Round trip into Days 146, 147, 148 and back.
   const base = { 146: await in146(demoText), 147: await in147(demoText), 148: await in148(demoText) };
@@ -189,7 +189,7 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   for (const k of ['146', '147', '148']) {
     const r = Kit.bundle.importText(reexp[k]); await wait(10);
     const cb = Kit.bundle.current();
-    check('149 reopens the Day ' + k + ' re-export: hash verified, every namespace identical to the 149 Draft', r.matches && !sameNs(cb, db, ALL).length && STORY.records.get(flg.id) && STORY.records.get(qst.id), sameNs(cb, db, ALL));
+    check('149 reopens the Day ' + k + ' re-export: hash verified, every namespace identical to the 149 Draft', r.matches && !sameNs(cb, db, ALL).length && STORY.records.get(flg.id) && STORY.records.get(qst.id), sameNs(cb, db, ALL).concat([(function(){var x=cb.story,y=db.story,o=[];["records","bindings","scaffold"].forEach(function(s){var ks=Object.keys(Object.assign({},x[s],y[s]));ks.forEach(function(p){if(canon(x[s][p])!==canon(y[s][p]))o.push(s+"."+p+" "+String(canon(x[s][p])).slice(0,200)+" VS "+String(canon(y[s][p])).slice(0,200));});});return o.slice(0,6);})()]));
   }
   const r148draft = await in148(draftText, async (w, K) => { const o = K.buildExport('draft', { engines: false }); return { t: o.files[0].text }; });
   check('a Day 148 Draft re-export is refused here (it is no longer a Day 148 Final), with the reason', /no Day 148 Final export/.test(gate(r148draft.t)), gate(r148draft.t));
@@ -206,9 +206,9 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   res = Kit.refreshValidation();
   check('with story closed both flags read as forward here, never broken', !res.broken.length && res.forward.filter((f) => f.owedBy === 149).length === 2, Kit.validate.summary(res));
   draft = Kit.buildExport('draft'); db = JSON.parse(draft.files[0].text); man = JSON.parse(draft.files[1].text);
-  check('Draft keeps story closed and the manifest lists the missing flag as unresolved', db.kit.opened.indexOf('story') < 0 && man.unresolved.indexOf('flg_missing_zz99') >= 0 && man.forward.length === 2, man.unresolved);
+  check('Draft keeps story closed; export repairs a dangling sdq_.flag to the generated one, so nothing is unresolved', db.kit.opened.indexOf('story') < 0 && !man.unresolved.length && man.forward.length === 2 && db.rules.sdq_[sdq[1]].flag !== 'flg_missing_zz99', man.unresolved);
   const fw146 = await in146(draft.files[0].text, (w, K, r) => ({ forward: r.forward.filter((x) => x.owedBy === 149).map((x) => x.id).sort() }));
-  check('Day 146 imports it: 0 broken, both flags forward and owed by 149', fw146.matches && !fw146.summary.broken && canon(fw146.forward) === canon([done.id, 'flg_missing_zz99'].sort()), fw146);
+  check('Day 146 imports it: 0 broken, both flags forward and owed by 149', fw146.matches && !fw146.summary.broken && canon(fw146.forward) === canon([done.id, db.rules.sdq_[sdq[1]].flag].sort()), fw146);
   check('the world check ignores story problems: a dangling story flag does not make the world unclean', !STORY.worldCheck(b).length);
   // Stand in for Phase 7's checks so the Final path can be proven now (Phase 7 replaces STORY.checks with the real ones).
   b.rules.sdq_[sdq[1]].flag = done.id; Kit.bundle.touch('test');
@@ -272,7 +272,7 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   check('Dev loads a fixture into a fresh draft, ready', win.Kit.bundle.current().kit.title === 'Four Continents' && win.STORY.readiness() === true && !errors.length);
 
   const pass = results.filter((r) => r.ok).length;
-  results.forEach((r) => console.log((r.ok ? 'PASS ' : 'FAIL ') + r.name + (r.ok ? '' : '  ' + JSON.stringify(r.detail).slice(0, 600))));
+  results.forEach((r) => console.log((r.ok ? 'PASS ' : 'FAIL ') + r.name + (r.ok ? '' : '  ' + String(JSON.stringify(r.detail)).slice(0, 600))));
   console.log('\n' + pass + ' of ' + results.length + ' passed');
   fs.writeFileSync(path.join(OUT, 'phase0-report.json'), JSON.stringify({ results }, null, 2));
   process.exit(pass === results.length ? 0 : 1);

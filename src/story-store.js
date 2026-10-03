@@ -26,6 +26,7 @@
     { key: 'origin', label: 'Origin', type: 'enum', values: ['generated', 'user'] },
     { key: 'tags', label: 'Tags', type: 'list', of: { type: 'text', max: 40 }, itemLabel: 'Tag' }
   ];
+  STORY.ENVELOPE_FIELDS = ENVELOPE_FIELDS;
   STORY.PREFIXES.forEach(function (p) {
     var info = Kit.codex.PREFIXES[p];
     if (!info || info.ns !== 'story' || info.forge !== STORY.FORGE) throw new Error('KIT:CORE no longer reserves ' + p + ' for forge 149 in namespace story.');
