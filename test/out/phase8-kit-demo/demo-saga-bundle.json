@@ -5,8 +5,8 @@
     "bundleId": "bnd_ambj39rvralg",
     "title": "Demo Saga",
     "createdAt": "2026-10-01T18:12:57.020Z",
-    "updatedAt": "2026-10-03T23:45:26.437Z",
-    "contentHash": "5d89f87ce99548bc79aaa790c9c87e3d92303601727dcc5cf55229d9060b36b9",
+    "updatedAt": "2026-10-03T23:51:41.337Z",
+    "contentHash": "01cc6d6d5f11c9f86c06cec62f6d4920edca2498817293f9c5f6606f20cf931b",
     "opened": [
       "charter",
       "rules",
@@ -35,7 +35,7 @@
       },
       "149": {
         "status": "final",
-        "exportedAt": "2026-10-03T23:45:26.437Z",
+        "exportedAt": "2026-10-03T23:51:41.338Z",
         "storyVersion": "1.0.0",
         "engineVersion": "1.0.0",
         "charterVersion": 1,

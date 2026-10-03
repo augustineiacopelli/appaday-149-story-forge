@@ -5,8 +5,8 @@
     "bundleId": "bnd_fourcontinents",
     "title": "Four Continents",
     "createdAt": "2026-10-01T18:12:57.020Z",
-    "updatedAt": "2026-10-03T23:45:33.682Z",
-    "contentHash": "346d07f3d5bbe0a15d0297c2aad165fa499be2b138be753a0afdaad36084c40e",
+    "updatedAt": "2026-10-03T23:51:48.498Z",
+    "contentHash": "450714475f56b1647e71bfcffab3969cf3fbea6cd0397574d51de7dbc569ecdb",
     "opened": [
       "charter",
       "rules",
@@ -35,7 +35,7 @@
       },
       "149": {
         "status": "final",
-        "exportedAt": "2026-10-03T23:45:33.683Z",
+        "exportedAt": "2026-10-03T23:51:48.498Z",
         "storyVersion": "1.0.0",
         "engineVersion": "1.0.0",
         "charterVersion": 1,

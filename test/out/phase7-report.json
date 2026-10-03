@@ -214,7 +214,7 @@
   {
    "name": "demo: the page walks the story in reasonable time under jsdom",
    "ok": true,
-   "detail": 27
+   "detail": 28
   },
   {
    "name": "four: every chapter entered, every main and side quest completed, every ending reached",
@@ -291,7 +291,7 @@
   {
    "name": "four: the page walks the story in reasonable time under jsdom",
    "ok": true,
-   "detail": 359
+   "detail": 371
   },
   {
    "name": "four: 214 states and 610 moves, six chapters, eight quests (two side), one ending",

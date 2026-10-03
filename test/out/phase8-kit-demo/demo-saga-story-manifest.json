@@ -1,6 +1,6 @@
 {
   "forge": 149,
-  "bundleHash": "5d89f87ce99548bc79aaa790c9c87e3d92303601727dcc5cf55229d9060b36b9",
+  "bundleHash": "01cc6d6d5f11c9f86c06cec62f6d4920edca2498817293f9c5f6606f20cf931b",
   "storyVersion": "1.0.0",
   "generator": {
     "name": "appaday-149-story",
@@ -13,7 +13,7 @@
     "generatorVersion": "1.0.0",
     "seed": 42
   },
-  "exportedAt": "2026-10-03T23:45:26.487Z",
+  "exportedAt": "2026-10-03T23:51:41.390Z",
   "created": [
     "flg_flg_ending_2_614w",
     "flg_flg_gate_chapter_chp_the_far_shore_izf4_qdn1",

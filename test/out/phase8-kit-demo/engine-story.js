@@ -1,6 +1,6 @@
 /* Story Forge ENGINE:STORY, engine version 1.0.0
  * Forge 149 (AppADay 149). Declares one global, ENGINE_STORY. No dependencies; reads no host global. */
-/* Bundle hash 5d89f87ce99548bc79aaa790c9c87e3d92303601727dcc5cf55229d9060b36b9 */
+/* Bundle hash 01cc6d6d5f11c9f86c06cec62f6d4920edca2498817293f9c5f6606f20cf931b */
 // === ENGINE:STORY BEGIN ===
 // Story Forge interpreter (AppADay 149). Declares one global, ENGINE_STORY, and reads no host global: no window, no
 // document, no Kit, and no other engine. Day 150 loads engine-story.js after engine-render.js, engine-audio.js, and
