@@ -1,5 +1,5 @@
 {
- "passed": 95,
+ "passed": 94,
  "total": 95,
  "results": [
   {
@@ -25,7 +25,7 @@
   },
   {
    "name": "engine-story.js is unchanged by Phase 3 (equal to the committed file)",
-   "ok": true
+   "ok": false
   },
   {
    "name": "the standalone engine-story.js at the root matches src",

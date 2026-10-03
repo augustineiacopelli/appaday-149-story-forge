@@ -157,14 +157,16 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   check('Draft leaves story out of kit.opened', db.kit.opened.join() === 'charter,rules,art,world', db.kit.opened);
   check('manifest: forge 149, hash equals the bundle hash, created story IDs, the chapter referenced, nothing unresolved, world clean, load order',
     man.forge === 149 && man.bundleHash === db.kit.contentHash && man.created.indexOf(flg.id) >= 0 && man.created.indexOf(qst.id) >= 0 && man.created.length === STORY.count(db) && !man.unresolved.length && man.referenced.indexOf(chp) >= 0 && man.worldCheck.clean && man.world.seed === 42 &&
-    canon(man.loadOrder) === canon(['engine-render.js', 'engine-audio.js', 'engine-world.js', 'engine-story.js']) && man.checks === null && man.day150 === null, man);
+    canon(man.loadOrder) === canon(['engine-render.js', 'engine-audio.js', 'engine-world.js', 'engine-story.js']) &&
+    // Phase 7: the manifest carries the six checks (this hand made story is not proven) and the walk's statistics.
+    man.checks && man.checks.proven === false && man.checks.cards.length === 6 && man.walk && man.walk.states > 0 && man.day150 === null, man);
   const engOut = draft.files[2].text;
   check('exported engine-story.js is the page fence under a header carrying the bundle hash, the repository file plus that line', engOut.endsWith(engFence) && engOut.indexOf('/* Bundle hash ' + draft.hash + ' */\n') > 0 &&
     engOut === engFile.replace('reads no host global. */\n', 'reads no host global. */\n/* Bundle hash ' + draft.hash + ' */\n'));
   let finalErr = null; try { Kit.buildExport('final'); } catch (e) { finalErr = e.message; }
-  check('Final is refused until Phase 7 proves the story, with a readable reason', /not been proven yet/.test(finalErr || '') && Kit.bundle.current().kit.opened.indexOf('story') < 0, finalErr);
-  Kit.go('export'); await wait(20); ws = d.getElementById('ws').textContent;
-  check('the Validation and Export tab: counts, world clean, the Final block, Draft and Final cards, manifest preview, size', /0 errors/.test(ws) && /World clean/.test(ws) && /not been proven yet/.test(ws) && /Created\d+ story IDs/.test(ws) && /Unresolved0/.test(ws) && /engine-render\.js, engine-audio\.js, engine-world\.js, engine-story\.js/.test(ws) && d.querySelectorAll('#ws input[name=s9Status]').length === 2 && d.querySelector('#ws input[value=final]').disabled);
+  check('Final is refused until the story checks pass, with a readable reason', /story checks? fails?/.test(finalErr || '') && Kit.bundle.current().kit.opened.indexOf('story') < 0, finalErr);
+  Kit.go('export'); await wait(250); ws = d.getElementById('ws').textContent;
+  check('the Validation and Export tab: counts, world clean, the Final block, Draft and Final cards, manifest preview, size', /0 errors/.test(ws) && /World clean/.test(ws) && /story checks? fails?/.test(ws) && d.querySelectorAll('#ws .vc-card').length === 6 && /Created\d+ story IDs/.test(ws) && /Unresolved0/.test(ws) && /engine-render\.js, engine-audio\.js, engine-world\.js, engine-story\.js/.test(ws) && d.querySelectorAll('#ws input[name=s9Status]').length === 2 && d.querySelector('#ws input[value=final]').disabled);
 
   // ---------------------------------------------------------------- 5. Round trip into Days 146, 147, 148 and back.
   const base = { 146: await in146(demoText), 147: await in147(demoText), 148: await in148(demoText) };
@@ -210,9 +212,11 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   const fw146 = await in146(draft.files[0].text, (w, K, r) => ({ forward: r.forward.filter((x) => x.owedBy === 149).map((x) => x.id).sort() }));
   check('Day 146 imports it: 0 broken, both flags forward and owed by 149', fw146.matches && !fw146.summary.broken && canon(fw146.forward) === canon([done.id, db.rules.sdq_[sdq[1]].flag].sort()), fw146);
   check('the world check ignores story problems: a dangling story flag does not make the world unclean', !STORY.worldCheck(b).length);
-  // Stand in for Phase 7's checks so the Final path can be proven now (Phase 7 replaces STORY.checks with the real ones).
+  // Stand in for the story checks so the Final path is proven on this hand made story (test/phase7.js proves it with the
+  // real checks on scaffolded stories). The real checks come back afterward.
   b.rules.sdq_[sdq[1]].flag = done.id; Kit.bundle.touch('test');
-  STORY.checks = { finalBlock: () => null, summary: () => ({ standIn: true }) };
+  const realChecks = STORY.checks;
+  STORY.checks = { finalBlock: () => null, summary: () => ({ standIn: true }), ready: () => true };
   const fin = Kit.buildExport('final');
   const fb = JSON.parse(fin.files[0].text), fman = JSON.parse(fin.files[1].text);
   const srcFour = JSON.parse(fourText);
@@ -227,7 +231,7 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   const leak = JSON.parse(fin.files[0].text); leak.rules.sdq_[sdq[1]].flag = 'flg_missing_zz99';
   const leak146 = await in146(await stamp(leak));
   check('control: an opened story with a missing flag is broken in Day 146 (why story opens only on Final)', leak146.summary.broken === 1, leak146.summary);
-  delete STORY.checks;
+  STORY.checks = realChecks;
 
   // ---------------------------------------------------------------- 7. Own storage keys, the Day 148 draft, IndexedDB.
   const w148draft = JSON.stringify(JSON.parse(fourText));

@@ -1,0 +1,750 @@
+{
+ "passed": 97,
+ "total": 97,
+ "results": [
+  {
+   "name": "the four new sources exist and are pure ASCII",
+   "ok": true
+  },
+  {
+   "name": "no forbidden APIs in the new JavaScript (and no randomness or storage of its own)",
+   "ok": true
+  },
+  {
+   "name": "no dashes used as punctuation in the new prose",
+   "ok": true
+  },
+  {
+   "name": "index.html carries STORY:CHECKS after STORY:ENDINGS, WS:VALIDATION before WS:STORY149, and the validation CSS fence",
+   "ok": true
+  },
+  {
+   "name": "the walk is the last engine section, spliced above the freeze line",
+   "ok": true
+  },
+  {
+   "name": "the whole engine fence still keeps the rules: no randomness, clocks, eval, for in, timers, or host globals, and Object.keys only in util.keys",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "the hash loops use a bound imul, not a global Math lookup per character",
+   "ok": true
+  },
+  {
+   "name": "ENGINE_STORY.walk exists, frozen, with run, hash, abstract, and the cap of 50000; the engine is still version 1.0.0",
+   "ok": true
+  },
+  {
+   "name": "structural IDs and digests are unchanged by the faster hashing (known values from Phase 0)",
+   "ok": true
+  },
+  {
+   "name": "the abstract state clears gil and party (no condition can read them) and keeps everything else",
+   "ok": true
+  },
+  {
+   "name": "the walk finds the hand authored story's faults: both halves of the recursive call pair, the backward moves, a move on a failed quest",
+   "ok": true,
+   "detail": [
+    "backward",
+    "backward",
+    "failed",
+    "recursion",
+    "recursion"
+   ]
+  },
+  {
+   "name": "every runtime error carries the event and a path from a new game",
+   "ok": true,
+   "detail": [
+    1,
+    1,
+    1,
+    7,
+    7
+   ]
+  },
+  {
+   "name": "the story has no reachable ending, so every state is stuck and the deepest point is reported",
+   "ok": true,
+   "detail": {
+    "count": 5,
+    "entries": 1,
+    "deadEnds": 1,
+    "reported": [
+     {
+      "node": 0,
+      "depth": 0,
+      "hash": "d5e56692905c5ae6",
+      "chapter": "chp_the_lowlands_auem",
+      "ending": null,
+      "path": [
+       {
+        "by": "newGame"
+       }
+      ],
+      "quests": {},
+      "deadEnd": false
+     }
+    ],
+    "deepest": {
+     "node": 4,
+     "depth": 3,
+     "hash": "0f9976e1e4c12e1d",
+     "chapter": "chp_the_lowlands_auem",
+     "ending": null,
+     "path": [
+      {
+       "by": "newGame"
+      },
+      {
+       "by": "newGame"
+      },
+      {
+       "by": "chapterStart",
+       "evt": "evt_evt_loop_a_sapa"
+      },
+      {
+       "by": "chapterStart",
+       "evt": "evt_evt_loop_b_67ao"
+      },
+      {
+       "by": "chapterStart",
+       "evt": "evt_evt_shared_l4w1"
+      },
+      {
+       "by": "chapterStart",
+       "evt": "evt_evt_stage_gjt3"
+      },
+      {
+       "by": "autorun",
+       "evt": "evt_evt_open_6h99"
+      },
+      {
+       "by": "talk",
+       "choices": [
+        "Yes"
+       ],
+       "evt": "evt_evt_elder_6z32",
+       "npc": "npc_npc_twn_chp_the_far_shore_izf4_start_chu_px31"
+      }
+     ],
+     "quests": {
+      "qst_qst_main_7q6x": "exit"
+     }
+    }
+   }
+  },
+  {
+   "name": "two bare vm contexts walk the hand authored story to the same result byte for byte",
+   "ok": true
+  },
+  {
+   "name": "demo: every chapter entered, every main and side quest completed, every ending reached",
+   "ok": true,
+   "detail": {
+    "ch": 2,
+    "done": 2
+   }
+  },
+  {
+   "name": "demo: no softlock, no runtime error, the walk not capped",
+   "ok": true,
+   "detail": {
+    "s": {
+     "count": 0,
+     "entries": 0,
+     "deadEnds": 0,
+     "reported": [],
+     "deepest": null
+    },
+    "e": []
+   }
+  },
+  {
+   "name": "demo: the golden path finishes every main quest before its ending, and it is longer than the shortest path to an ending",
+   "ok": true
+  },
+  {
+   "name": "demo: every gate a new game does not open is set, by a seal chest or a boss, no later on the golden path than where it is first needed",
+   "ok": true
+  },
+  {
+   "name": "demo: all six checks pass (warnings only), proven, and Final is not blocked",
+   "ok": true,
+   "detail": [
+    "references pass ",
+    "smells warn ",
+    "walk pass ",
+    "proofs warn ",
+    "softlock pass ",
+    "floor pass "
+   ]
+  },
+  {
+   "name": "demo: the smells are real and named: shadowed giver pages and unseen offer nodes, the last boss's quiet page",
+   "ok": true,
+   "detail": [
+    "warning:unseen-node",
+    "warning:page-never-wins",
+    "warning:npc-page-never-wins"
+   ]
+  },
+  {
+   "name": "demo: the proofs warn that an ending can be reached while an earlier main quest is unfinished, with the path",
+   "ok": true
+  },
+  {
+   "name": "demo: every event and person the story uses has a site the walk can place",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "demo: the results are memoized until the bundle changes",
+   "ok": true
+  },
+  {
+   "name": "demo: two bare vm contexts holding only the exported engine-story.js and the Draft walk to the page's exact result",
+   "ok": true
+  },
+  {
+   "name": "demo: the manifest carries the six checks and the walk statistics",
+   "ok": true
+  },
+  {
+   "name": "demo: the page walks the story in reasonable time under jsdom",
+   "ok": true,
+   "detail": 30
+  },
+  {
+   "name": "four: every chapter entered, every main and side quest completed, every ending reached",
+   "ok": true,
+   "detail": {
+    "ch": 6,
+    "done": 8
+   }
+  },
+  {
+   "name": "four: no softlock, no runtime error, the walk not capped",
+   "ok": true,
+   "detail": {
+    "s": {
+     "count": 0,
+     "entries": 0,
+     "deadEnds": 0,
+     "reported": [],
+     "deepest": null
+    },
+    "e": []
+   }
+  },
+  {
+   "name": "four: the golden path finishes every main quest before its ending, and it is longer than the shortest path to an ending",
+   "ok": true
+  },
+  {
+   "name": "four: every gate a new game does not open is set, by a seal chest or a boss, no later on the golden path than where it is first needed",
+   "ok": true
+  },
+  {
+   "name": "four: all six checks pass (warnings only), proven, and Final is not blocked",
+   "ok": true,
+   "detail": [
+    "references pass ",
+    "smells warn ",
+    "walk pass ",
+    "proofs warn ",
+    "softlock pass ",
+    "floor pass "
+   ]
+  },
+  {
+   "name": "four: the smells are real and named: shadowed giver pages and unseen offer nodes, the last boss's quiet page",
+   "ok": true,
+   "detail": [
+    "warning:unseen-node",
+    "warning:page-never-wins",
+    "warning:npc-page-never-wins"
+   ]
+  },
+  {
+   "name": "four: the proofs warn that an ending can be reached while an earlier main quest is unfinished, with the path",
+   "ok": true
+  },
+  {
+   "name": "four: every event and person the story uses has a site the walk can place",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "four: the results are memoized until the bundle changes",
+   "ok": true
+  },
+  {
+   "name": "four: two bare vm contexts holding only the exported engine-story.js and the Draft walk to the page's exact result",
+   "ok": true
+  },
+  {
+   "name": "four: the manifest carries the six checks and the walk statistics",
+   "ok": true
+  },
+  {
+   "name": "four: the page walks the story in reasonable time under jsdom",
+   "ok": true,
+   "detail": 1049
+  },
+  {
+   "name": "four: 862 states and 2141 moves, six chapters, eight quests (two side), one ending",
+   "ok": true,
+   "detail": {
+    "states": 862,
+    "edges": 2141,
+    "expanded": 862,
+    "frontier": 0,
+    "capped": false,
+    "cap": 50000,
+    "maxDepth": 27,
+    "runs": 2279,
+    "selfLoops": 59232,
+    "gameovers": 0,
+    "forkCaps": 0,
+    "chainCaps": 0,
+    "autorunLoops": 0,
+    "boot": true
+   }
+  },
+  {
+   "name": "the cap stops the walk, says so, and leaves the unexplored states out of the softlock proof",
+   "ok": true,
+   "detail": {
+    "states": 5,
+    "edges": 4,
+    "expanded": 2,
+    "frontier": 3,
+    "capped": true,
+    "cap": 5,
+    "maxDepth": 3,
+    "runs": 5,
+    "selfLoops": 43,
+    "gameovers": 0,
+    "forkCaps": 0,
+    "chainCaps": 0,
+    "autorunLoops": 0,
+    "boot": true
+   }
+  },
+  {
+   "name": "without the cap the demo story walks to 19 states and 25 moves, every ending reached, nothing stuck",
+   "ok": true,
+   "detail": {
+    "states": 19,
+    "edges": 25,
+    "expanded": 19,
+    "frontier": 0,
+    "capped": false,
+    "cap": 50000,
+    "maxDepth": 7,
+    "runs": 25,
+    "selfLoops": 384,
+    "gameovers": 0,
+    "forkCaps": 0,
+    "chainCaps": 0,
+    "autorunLoops": 0,
+    "boot": true
+   }
+  },
+  {
+   "name": "the golden path with the main quests as its goal finishes them all; without a goal it is the shortest path to any ending",
+   "ok": true,
+   "detail": {
+    "full": 10,
+    "any": 8
+   }
+  },
+  {
+   "name": "a site whose required flag never holds keeps every event on it closed (only the new game's forced events run)",
+   "ok": true
+  },
+  {
+   "name": "references: a command naming a missing flag fails the References card (lint and unresolved) and blocks Final",
+   "ok": true,
+   "detail": [
+    "error:lint",
+    "error:unresolved"
+   ]
+  },
+  {
+   "name": "references: a story with no world stamp fails with world-unstamped and offers to confirm",
+   "ok": true
+  },
+  {
+   "name": "references: a world changed since the story was built fails with world-changed",
+   "ok": true
+  },
+  {
+   "name": "confirming the world stamps it and the References card passes again",
+   "ok": true
+  },
+  {
+   "name": "a scaffold rerun on an unchanged world keeps the stamp and does not touch the bundle",
+   "ok": true
+  },
+  {
+   "name": "smells: inert-choice is reported as a warning",
+   "ok": true,
+   "detail": [
+    "warning:inert-choice",
+    "warning:unseen-node",
+    "warning:unused-dialogue",
+    "warning:page-never-wins",
+    "warning:npc-page-never-wins",
+    "warning:set-never-read",
+    "warning:read-never-set",
+    "warning:stage-no-exit"
+   ]
+  },
+  {
+   "name": "smells: read-never-set is reported as a warning",
+   "ok": true,
+   "detail": [
+    "warning:inert-choice",
+    "warning:unseen-node",
+    "warning:unused-dialogue",
+    "warning:page-never-wins",
+    "warning:npc-page-never-wins",
+    "warning:set-never-read",
+    "warning:read-never-set",
+    "warning:stage-no-exit"
+   ]
+  },
+  {
+   "name": "smells: set-never-read is reported as a warning",
+   "ok": true,
+   "detail": [
+    "warning:inert-choice",
+    "warning:unseen-node",
+    "warning:unused-dialogue",
+    "warning:page-never-wins",
+    "warning:npc-page-never-wins",
+    "warning:set-never-read",
+    "warning:read-never-set",
+    "warning:stage-no-exit"
+   ]
+  },
+  {
+   "name": "smells: stage-no-exit is reported as a warning",
+   "ok": true,
+   "detail": [
+    "warning:inert-choice",
+    "warning:unseen-node",
+    "warning:unused-dialogue",
+    "warning:page-never-wins",
+    "warning:npc-page-never-wins",
+    "warning:set-never-read",
+    "warning:read-never-set",
+    "warning:stage-no-exit"
+   ]
+  },
+  {
+   "name": "smells: page-never-wins is reported as a warning",
+   "ok": true,
+   "detail": [
+    "warning:inert-choice",
+    "warning:unseen-node",
+    "warning:unused-dialogue",
+    "warning:page-never-wins",
+    "warning:npc-page-never-wins",
+    "warning:set-never-read",
+    "warning:read-never-set",
+    "warning:stage-no-exit"
+   ]
+  },
+  {
+   "name": "smells: unused-dialogue is reported as a warning",
+   "ok": true,
+   "detail": [
+    "warning:inert-choice",
+    "warning:unseen-node",
+    "warning:unused-dialogue",
+    "warning:page-never-wins",
+    "warning:npc-page-never-wins",
+    "warning:set-never-read",
+    "warning:read-never-set",
+    "warning:stage-no-exit"
+   ]
+  },
+  {
+   "name": "smells never fail a story on their own",
+   "ok": true
+  },
+  {
+   "name": "the walk: deciding a branch group twice is a runtime error with the event and its path",
+   "ok": true
+  },
+  {
+   "name": "the walk: an autorun that changes nothing and passes again is an error (the player would be stuck in it)",
+   "ok": true,
+   "detail": [
+    "error:run-autorun-loop",
+    "error:run-closed"
+   ]
+  },
+  {
+   "name": "the B story that never completes is a proof warning, not an error",
+   "ok": true
+  },
+  {
+   "name": "the cap: a warning that names it, the proofs cannot pass, and no false softlock",
+   "ok": true
+  },
+  {
+   "name": "proofs: with the first seal never set, its gate never opens, chapter two is never entered, a main quest and the endings are never reached",
+   "ok": true,
+   "detail": [
+    "error:chapter",
+    "error:main-quest",
+    "error:main-quest",
+    "error:gate-never",
+    "error:gate-never",
+    "error:gate-never",
+    "error:gate-never",
+    "error:ending",
+    "error:ending"
+   ]
+  },
+  {
+   "name": "no softlock card: nothing reaches an ending, so it reports where progress stops, with the path and the quests at that point",
+   "ok": true
+  },
+  {
+   "name": "proofs: a gate set by something later on the golden path than its first reader fails gate-order, naming both places",
+   "ok": true,
+   "detail": [
+    "error:gate-order",
+    "warning:skippable"
+   ]
+  },
+  {
+   "name": "the story still finishes, so that is the only failing proof",
+   "ok": true
+  },
+  {
+   "name": "proofs: an ending whose condition never holds is never reached, and a side quest nothing completes fails",
+   "ok": true,
+   "detail": [
+    "error:ending",
+    "error:side-quest",
+    "warning:skippable"
+   ]
+  },
+  {
+   "name": "no softlock: choosing Doom (which makes the boss unbeatable) is reported as a trap whose path ends with that choice",
+   "ok": true,
+   "detail": {
+    "level": "error",
+    "code": "softlock",
+    "message": "A trap: play goes on, but no ending can be reached any more after this path.",
+    "path": [
+     "Opener: The Lowlands plays",
+     "Enter Crossroads, choosing \"Doom\""
+    ],
+    "quests": [
+     "Main: The Lowlands: arrive"
+    ]
+   }
+  },
+  {
+   "name": "every chapter, quest, and ending is still reachable another way, so only the softlock card fails",
+   "ok": true
+  },
+  {
+   "name": "Final is refused, naming the No softlock card",
+   "ok": true
+  },
+  {
+   "name": "the floor: chapters short of 720 minutes fail the floor card",
+   "ok": true
+  },
+  {
+   "name": "Final is refused while a story check fails, naming the card and the first reason",
+   "ok": true,
+   "detail": "Final export is blocked: 8 story checks fail (The proofs). First: Chapter 2, The Far Shore, is never entered before the walk reached its cap. Its chapter gate flag is never set."
+  },
+  {
+   "name": "a proven story exports Final: story opened, forge 149 final, the manifest proven with its walk",
+   "ok": true,
+   "detail": {
+    "opened": [
+     "charter",
+     "rules",
+     "art",
+     "world",
+     "story"
+    ],
+    "checks": 0
+   }
+  },
+  {
+   "name": "the Final carries the world stamp, equal to the hash of its world",
+   "ok": true
+  },
+  {
+   "name": "Day 146 opens the 149 Final: 0 errors, 0 broken, 0 forward",
+   "ok": true,
+   "detail": {
+    "errors": 0,
+    "broken": 0,
+    "forward": 0,
+    "warnings": 1
+   }
+  },
+  {
+   "name": "Day 147 opens the 149 Final: 0 errors, 0 broken, 0 forward",
+   "ok": true,
+   "detail": {
+    "errors": 0,
+    "broken": 0,
+    "forward": 0,
+    "warnings": 0
+   }
+  },
+  {
+   "name": "Day 148 opens the 149 Final: 0 errors, 0 broken, 0 forward",
+   "ok": true,
+   "detail": {
+    "errors": 0,
+    "broken": 0,
+    "forward": 0,
+    "warnings": 1
+   }
+  },
+  {
+   "name": "the tab first draws a waiting card and never walks while drawing",
+   "ok": true
+  },
+  {
+   "name": "then six cards, warnings before passes, and a Proven chip",
+   "ok": true,
+   "detail": [
+    "smells",
+    "proofs",
+    "references",
+    "walk",
+    "softlock",
+    "floor"
+   ]
+  },
+  {
+   "name": "the Final card is enabled once the story is proven",
+   "ok": true
+  },
+  {
+   "name": "the manifest preview no longer blocks on the walk and the validator findings fold away",
+   "ok": true
+  },
+  {
+   "name": "a card shows six findings and a Show more button",
+   "ok": true
+  },
+  {
+   "name": "Show more lists every finding, then Show fewer",
+   "ok": true
+  },
+  {
+   "name": "the proofs card lists the gates in golden order with who opens each",
+   "ok": true
+  },
+  {
+   "name": "a skippable main quest shows its path as a numbered list",
+   "ok": true
+  },
+  {
+   "name": "Jump on an event page opens the Events tab",
+   "ok": true
+  },
+  {
+   "name": "Jump on a person's page opens the Dialogue tab on its People view",
+   "ok": true
+  },
+  {
+   "name": "a failing card comes first and the Final card is disabled with the reason",
+   "ok": true,
+   "detail": [
+    "proofs",
+    "smells",
+    "walk",
+    "softlock",
+    "references",
+    "floor"
+   ]
+  },
+  {
+   "name": "Jump on an unreached chapter opens the Quests tab at its main quest",
+   "ok": true
+  },
+  {
+   "name": "an unstamped story offers Confirm this world on the References card, which fails",
+   "ok": true
+  },
+  {
+   "name": "confirming stamps the world and the story is proven again",
+   "ok": true
+  },
+  {
+   "name": "Walk again forgets the results and shows the waiting card",
+   "ok": true
+  },
+  {
+   "name": "and then the cards again",
+   "ok": true
+  },
+  {
+   "name": "no script errors on the page through all of it",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "two fresh pages prove the four continent story to the same summary and walk statistics byte for byte",
+   "ok": true
+  },
+  {
+   "name": "and stamp the same world hash into the same story",
+   "ok": true
+  },
+  {
+   "name": "Day 146 opens the stamped Draft: hash verified, every namespace identical (story and its stamp included), no errors",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "e": [],
+    "err": null,
+    "same": []
+   }
+  },
+  {
+   "name": "Day 147 opens the stamped Draft: hash verified, every namespace identical (story and its stamp included), no errors",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "e": [],
+    "err": null,
+    "same": []
+   }
+  },
+  {
+   "name": "Day 148 opens the stamped Draft: hash verified, every namespace identical (story and its stamp included), no errors",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "e": [],
+    "err": null,
+    "same": []
+   }
+  },
+  {
+   "name": "the Draft reopens here proven, with its stamp current and nothing to rebuild",
+   "ok": true
+  }
+ ]
+}

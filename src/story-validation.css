@@ -1,0 +1,26 @@
+/* === STORY:VALIDATION CSS BEGIN === */
+.vc-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; min-width: 0; }
+.vc-head .btn { min-height: 44px; }
+.vc-cards { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; min-width: 0; }
+.vc-card { border: 1px solid var(--line); border-left: 4px solid var(--ok); border-radius: var(--radius-sm); background: var(--panel); padding: 12px; min-width: 0; }
+.vc-card.vc-fail { border-left-color: var(--danger); }
+.vc-card.vc-warn { border-left-color: var(--warn); }
+.vc-card.vc-wait { border-left-color: var(--line2); }
+.vc-title { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0; font-size: 1.05rem; min-width: 0; }
+.vc-title span { overflow-wrap: anywhere; }
+.vc-lead { margin: 4px 0 8px; color: var(--ink2); }
+.vc-facts { margin: 6px 0; }
+.vc-items { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 0; min-width: 0; }
+.vc-item { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; padding: 6px 0; border-top: 1px solid var(--line); min-width: 0; }
+.vc-item-text { flex: 1 1 220px; min-width: 0; overflow-wrap: anywhere; }
+.vc-item-text small { display: block; color: var(--ink2); }
+.vc-item .btn { min-height: 44px; }
+.vc-path { margin: 6px 0 0; min-width: 0; }
+.vc-path summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--accent); }
+.vc-path ol, .vc-path ul { margin: 4px 0 0; padding-left: 1.4em; overflow-wrap: anywhere; }
+.vc-more { margin-top: 8px; min-height: 44px; }
+.vc-wait-line { display: flex; align-items: center; gap: 8px; color: var(--ink2); min-height: 44px; }
+.vc-gates { margin-top: 8px; }
+.vc-world { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.vc-world .btn { min-height: 44px; }
+/* === STORY:VALIDATION CSS END === */

@@ -1,5 +1,5 @@
 {
- "passed": 77,
+ "passed": 76,
  "total": 77,
  "results": [
   {
@@ -24,7 +24,7 @@
   },
   {
    "name": "engine-story.js is unchanged by Phase 2 (equal to the committed file)",
-   "ok": true
+   "ok": false
   },
   {
    "name": "boots with no page errors and STORY.flags is the Phase 2 API",
@@ -525,7 +525,7 @@
   {
    "name": "twenty syncs of a settled bundle take under a second",
    "ok": true,
-   "detail": 43
+   "detail": 16
   },
   {
    "name": "the Draft carries the flags, the bindings, and the slot flag of the hand made quest",

@@ -353,6 +353,88 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
   Next: Phase 7 (Opus), validation and the reachability proof: references, smells, the walk, the proofs, no softlock, and
     the 12 hour floor, using evt sites, triggers and pages, end_ conds and priorities, and STORY.events.golden as a smoke path.
 === END SESSION 6 ===
+=== SESSION 7 / PHASE 7 (2026-10-03, Opus): VALIDATION AND THE REACHABILITY PROOF ===
+  New: src/engine-walk.js (engine section ENGINE_STORY.walk, spliced last above the freeze line), src/story-checks.js
+    (STORY.checks, fence STORY:CHECKS after STORY:ENDINGS), src/ws-validation.js and src/story-validation.css (the check
+    cards on the Validation and Export tab). Engine version stays 1.0.0 (nothing has shipped).
+  The walk, ES.walk.run(idx, world, opts): breadth first search over quiet abstract story states, playing the real runner.
+    world {sites {key: {requires [flg]}}, events {evt: {site}}, npcs {npc: {site, map}}}; a site is open when every flag it
+    requires is 1 or more; no site or an unlisted one is always open. Moves, in a fixed order: mapEnter, step, and autorun
+    events at an open site whose page passes (sorted by ID); talking to a person at an open site (their talk event when one
+    passes, highest priority then ID, else their passing dialogue page). After each run the host's rules fire until none
+    applies: chapterStart events on a chapter change, battleEnd events after that run's battles, autoruns on the map the
+    player stands on. Choices fork every visible option; battles fork win, and lose and escape when the lists exist; a
+    loss with no lose list is game over (a reload), counted and never a state. opts {cap 50000, forks 4096, goal [qst]}.
+  DECISION, the abstract state: the engine state with gil and party cleared (no condition reads either); everything else
+    kept exactly. States keyed by a 64 bit hash (FNV-1a and xmur3 side by side over canonical JSON), since 32 bits would
+    likely collide within 50000 states. Breadth first, so every first path is a shortest one.
+  DECISION, inert moves: a page or conversation made only of commands that cannot change the abstract state (text,
+    staging, gil, party, and if or choice over those), not once and not an autorun, is counted without being played.
+    Exact, and it cut the four continent walk from 60595 runs to 2279. Autoruns always run, so one that would loop forever
+    is caught: a forced autorun that ends exactly where it began is the error autorun-loop.
+  The result: stats (states, edges, expanded, frontier, capped, maxDepth, runs, selfLoops, gameovers, forkCaps, boot),
+    first reaching nodes with shortest paths for endings, chapters, questsDone, endedWithout (an ending reached with that
+    quest unfinished), and firsts for questsStarted, questsFailed, flags, pages ('evt#page', nested calls included),
+    dialogueNodes, npcPages; setters {flg: {evt or npc}} (the root of the run that first moved it off its default);
+    golden (shortest path to an ending with every goal quest done, else to any ending) and goldenFull; softlock {count,
+    entries, deadEnds, reported (up to 5 ways in, each with path and quests), deepest}; errors (runtime errors with code,
+    event, and path). No softlock is reverse reachability from every ending; when capped, unexplored states count as able
+    to finish, and a state the cap cut short stays unexplored, so the cap never produces a false softlock.
+  DECISION, faster hashing: in a vm context (jsdom, Node tests, a headless Day 150) every global lookup goes through the
+    context's global object. The frame now binds imul, isArray, and stringify once; arithmetic and output are identical
+    (every structural ID and digest unchanged, Phase 0 and 1 still pass). Bare walk of the four continent story 8.1 s to
+    1.3 s; the runner and playtester gain too. util.keys is untouched (the Phase 0 scan pins its text).
+  STORY.checks: walkWorld(b) (sites from Day 148's nodes and regions, a region needing the gate into it; an event stands
+    on its site field, else its map's site, else its person's; golden order and positions, a region or optional site
+    taking its chapter's first golden node), walk, run (six cards, memoized on KIT:CORE's index identity), ready,
+    invalidate, finalBlock, summary (manifest checks: proven, counts, world hash and stamp, story digest, per card status
+    and codes, no timings), walkStats (manifest walk), stamp, stamped, worldHash, worldCurrent, stepText, pathText, jump.
+    references: story errors and broken references from Kit.validate, every ID a story record names resolves, side quest
+      flags, people and events the walk cannot place (warning), and the world stamp.
+    smells (warnings only): inert-choice, unused-dialogue, unreachable-node (from the start and every page's entry node),
+      unseen-node, page-never-wins, npc-page-never-wins, set-never-read (quest completion and sdq_ flags are outputs and
+      exempt), read-never-set (world grants do not count as setting; gate flags are left to the proofs), stage-no-exit.
+    walk: runtime errors (error; fork-cap and chain are warnings), the cap (warning naming story.settings.walkCap).
+    proofs: chapter, main-quest, gate-never, gate-order (a gate's setter must stand no later in golden order than the
+      first golden node requiring it), ending, side-quest (error), bstory (warning), skippable (warning: an ending
+      reachable with a main quest unfinished, with the path), golden-partial (warning).
+    softlock: each way into a stuck state with its path and the quests at that point (dead end or trap), or no-finish with
+      the deepest point when nothing reaches an ending.
+    floor: chapters against the floor; side and B story minutes never count.
+  DECISION, the world stamp: story.settings.worldHash, the 64 bit hash of the world namespace, is stamped whenever the
+    quests, dialogue, events, or endings scaffold builds (wrappers in STORY:CHECKS; a rerun on the same world changes
+    nothing). Final waits while it is missing (world-unstamped) or differs (world-changed, Day 148 regenerated the world);
+    the Validation tab offers Confirm this world. This is the plan's "current world hash".
+  DECISION, a short floor is not an unclean world: the story.playtime finding carries story: true, and STORY.worldCheck
+    skips tagged findings. Before this, a Charter short of 720 minutes made readiness fail with "world does not validate
+    cleanly" (and the import gate would have refused such a bundle); now the floor card reports it.
+  Final: STORY.finalBlock(b, lazy) checks Kit validation, readiness, the side quest flags, then STORY.checks.finalBlock.
+    The tab passes lazy (and STORY.manifest takes {lazy}) so drawing it never walks: it shows a waiting card, walks 30 ms
+    later, and draws again. Kit.buildExport and the export dialog stay synchronous, so an export always has the proof.
+  Tab: Story checks header (Proven or failing count, warnings, Walk again), six cards with failing first then warnings,
+    each with status, lead, facts, up to six findings (Show more), Jump to the record and field, a person's People view,
+    or a tab; paths and quests open as lists; the proofs card has the gate table in golden order; validator findings fold
+    into a details block. Kit.jump handles end_ (Start tab, ending opened).
+  Results: demo 19 states, 25 moves, two endings, golden path 10 steps finishing both main quests; four continents 862
+    states, 2141 moves, six chapters, eight quests, one ending, golden path 26 steps. Both proven, no softlock, no runtime
+    error. Real findings on the generated stories (warnings): a main quest giver's greeting never wins (the opener starts
+    the quest before the player can move), the main quest offer node is shadowed by the talk event, a giver of both a main
+    and a side quest has their main quest pages shadowed by the side quest pages, the last boss's quiet page never runs,
+    and the shortest path to an ending skips earlier main quests (skippable). Left for the author; not errors.
+  Test changes: phase0's three Phase 7 placeholders now expect the real checks (manifest checks and walk present, the
+    refusal names failing story checks, the tab shows six cards) and the stand in restores the real STORY.checks.
+  Tests: test/phase7.js 97 of 97 (static and the engine rules; the walk alone over the hand authored story: recursion,
+    backward, failed found with paths, no finish, two contexts; the cap; the golden goal; both scaffolded stories proven
+    and replayed byte for byte from a Draft in two bare vm contexts; seeded faults for every card: a missing flag, no stamp,
+    a changed world, each smell, a twice decided branch, an endless autorun, the cap, a seal never set, a gate opened too
+    late, an unreachable ending, a side quest nothing completes, the Doom choice softlock, the floor; Final refused then
+    allowed, opened in Days 146, 147, 148; the tab under jsdom; two pages agree; the stamped Draft round trip). phase0 89,
+    phase1 85, phase2 77, phase3 95, phase4 70, phase5 99, phase6 129 (their engine pins compare with the last commit, so
+    they pass once this phase is committed). test/layout.js 72 of 72 views at 390 and 1280, eight new Validation views.
+  Next: Phase 8 (Opus), export, the Day 150 contract, ship: the manifest's day150 block (load order, new game state, the
+    opening event, save flag mapping, boss rule; walk.golden.path is a ready replay script), test/phase8.js replaying the
+    golden path headlessly from only the four engines and the Final, README, the push, and the six item checklist.
+=== END SESSION 7 ===
 === END BUILD LOG ===
 -->
 <!doctype html>
@@ -899,6 +981,32 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
 .en-card .btn { min-height: 44px; }
 .en-card select.inp { max-width: 100%; }
 /* === STORY:ENDINGS CSS END === */
+/* === STORY:VALIDATION CSS BEGIN === */
+.vc-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; min-width: 0; }
+.vc-head .btn { min-height: 44px; }
+.vc-cards { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; min-width: 0; }
+.vc-card { border: 1px solid var(--line); border-left: 4px solid var(--ok); border-radius: var(--radius-sm); background: var(--panel); padding: 12px; min-width: 0; }
+.vc-card.vc-fail { border-left-color: var(--danger); }
+.vc-card.vc-warn { border-left-color: var(--warn); }
+.vc-card.vc-wait { border-left-color: var(--line2); }
+.vc-title { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0; font-size: 1.05rem; min-width: 0; }
+.vc-title span { overflow-wrap: anywhere; }
+.vc-lead { margin: 4px 0 8px; color: var(--ink2); }
+.vc-facts { margin: 6px 0; }
+.vc-items { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 0; min-width: 0; }
+.vc-item { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; padding: 6px 0; border-top: 1px solid var(--line); min-width: 0; }
+.vc-item-text { flex: 1 1 220px; min-width: 0; overflow-wrap: anywhere; }
+.vc-item-text small { display: block; color: var(--ink2); }
+.vc-item .btn { min-height: 44px; }
+.vc-path { margin: 6px 0 0; min-width: 0; }
+.vc-path summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; color: var(--accent); }
+.vc-path ol, .vc-path ul { margin: 4px 0 0; padding-left: 1.4em; overflow-wrap: anywhere; }
+.vc-more { margin-top: 8px; min-height: 44px; }
+.vc-wait-line { display: flex; align-items: center; gap: 8px; color: var(--ink2); min-height: 44px; }
+.vc-gates { margin-top: 8px; }
+.vc-world { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
+.vc-world .btn { min-height: 44px; }
+/* === STORY:VALIDATION CSS END === */
 </style>
 </head>
 <body>
@@ -3612,24 +3720,27 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
 var ENGINE_STORY = (function () {
   'use strict';
   var S = { version: '1.0.0' };
+  // Bound once here: inside a vm context (how jsdom, Node tests, and a headless Day 150 load this file) every lookup of a
+  // global such as Math goes through the context's global object, which is slow enough in a hashing loop to matter.
+  var imul = Math.imul, isArray = Array.isArray, stringify = JSON.stringify;
 
   // ---------------------------------------------------------------- util
   function keys(o) { return o && typeof o === 'object' ? Object.keys(o).sort() : []; }
   function each(o, fn) { var k = keys(o); for (var i = 0; i < k.length; i++) fn(o[k[i]], k[i], i); }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
-  function isObj(v) { return !!v && typeof v === 'object' && !Array.isArray(v); }
+  function isObj(v) { return !!v && typeof v === 'object' && !isArray(v); }
   // A deep copy of plain JSON data (objects, arrays, strings, numbers, booleans, null). Keys come out sorted, so two
   // copies of the same data are identical byte for byte however their keys were first written.
   function copy(v) {
-    if (Array.isArray(v)) { var a = new Array(v.length); for (var i = 0; i < v.length; i++) a[i] = copy(v[i]); return a; }
+    if (isArray(v)) { var a = new Array(v.length); for (var i = 0; i < v.length; i++) a[i] = copy(v[i]); return a; }
     if (isObj(v)) { var o = {}; each(v, function (x, k) { if (x !== undefined) o[k] = copy(x); }); return o; }
     return v;
   }
   // Canonical JSON: sorted keys, undefined dropped. Two equal states give the same text; the walk hashes it.
   function canon(v) {
-    if (Array.isArray(v)) { var p = []; for (var i = 0; i < v.length; i++) p.push(canon(v[i])); return '[' + p.join(',') + ']'; }
-    if (isObj(v)) { var q = []; each(v, function (x, k) { if (x !== undefined) q.push(JSON.stringify(k) + ':' + canon(x)); }); return '{' + q.join(',') + '}'; }
-    return JSON.stringify(v === undefined ? null : v);
+    if (isArray(v)) { var p = []; for (var i = 0; i < v.length; i++) p.push(canon(v[i])); return '[' + p.join(',') + ']'; }
+    if (isObj(v)) { var q = []; each(v, function (x, k) { if (x !== undefined) q.push(stringify(k) + ':' + canon(x)); }); return '{' + q.join(',') + '}'; }
+    return stringify(v === undefined ? null : v);
   }
   // FNV-1a over a string or a list of strings and numbers, for comparing records and states cheaply.
   function digest(a) {
@@ -3637,8 +3748,8 @@ var ENGINE_STORY = (function () {
     var h = 0x811c9dc5;
     for (var i = 0; i < a.length; i++) {
       var s = String(a[i]);
-      for (var j = 0; j < s.length; j++) { h ^= s.charCodeAt(j); h = Math.imul(h, 0x01000193); }
-      h ^= 44; h = Math.imul(h, 0x01000193);
+      for (var j = 0; j < s.length; j++) { h ^= s.charCodeAt(j); h = imul(h, 0x01000193); }
+      h ^= 44; h = imul(h, 0x01000193);
     }
     return ('0000000' + (h >>> 0).toString(16)).slice(-8) + ':' + a.length;
   }
@@ -3648,8 +3759,8 @@ var ENGINE_STORY = (function () {
   // xmur3, the same string hash ENGINE_WORLD uses, so story IDs are built exactly the way world IDs are.
   function xmur3(str) {
     str = String(str);
-    for (var i = 0, h = 1779033703 ^ str.length; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
-    return function () { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return (h ^= h >>> 16) >>> 0; };
+    for (var i = 0, h = 1779033703 ^ str.length; i < str.length; i++) { h = imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+    return function () { h = imul(h ^ (h >>> 16), 2246822507); h = imul(h ^ (h >>> 13), 3266489909); return (h ^= h >>> 16) >>> 0; };
   }
   function hashStr(s) { return xmur3(s)(); }
   S.hash = { xmur3: xmur3, str: hashStr };
@@ -4911,6 +5022,417 @@ var ENGINE_STORY = (function () {
   }
   S.save = { slots: slots, limits: limits, questSlot: questSlot, onceSlot: onceSlot, toFlags: toFlags, fromFlags: fromFlags, toSave: toSave, fromSave: fromSave, LIMITS: { stages: QUEST_STAGE_MAX, groups: QUEST_GROUP_MAX, oncePages: ONCE_PAGE_MAX } };
 
+  // ---------------------------------------------------------------- the walk (Phase 7)
+  // A deterministic search over abstract story states that proves what a story can and cannot reach. It plays the real
+  // runner, so what it proves is what Day 150 will do. Nothing here reads a bundle: the caller hands over the index and a
+  // small picture of the world.
+  //   run(idx, world, opts)
+  //     world {sites {siteKey: {requires [flg]}}, events {evt: {site}}, npcs {npc: {site, map}}}
+  //       A site is open when every flag it requires is 1 or more. An event or person with no site, or a site the world
+  //       does not list, is always open (the page reports those as warnings).
+  //     opts {cap (states, default 50000), forks (per move, default 4096)}
+  // The player's moves from a quiet state (no run, no ending), in a fixed order:
+  //   an event triggered by mapEnter, step, or autorun whose site is open and whose page passes (sorted by ID);
+  //   talking to a person at an open site: their talk event when one passes (highest priority, then ID), else the
+  //   page of their dialogue that passes (sorted by person).
+  // After every run the host's own rules fire, in this order, until none applies: chapterStart events when the chapter
+  // changed (priority, then ID), battleEnd events for the battles that run fought, and autoruns on the map the player is
+  // standing on. A forced autorun that leaves the state exactly as it was would run forever, and is reported.
+  // Choices fork on every visible option; battles fork on win, and on lose and escape when the battle has those lists. A
+  // loss without a lose list is game over: the player reloads, so it leads nowhere and is only counted.
+  // DECISION, the abstract state: the engine state with gil and party cleared, because no condition can read either, so
+  // two states that differ only there behave the same forever. Everything else is kept exactly, flags included.
+  // States are keyed by a 64 bit hash of their canonical JSON (FNV-1a and xmur3 side by side), because a 32 bit hash
+  // would likely collide somewhere in 50000 states. The search is breadth first, so the first path found to anything is
+  // a shortest one. Reaching the cap stops the search and is reported; it is never a silent pass.
+  var WALK_CAP = 50000, WALK_FORKS = 4096, WALK_CHAIN = 64, WALK_STEPS = 20000, WALK_REPORT = 5;
+  var VOLUNTARY = { autorun: 1, mapEnter: 1, step: 1 };
+  // Commands that cannot change an abstract state (gil and party are not part of it). A list made only of these, nested
+  // through if and choice, is inert: running it ends exactly where it began, so the walk counts it without playing it.
+  var INERT_OPS = { face: 1, fade: 1, gil: 1, moveActor: 1, music: 1, party: 1, sfx: 1, text: 1, vehicle: 1, wait: 1, changeMap: 1 };
+  function inertList(list, depth) {
+    if (!Array.isArray(list)) return true;
+    if (depth > MAX_NEST + 1) return false;
+    for (var i = 0; i < list.length; i++) {
+      var c = list[i];
+      if (!isObj(c)) continue;
+      if (INERT_OPS[c.op]) continue;
+      if (c.op === 'if') { if (!inertList(c.then, depth + 1) || !inertList(c['else'], depth + 1)) return false; continue; }
+      if (c.op === 'choice') { if (Array.isArray(c.options)) for (var o = 0; o < c.options.length; o++) if (isObj(c.options[o]) && !inertList(c.options[o].cmds, depth + 1)) return false; continue; }
+      return false;
+    }
+    return true;
+  }
+  function hash64(s) { return digest(s).slice(0, 8) + ('0000000' + (xmur3(s)() >>> 0).toString(16)).slice(-8); }
+  function abstractOf(st) { var a = copy(st); a.gil = 0; a.party = []; a.run = null; return a; }
+  function siteOpen(W, site, st, idx) {
+    if (typeof site !== 'string' || !site) return true;
+    var s = W.sites[site];
+    if (!isObj(s) || !Array.isArray(s.requires)) return true;
+    for (var i = 0; i < s.requires.length; i++) if (readFlag(st, idx, s.requires[i]) < 1) return false;
+    return true;
+  }
+  function evtSite(W, evt) { var e = W.events[evt]; return isObj(e) && typeof e.site === 'string' ? e.site : null; }
+  function npcInfo(W, npc) { var n = W.npcs[npc]; return isObj(n) ? n : {}; }
+  function byPriority(idx) {
+    return function (a, z) {
+      var pa = intOr(idx.events[a].priority, 0), pz = intOr(idx.events[z].priority, 0);
+      return pz - pa || (a < z ? -1 : a > z ? 1 : 0);
+    };
+  }
+  function walkRun(idx, world, opts) {
+    opts = isObj(opts) ? opts : {};
+    var W = { sites: isObj(world) && isObj(world.sites) ? world.sites : {}, events: isObj(world) && isObj(world.events) ? world.events : {}, npcs: isObj(world) && isObj(world.npcs) ? world.npcs : {} };
+    var cap = Math.max(1, intOr(opts.cap, WALK_CAP)), forkCap = Math.max(1, intOr(opts.forks, WALK_FORKS));
+    var pidx = dlPlayIndex(idx);
+    // The events by role, each list in the order the host checks them.
+    var voluntary = [], chapterStart = [], battleEnd = [], autoruns = [], talkBy = {}, npcSet = {};
+    each(idx.events, function (e, id) {
+      if (VOLUNTARY[e.trigger]) voluntary.push(id);
+      if (e.trigger === 'autorun') autoruns.push(id);
+      if (e.trigger === 'chapterStart') chapterStart.push(id);
+      if (e.trigger === 'battleEnd') battleEnd.push(id);
+      if (e.trigger === 'talk' && typeof e.npc === 'string') { (talkBy[e.npc] = talkBy[e.npc] || []).push(id); npcSet[e.npc] = 1; }
+    });
+    var order = byPriority(idx);
+    chapterStart.sort(order); battleEnd.sort(order); autoruns.sort(order);
+    each(talkBy, function (list) { list.sort(order); });
+    each(idx.npcDialogue, function (p, npc) { npcSet[npc] = 1; });
+    each(W.npcs, function (p, npc) { if (talkBy[npc] || idx.npcDialogue[npc]) npcSet[npc] = 1; });
+    var npcs = keys(npcSet);
+    // Inert pages and conversations, worked out once. An autorun is never skipped: running it is how the walk finds an
+    // autorun that would loop forever.
+    var inertMemo = {};
+    function inertPage(evt, page) {
+      var k = 'e|' + seenKey(evt, page);
+      if (inertMemo[k] === undefined) { var e = idx.events[evt], p = e && e.pages[page]; inertMemo[k] = !!p && e.trigger !== 'autorun' && !p.once && inertList(p.cmds, 0) ? 1 : 0; }
+      return inertMemo[k] === 1;
+    }
+    // A conversation from its entry node: the nodes it can reach through any next or choice, and whether every one of
+    // them is inert. {inert, nodes [keys]}.
+    function inertTalk(dlg, entry) {
+      var k = 'd|' + dlg + '|' + entry;
+      if (inertMemo[k] !== undefined) return inertMemo[k];
+      var rec = idx.dialogues[dlg], seen = {}, q = [], ok = true;
+      if (dlNode(rec, entry)) { seen[entry] = 1; q.push(entry); }
+      for (var h = 0; h < q.length; h++) {
+        var c = dlCompile(rec, q[h]);
+        if (!c || !inertList(c.cmds, 0)) ok = false;
+        var nx = c ? (c.hasChoice ? c.choiceNext : [c.next]) : [];
+        for (var i = 0; i < nx.length; i++) if (nx[i] && dlNode(rec, nx[i]) && !seen[nx[i]]) { seen[nx[i]] = 1; q.push(nx[i]); }
+      }
+      inertMemo[k] = { inert: ok && q.length > 0, nodes: q };
+      return inertMemo[k];
+    }
+
+    // What the search learns. Every first is a node index; the node's parent chain is a shortest path to it.
+    var nodes = [], at = {}, edges = [], adj = [];
+    var facts = { endings: {}, chapters: {}, questsDone: {}, questsStarted: {}, questsFailed: {}, endedWithout: {}, flags: {}, pages: {}, nodesSeen: {}, npcPages: {}, setters: {} };
+    var errors = [], errSeen = {}, stats = { runs: 0, selfLoops: 0, gameovers: 0, forkCaps: 0, chainCaps: 0, autorunLoops: 0, maxDepth: 0 };
+    var expanding = -1, moveNow = null;
+
+    function noteError(code, message, where) {
+      var k = code + '|' + (where.evt || '') + '|' + (where.npc || '') + '|' + message;
+      if (errSeen[k]) return;
+      errSeen[k] = 1;
+      errors.push({ code: code, message: message, evt: where.evt || null, npc: where.npc || null, dlg: where.dlg || null, node: expanding, move: moveNow ? copy(moveNow) : null });
+    }
+    function first(map, key, n) { if (map[key] === undefined) map[key] = n; }
+    function addNode(st, parent, move) {
+      var a = abstractOf(st), h = hash64(canon(a));
+      if (at[h] !== undefined) return { i: at[h], fresh: false };
+      if (nodes.length >= cap) return { i: -1, fresh: false };
+      var i = nodes.length, depth = parent < 0 ? 0 : nodes[parent].depth + 1;
+      nodes.push({ h: h, st: a, parent: parent, move: move, depth: depth, expanded: false });
+      adj.push([]);
+      at[h] = i;
+      if (depth > stats.maxDepth) stats.maxDepth = depth;
+      if (a.ending) first(facts.endings, a.ending, i);
+      if (a.chapter) first(facts.chapters, a.chapter, i);
+      each(idx.quests, function (def, q) {
+        var qs = a.quests[q];
+        if (!isObj(qs) || qs.stage == null) return;
+        first(facts.questsStarted, q, i);
+        if (qs.failed) first(facts.questsFailed, q, i);
+        else if (def.stages.length && qs.stage === def.stages[def.stages.length - 1].key) first(facts.questsDone, q, i);
+      });
+      // An ending reached while a quest is unfinished: the page reads this to say a main quest can be skipped.
+      if (a.ending) each(idx.quests, function (def, q) { if (!evalCond({ op: 'quest', qst: q, is: 'done' }, a, idx)) first(facts.endedWithout, q, i); });
+      each(idx.flags, function (f, id) { if (readFlag(a, idx, id) !== f['default']) first(facts.flags, id, i); });
+      return { i: i, fresh: true };
+    }
+    // A flag that a run moved off its default for the first time anywhere is credited to that run's root: the event the
+    // player stood on, or the person they talked to. The page turns roots into sites for the golden order proof.
+    function noteSetters(before, after, root) {
+      each(idx.flags, function (f, id) {
+        if (facts.setters[id] || readFlag(after, idx, id) === readFlag(before, idx, id) || readFlag(after, idx, id) === f['default']) return;
+        facts.setters[id] = { evt: root.evt || null, npc: root.npc || null, node: expanding };
+      });
+    }
+    function noteFrames(st) {
+      var run = st && st.run;
+      if (!run || !Array.isArray(run.stack)) return;
+      for (var i = 0; i < run.stack.length; i++) {
+        var fr = run.stack[i];
+        if (typeof fr.evt === 'string' && fr.evt.indexOf('dlg:') !== 0) first(facts.pages, seenKey(fr.evt, fr.page), expanding);
+      }
+    }
+    function noteCursor(cur) { if (cur && Array.isArray(cur.path)) for (var i = 0; i < cur.path.length; i++) first(facts.nodesSeen, cur.dlg + '#' + cur.path[i], expanding); }
+
+    // Plays one run to every quiet end it can reach. first is the runner's first result (with its cursor for a
+    // conversation). Returns [{state, choices [text], battles [{trp, outcome}]}] in a fixed order.
+    function drive(r0, isDlg, root) {
+      stats.runs++;
+      var stack = [{ r: r0, choices: [], battles: [] }], outs = [], seen = {}, forks = 0;
+      while (stack.length) {
+        var it = stack.pop(), r = it.r, steps = 0;
+        while (r) {
+          var e = r.effect;
+          noteFrames(r.state);
+          if (isDlg) noteCursor(r.cursor);
+          if (isObj(e) && e.kind === 'error') noteError(e.code, e.message, { evt: root.evt, npc: root.npc, dlg: e.dlg || (r.cursor && r.cursor.dlg) || null });
+          if (isObj(e) && e.kind === 'gameover') { stats.gameovers++; r = null; break; }
+          if (r.done || r.waiting) break;
+          if (++steps > WALK_STEPS) { noteError('runaway', 'A run took more than ' + WALK_STEPS + ' steps without stopping.', root); r = null; break; }
+          r = isDlg ? dlStep(r.state, r.cursor, pidx) : step(r.state, pidx);
+        }
+        if (!r) continue;
+        if (r.done) { outs.push({ state: r.state, choices: it.choices, battles: it.battles }); continue; }
+        var key = hash64(canon(r.state) + '|' + (isDlg && r.cursor ? r.cursor.dlg + '|' + r.cursor.node + '|' + r.cursor.then : ''));
+        if (seen[key]) continue;
+        seen[key] = 1;
+        if (++forks > forkCap) { stats.forkCaps++; noteError('fork-cap', 'One move forked into more than ' + forkCap + ' paths; the rest of it was not explored.', root); break; }
+        var kids = [];
+        if (r.waiting === 'choice') {
+          var opts0 = isObj(r.effect) && Array.isArray(r.effect.options) ? r.effect.options : [];
+          for (var o = 0; o < opts0.length; o++) {
+            var nr = isDlg ? dlChoose(r.state, r.cursor, opts0[o].index, pidx) : choose(r.state, opts0[o].index, pidx);
+            kids.push({ r: nr, choices: it.choices.concat([opts0[o].text]), battles: it.battles });
+          }
+        } else if (r.waiting === 'battle') {
+          var trp = r.state.run && r.state.run.wait ? r.state.run.wait.trp : null, outcomes = ['win'];
+          if (isObj(r.effect) && r.effect.canLose) outcomes.push('lose');
+          if (isObj(r.effect) && r.effect.canEscape) outcomes.push('escape');
+          for (var b = 0; b < outcomes.length; b++) {
+            var rr = resolve(r.state, outcomes[b], pidx);
+            if (isDlg) rr = dlDrive(rr, r.cursor, pidx);
+            kids.push({ r: rr, choices: it.choices, battles: it.battles.concat([{ trp: trp == null ? null : trp, outcome: outcomes[b] }]) });
+          }
+        }
+        for (var k = kids.length - 1; k >= 0; k--) stack.push(kids[k]);
+      }
+      for (var i = 0; i < outs.length; i++) noteSetters(root.before, outs[i].state, root);
+      return outs;
+    }
+    function runEvent(st, evt, root) {
+      root.before = st;
+      return drive(start(st, evt, pidx), false, root);
+    }
+    function runTalk(st, npc, root) {
+      root.before = st;
+      var r = dlTalk(st, npc, pidx);
+      if (r.page >= 0) first(facts.npcPages, npc + '#' + r.page, expanding);
+      return drive(r, true, root);
+    }
+    // The host's own rules after a run: chapterStart on a chapter change, battleEnd after battles, autoruns on the map
+    // the player stands on. item {state, path [steps], fc {chapter, map, battles [trp], queue [evt]}}.
+    function chain(item, out, depth) {
+      var st = item.state, fc = item.fc;
+      if (st.ending) { out.push(item); return; }
+      if (depth > WALK_CHAIN) { stats.chainCaps++; noteError('chain', 'Forced events ran more than ' + WALK_CHAIN + ' times in a row after one move.', {}); out.push(item); return; }
+      // queue holds forced events already due ({evt, kind}); each is run in turn if its page passes when its turn comes.
+      var queue = fc.queue.slice(), battles = fc.battles.slice(), chapter = fc.chapter, next = null, kind = null;
+      if (st.chapter !== chapter) { chapter = st.chapter; for (var cs = 0; cs < chapterStart.length; cs++) queue.push({ evt: chapterStart[cs], kind: 'chapterStart' }); }
+      if (battles.length) {
+        for (var bi = 0; bi < battles.length; bi++) for (var be = 0; be < battleEnd.length; be++) {
+          var ev = idx.events[battleEnd[be]];
+          if (ev.trp == null || ev.trp === battles[bi]) queue.push({ evt: battleEnd[be], kind: 'battleEnd' });
+        }
+        battles = [];
+      }
+      while (!next && queue.length) { var q = queue.shift(); if (pickPage(q.evt, st, pidx) >= 0) { next = q.evt; kind = q.kind; } }
+      if (!next && fc.map) {
+        for (var ai = 0; ai < autoruns.length && !next; ai++) {
+          var aid = autoruns[ai];
+          if (idx.events[aid].map === fc.map && siteOpen(W, evtSite(W, aid), st, idx) && pickPage(aid, st, pidx) >= 0) { next = aid; kind = 'autorun'; }
+        }
+      }
+      if (!next) { out.push(item); return; }
+      var h0 = hash64(canon(abstractOf(st))), outs = runEvent(st, next, { evt: next });
+      for (var i = 0; i < outs.length; i++) {
+        var o = outs[i], won = [];
+        for (var w = 0; w < o.battles.length; w++) if (o.battles[w].trp) won.push(o.battles[w].trp);
+        if (kind === 'autorun' && hash64(canon(abstractOf(o.state))) === h0) {
+          stats.autorunLoops++;
+          noteError('autorun-loop', 'This autorun passes again as soon as it ends and changes nothing, so the player would be stuck in it forever.', { evt: next });
+          out.push(item);
+          continue;
+        }
+        var stepRec = { by: kind, evt: next };
+        if (o.choices.length) stepRec.choices = o.choices;
+        if (o.battles.length) stepRec.battles = o.battles;
+        chain({ state: o.state, path: item.path.concat([stepRec]), fc: { chapter: chapter, map: fc.map, battles: won, queue: queue.slice() } }, out, depth + 1);
+      }
+    }
+    // Every quiet state a move can end in, with the steps that got there.
+    function settleMove(outs, mainStep, map, chapterBefore) {
+      var done = [];
+      for (var i = 0; i < outs.length; i++) {
+        var o = outs[i], s0 = copy(mainStep), won = [];
+        if (o.choices.length) s0.choices = o.choices;
+        if (o.battles.length) s0.battles = o.battles;
+        for (var w = 0; w < o.battles.length; w++) if (o.battles[w].trp) won.push(o.battles[w].trp);
+        chain({ state: o.state, path: [s0], fc: { chapter: chapterBefore, map: map, battles: won, queue: [] } }, done, 0);
+      }
+      return done;
+    }
+    function moves(st) {
+      var out = [];
+      for (var i = 0; i < voluntary.length; i++) {
+        var id = voluntary[i];
+        if (!siteOpen(W, evtSite(W, id), st, idx)) continue;
+        var p = pickPage(id, st, pidx);
+        if (p < 0) continue;
+        first(facts.pages, seenKey(id, p), expanding);
+        if (inertPage(id, p)) { stats.selfLoops++; continue; }
+        out.push({ by: idx.events[id].trigger, evt: id, map: idx.events[id].map || null });
+      }
+      for (var n = 0; n < npcs.length; n++) {
+        var npc = npcs[n], info = npcInfo(W, npc);
+        if (!siteOpen(W, info.site, st, idx)) continue;
+        var list = talkBy[npc] || [], te = null, tp = -1;
+        for (var t = 0; t < list.length && !te; t++) { tp = pickPage(list[t], st, pidx); if (tp >= 0) te = list[t]; }
+        if (te) {
+          first(facts.pages, seenKey(te, tp), expanding);
+          if (inertPage(te, tp)) { stats.selfLoops++; continue; }
+          out.push({ by: 'talk', evt: te, npc: npc, map: info.map || null });
+          continue;
+        }
+        var pages = idx.npcDialogue[npc], at = dlPick(pages, st, idx);
+        if (at < 0) continue;
+        var pg = pages[at], entry = typeof pg.node === 'string' && pg.node ? pg.node : idx.dialogues[pg.dlg].start, it = inertTalk(pg.dlg, entry);
+        if (it.inert) {
+          first(facts.npcPages, npc + '#' + at, expanding);
+          for (var v = 0; v < it.nodes.length; v++) first(facts.nodesSeen, pg.dlg + '#' + it.nodes[v], expanding);
+          stats.selfLoops++;
+          continue;
+        }
+        out.push({ by: 'dialogue', npc: npc, map: info.map || null });
+      }
+      return out;
+    }
+    function link(from, outcome, path) {
+      var r = addNode(outcome, from, path);
+      if (r.i < 0) return false;
+      if (r.i === from) { stats.selfLoops++; return true; }
+      if (adj[from].indexOf(r.i) < 0) { adj[from].push(r.i); edges.push([from, r.i]); }
+      return true;
+    }
+
+    // ---- the search
+    var newGame = createState(idx, {});
+    addNode(newGame, -1, [{ by: 'newGame' }]);
+    var capped = false;
+    // A new game plays its forced events (the first chapter's opener) before the player can move.
+    expanding = 0; moveNow = null;
+    var boot = [];
+    chain({ state: newGame, path: [{ by: 'newGame' }], fc: { chapter: null, map: null, battles: [], queue: [] } }, boot, 0);
+    var booted = boot.length !== 1 || hash64(canon(abstractOf(boot[0].state))) !== nodes[0].h;
+    if (booted) {
+      nodes[0].boot = true;
+      for (var bi = 0; bi < boot.length; bi++) if (!link(0, boot[bi].state, boot[bi].path)) capped = true;
+      nodes[0].expanded = true;
+    }
+    for (var head = booted ? 1 : 0; head < nodes.length; head++) {
+      var nd = nodes[head];
+      expanding = head;
+      if (nd.st.ending) { nd.expanded = true; continue; }
+      var ms = moves(nd.st);
+      for (var m = 0; m < ms.length; m++) {
+        var mv = ms[m], outs, stepRec = { by: mv.by };
+        moveNow = stepRec;
+        if (mv.evt) stepRec.evt = mv.evt;
+        if (mv.npc) stepRec.npc = mv.npc;
+        if (mv.by === 'dialogue') outs = runTalk(nd.st, mv.npc, { npc: mv.npc });
+        else outs = runEvent(nd.st, mv.evt, { evt: mv.evt, npc: mv.npc || null });
+        var settled = settleMove(outs, stepRec, mv.map, nd.st.chapter);
+        for (var s = 0; s < settled.length; s++) if (!link(head, settled[s].state, settled[s].path)) capped = true;
+      }
+      // A state the cap cut short keeps counting as unexplored, so the softlock proof never blames it for edges it lost.
+      nd.expanded = !capped;
+      if (capped) break;
+    }
+    expanding = -1; moveNow = null;
+
+    // ---- no softlock: reverse reachability from every ending (and, when capped, from every state not yet expanded,
+    // since the search cannot say where those lead).
+    var rev = [];
+    for (var ri = 0; ri < nodes.length; ri++) rev.push([]);
+    for (var ei = 0; ei < edges.length; ei++) rev[edges[ei][1]].push(edges[ei][0]);
+    var good = [], queue0 = [];
+    for (var gi = 0; gi < nodes.length; gi++) { good.push(false); if (nodes[gi].st.ending || !nodes[gi].expanded) { good[gi] = true; queue0.push(gi); } }
+    for (var qh = 0; qh < queue0.length; qh++) { var pr = rev[queue0[qh]]; for (var pi = 0; pi < pr.length; pi++) if (!good[pr[pi]]) { good[pr[pi]] = true; queue0.push(pr[pi]); } }
+    var stuck = [], entries = [], deadEnds = 0;
+    for (var si = 0; si < nodes.length; si++) {
+      if (good[si]) continue;
+      stuck.push(si);
+      if (!adj[si].length) deadEnds++;
+      if (nodes[si].parent < 0 || good[nodes[si].parent]) entries.push(si);
+    }
+    // The deepest stuck state shows where progress stops when nothing reaches an ending at all.
+    var deepest = -1;
+    for (var di = 0; di < stuck.length; di++) if (deepest < 0 || nodes[stuck[di]].depth > nodes[deepest].depth) deepest = stuck[di];
+
+    function pathTo(i) {
+      var chainOut = [];
+      for (var c = i; c >= 0; c = nodes[c].parent) chainOut.push(nodes[c].move);
+      var out = [];
+      for (var k = chainOut.length - 1; k >= 0; k--) for (var j = 0; j < chainOut[k].length; j++) out.push(copy(chainOut[k][j]));
+      return out;
+    }
+    function where(i) { var n = nodes[i]; return { node: i, depth: n.depth, hash: n.h, chapter: n.st.chapter, ending: n.st.ending || null, path: pathTo(i) }; }
+    // A stuck state's started quests, {qst: stage key or 'failed'}, so a report can say where the story stood.
+    function questsAt(i) { var q = {}; each(nodes[i].st.quests, function (qs, k) { if (isObj(qs) && qs.stage != null) q[k] = qs.failed ? 'failed' : qs.stage; }); return q; }
+    function firstMap(map, withPath) { var o = {}; each(map, function (i, k) { o[k] = withPath ? where(i) : { node: i, depth: i >= 0 ? nodes[i].depth : -1 }; }); return o; }
+    var softlocks = [];
+    for (var en = 0; en < entries.length && softlocks.length < WALK_REPORT; en++) {
+      var w0 = where(entries[en]);
+      w0.quests = questsAt(entries[en]);
+      w0.deadEnd = !adj[entries[en]].length;
+      softlocks.push(w0);
+    }
+    var setters = {};
+    each(facts.setters, function (s, f) { setters[f] = { evt: s.evt, npc: s.npc, node: s.node, depth: s.node >= 0 ? nodes[s.node].depth : -1 }; });
+    var errs = [];
+    for (var er = 0; er < errors.length; er++) { var x = copy(errors[er]); x.path = x.node >= 0 ? pathTo(x.node).concat(x.move ? [x.move] : []) : []; delete x.move; errs.push(x); }
+    var frontier = 0;
+    for (var fi = 0; fi < nodes.length; fi++) if (!nodes[fi].expanded) frontier++;
+    // The golden path: the shortest path to an ending with every quest in opts.goal done (the page passes the main
+    // quests), else the shortest path to any ending. Breadth first order makes the first such node a shortest one.
+    var goal = Array.isArray(opts.goal) ? opts.goal.filter(function (q) { return !!idx.quests[q]; }) : [], goldenEnd = -1, goldenAny = -1;
+    for (var gn = 0; gn < nodes.length && goldenEnd < 0; gn++) {
+      if (!nodes[gn].st.ending) continue;
+      if (goldenAny < 0) goldenAny = gn;
+      var all = true;
+      for (var gq = 0; gq < goal.length && all; gq++) if (!evalCond({ op: 'quest', qst: goal[gq], is: 'done' }, nodes[gn].st, idx)) all = false;
+      if (all) goldenEnd = gn;
+    }
+    var goldenFull = goldenEnd >= 0;
+    if (goldenEnd < 0) goldenEnd = goldenAny;
+    return {
+      version: S.version, digest: idx.digest,
+      stats: { states: nodes.length, edges: edges.length, expanded: nodes.length - frontier, frontier: frontier, capped: capped, cap: cap, maxDepth: stats.maxDepth, runs: stats.runs,
+        selfLoops: stats.selfLoops, gameovers: stats.gameovers, forkCaps: stats.forkCaps, chainCaps: stats.chainCaps, autorunLoops: stats.autorunLoops, boot: booted },
+      endings: firstMap(facts.endings, true), chapters: firstMap(facts.chapters, true), questsDone: firstMap(facts.questsDone, true),
+      questsStarted: firstMap(facts.questsStarted, false), questsFailed: firstMap(facts.questsFailed, false), flags: firstMap(facts.flags, false),
+      pages: firstMap(facts.pages, false), dialogueNodes: firstMap(facts.nodesSeen, false), npcPages: firstMap(facts.npcPages, false), setters: setters,
+      golden: goldenEnd >= 0 ? where(goldenEnd) : null, goldenFull: goldenFull, goal: goal, endedWithout: firstMap(facts.endedWithout, true),
+      softlock: { count: stuck.length, entries: entries.length, deadEnds: deadEnds, reported: softlocks, deepest: deepest >= 0 ? (function () { var w = where(deepest); w.quests = questsAt(deepest); return w; })() : null },
+      errors: errs
+    };
+  }
+  S.walk = { CAP: WALK_CAP, FORKS: WALK_FORKS, run: walkRun, hash: hash64, abstract: abstractOf };
+
   // ---------------------------------------------------------------- later phases insert sections above this line
   function freeze(o) { Object.freeze(o); keys(o).forEach(function (k) { var v = o[k]; if (v && (typeof v === 'object' || typeof v === 'function') && !Object.isFrozen(v)) freeze(v); }); return o; }
   return freeze(S);
@@ -5140,7 +5662,7 @@ var ENGINE_STORY = (function () {
     if (gv !== ENGINE_WORLD.version) add('generator', 'The world was made by World Forge engine ' + (gv || 'unknown') + ', and this forge carries engine ' + ENGINE_WORLD.version + '.');
     var res = Kit.validate(b);
     var bad = res.errors.concat(res.broken).filter(function (x) {
-      return x.recordId !== 'story' && STORY.PREFIXES.indexOf(Kit.ids.prefixOf(x.recordId)) < 0;
+      return x.recordId !== 'story' && !x.story && STORY.PREFIXES.indexOf(Kit.ids.prefixOf(x.recordId)) < 0;
     });
     bad.slice(0, 3).forEach(function (x) { add('validation', (x.level === 'broken' ? 'Broken reference' : 'Error') + ' on ' + x.recordId + (x.fieldPath ? ' (' + x.fieldPath + ')' : '') + ': ' + x.message); });
     if (bad.length > 3) add('validation', (bad.length - 3) + ' more errors or broken references outside the story.');
@@ -8372,7 +8894,9 @@ var ENGINE_STORY = (function () {
   Kit.validate.register('story.playtime', function (b, ctx) {
     if (!b || !U.isObj(b.story) || !hasWorld(b)) return;
     var p = X.playtime(b), chs = STORY.chapters(b);
-    if (!p.meets && chs.length) ctx.add({ recordId: chs[chs.length - 1].id, fieldPath: 'targetMinutes', level: 'error',
+    // story: true marks it as this forge's finding although it is filed on a chapter, so the world check behind the import
+    // gate does not mistake a short story for an unclean world (Phase 7).
+    if (!p.meets && chs.length) ctx.add({ recordId: chs[chs.length - 1].id, fieldPath: 'targetMinutes', level: 'error', story: true,
       message: 'The chapters add up to ' + p.main + ' minutes, short of the ' + p.floor + ' minute floor (' + (p.floor / 60) + ' hours) by ' + p.short + '. Raise chapter target minutes in Saga Forge (Day 146). Side and B story minutes never count toward the floor.' });
   });
 
@@ -8591,6 +9115,437 @@ var ENGINE_STORY = (function () {
   };
 })();
 // === STORY:ENDINGS END ===
+// === STORY:CHECKS BEGIN ===
+(function () {
+  'use strict';
+  // Phase 7: validation and the reachability proof. Six checks, each a card on the Validation tab:
+  //   references  every story record's references resolve, every gate key is bound, every condition and command passes
+  //               lint (all through Kit.validate and the story validators), the side quest flags resolve, every event
+  //               and person stands somewhere the walk can place, and the world is the one the story was built on;
+  //   smells      a choice that changes nothing, a dialogue node nobody ever sees, an event page or person's page that
+  //               never wins, a flag set but never read, a flag read but never set, a quest stage with no way out;
+  //   walk        ENGINE_STORY.walk over abstract story states: what it explored, any runtime error a playthrough meets,
+  //               an autorun that would loop, and the cap, which is reported by name and is never a silent pass;
+  //   proofs      every chapter entered, every main quest completed, every gate flag set by something that stands no
+  //               later in golden order than the first place that needs it, every ending reached, every side quest
+  //               completed in some playthrough;
+  //   softlock    from every state a playthrough can reach, an ending is still reachable (reverse reachability over the
+  //               explored graph), each failure reported with the path that leads into it;
+  //   floor       the chapters' target minutes reach the 720 minute floor (side and B story minutes never count).
+  // Final export is refused while any card has an error, while the world differs from the one the story was stamped on,
+  // and while any reference is unresolved.
+  // DECISION, the world stamp: story.settings.worldHash records the 64 bit hash of the world namespace each time a scaffold
+  // (quests, dialogue, events, endings) builds from it. A world regenerated in Day 148 after the story was written no
+  // longer matches, and Final waits until the story is rebuilt on it or the author confirms it on the Validation tab.
+  var U = Kit.util, ES = ENGINE_STORY, F = STORY.flags, Q = STORY.quests, E = STORY.events, X = STORY.ends;
+  function cur() { return Kit.bundle.current(); }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  function nameOf(id, fb) { return STORY.nameOf ? STORY.nameOf(id, fb) : (fb || id || ''); }
+  var C = STORY.checks = {};
+  C.CARDS = [
+    { key: 'references', title: 'References', lead: 'Every reference resolves, every gate key is bound, and every condition and command passes lint.' },
+    { key: 'smells', title: 'Story smells', lead: 'Things that work but are probably not what you meant. Warnings only.' },
+    { key: 'walk', title: 'The walk', lead: 'Every playthrough the story allows, explored state by state.' },
+    { key: 'proofs', title: 'The proofs', lead: 'Every chapter, main quest, gate, ending, and side quest is reachable.' },
+    { key: 'softlock', title: 'No softlock', lead: 'From every state a player can reach, an ending is still reachable.' },
+    { key: 'floor', title: 'The 12 hour floor', lead: 'The chapters reach the playtime floor. Optional quests never count toward it.' }
+  ];
+
+  // ---------------------------------------------------------------- the world stamp
+  var whCache = { b: null, key: null, hash: null };
+  C.worldHash = function (b) {
+    b = b || cur();
+    if (!b || !U.isObj(b.world)) return null;
+    var key = b === cur() ? Kit.index(b) : null;
+    if (key && whCache.b === b && whCache.key === key) return whCache.hash;
+    var h = ES.walk.hash(ES.util.canon(b.world));
+    if (key) whCache = { b: b, key: key, hash: h };
+    return h;
+  };
+  C.stamped = function (b) { b = b || cur(); var s = b && b.story && b.story.settings; return s && typeof s.worldHash === 'string' ? s.worldHash : null; };
+  C.worldCurrent = function (b) { b = b || cur(); var s = C.stamped(b); return !!s && s === C.worldHash(b); };
+  // Records the current world as the one the story stands on. Touches the bundle only when the stamp changes.
+  C.stamp = function (b) {
+    b = b || cur();
+    if (!b || !U.isObj(b.story) || !U.isObj(b.world)) return false;
+    STORY.ensure(b);
+    var h = C.worldHash(b);
+    if (!h || b.story.settings.worldHash === h) return false;
+    b.story.settings.worldHash = h;
+    if (b === cur()) Kit.bundle.touch('story-checks');
+    return true;
+  };
+  // Every scaffold stamps the world it built from.
+  function stamping(obj) {
+    if (!obj || typeof obj.scaffold !== 'function' || obj.scaffold.stamps) return;
+    var raw = obj.scaffold;
+    obj.scaffold = function (b) { var rep = raw.apply(this, arguments); var bb = b || cur(); if (rep && !rep.skipped && STORY.readiness(bb) === true) C.stamp(bb); return rep; };
+    obj.scaffold.stamps = true;
+  }
+  [Q, STORY.dialogue, E, X].forEach(stamping);
+
+  // ---------------------------------------------------------------- the world as the walk sees it
+  // {sites {siteKey: {requires [flg]}}, events {evt: {site}}, npcs {npc: {site, map}}, unknown [{kind, id, why}]}.
+  // Sites are Day 148's progression nodes (requires lists its gate keys, read through the story's bindings) and its
+  // regions (a region needs the gate that leads into it). An event stands on its site field when that names a node or a
+  // region, else on the site of its map, else on its person's site. A record the world places nowhere stays open and is
+  // listed in unknown, so the References card can say so.
+  C.walkWorld = function (b) {
+    b = b || cur();
+    var g = STORY.world.graph(b), bind = b.story.bindings || {}, sites = {}, byRecord = {}, golden = [], chapterOf = {}, unknown = [];
+    function flags(list) { var o = []; (list || []).forEach(function (k) { var bd = bind[k]; if (U.isObj(bd) && typeof bd.flg === 'string' && o.indexOf(bd.flg) < 0) o.push(bd.flg); }); return o.sort(); }
+    if (g) {
+      g.nodes.forEach(function (n) {
+        sites[n.key] = { requires: flags(n.requires) };
+        chapterOf[n.key] = n.chapter || null;
+        if (n.record) byRecord[n.record] = n.key;
+        if (n.golden) golden.push(n.key);
+      });
+      (g.regions || []).forEach(function (r) {
+        var gate = (g.gates || []).filter(function (x) { return U.isObj(x) && x.to === r.key; })[0];
+        sites[r.key] = { requires: flags(gate ? gate.requires : (r.chapter ? ['chapter:' + r.chapter] : [])) };
+        chapterOf[r.key] = r.chapter || null;
+        if (r.record) byRecord[r.record] = r.key;
+      });
+    }
+    function siteOfRecord(id) {
+      if (!id) return null;
+      if (byRecord[id]) return byRecord[id];
+      var rec = STORY.world.get(id, b);
+      return rec && rec.region && byRecord[rec.region] ? byRecord[rec.region] : null;
+    }
+    function siteOfMap(m) { var rec = m && STORY.world.get(m, b); return rec && rec.site ? siteOfRecord(rec.site) : null; }
+    var ow = STORY.world.overworld(b), events = {}, npcs = {};
+    STORY.records.list('evt_', b).forEach(function (e) {
+      var site = null, why = '';
+      if (typeof e.site === 'string' && sites[e.site]) site = e.site;
+      else if (e.trigger === 'talk' && e.npc) { var p = STORY.world.get(e.npc, b); site = p ? siteOfRecord(p.site) : null; why = 'its person stands nowhere on the progression graph'; }
+      else if (e.map) { site = siteOfMap(e.map); why = ow && e.map === ow.id ? '' : 'its map belongs to no site on the progression graph'; }
+      if (typeof e.site === 'string' && e.site && !sites[e.site]) why = 'its site ' + e.site + ' is not on the progression graph';
+      events[e.id] = { site: site };
+      if (!site && why && e.trigger !== 'chapterStart' && e.trigger !== 'battleEnd') unknown.push({ kind: 'event', id: e.id, why: why });
+    });
+    STORY.world.list('npc_', b).forEach(function (n) {
+      var site = siteOfRecord(n.site);
+      npcs[n.id] = { site: site, map: n.map || null };
+    });
+    Object.keys(b.story.npcDialogue || {}).sort().forEach(function (npc) {
+      if (!npcs[npc]) unknown.push({ kind: 'npc', id: npc, why: 'this person is not in the world' });
+      else if (!npcs[npc].site) unknown.push({ kind: 'npc', id: npc, why: 'this person stands nowhere on the progression graph' });
+    });
+    // Golden order: the golden nodes as Day 148 lists them. A region or an optional site takes the place of its chapter's
+    // first golden node.
+    var pos = {}, firstOf = {};
+    golden.forEach(function (k, i) { pos[k] = i; var c = chapterOf[k]; if (c && firstOf[c] === undefined) firstOf[c] = i; });
+    Object.keys(sites).forEach(function (k) { if (pos[k] === undefined && chapterOf[k] && firstOf[chapterOf[k]] !== undefined) pos[k] = firstOf[chapterOf[k]]; });
+    return { sites: sites, events: events, npcs: npcs, unknown: unknown, golden: golden, pos: pos };
+  };
+
+  // ---------------------------------------------------------------- the walk
+  function mainQuests(b) { return Q.list(b).filter(function (q) { return q.kind === 'main' && Array.isArray(q.stages) && q.stages.length; }); }
+  var walkCache = { b: null, key: null, out: null };
+  // {world, result, ms}. Memoized per bundle on KIT:CORE's index identity, so any edit runs it again.
+  C.walk = function (b) {
+    b = b || cur();
+    var key = b === cur() ? Kit.index(b) : null;
+    if (key && walkCache.b === b && walkCache.key === key) return walkCache.out;
+    var W = C.walkWorld(b), idx = STORY.engineIndex(b), cap = Number(b.story.settings.walkCap) || ES.walk.CAP, t0 = Date.now();
+    var res = ES.walk.run(idx, { sites: W.sites, events: W.events, npcs: W.npcs }, { cap: cap, goal: mainQuests(b).map(function (q) { return q.id; }) });
+    var out = { world: W, result: res, ms: Date.now() - t0 };
+    if (key) walkCache = { b: b, key: key, out: out };
+    return out;
+  };
+
+  // ---------------------------------------------------------------- reading a path
+  // One step of a walk path in words, for the cards and the tests.
+  C.stepText = function (s) {
+    if (!U.isObj(s)) return '';
+    var what;
+    switch (s.by) {
+      case 'newGame': return 'A new game starts';
+      case 'talk': what = 'Talk to ' + nameOf(s.npc, s.npc); break;
+      case 'dialogue': what = 'Talk to ' + nameOf(s.npc, s.npc); break;
+      case 'step': what = 'Step on ' + nameOf(s.evt, s.evt); break;
+      case 'mapEnter': what = 'Enter ' + nameOf(s.evt, s.evt); break;
+      case 'autorun': what = nameOf(s.evt, s.evt) + ' runs'; break;
+      case 'chapterStart': what = nameOf(s.evt, s.evt) + ' plays'; break;
+      case 'battleEnd': what = nameOf(s.evt, s.evt) + ' follows the battle'; break;
+      default: what = nameOf(s.evt || s.npc, s.evt || s.npc || s.by);
+    }
+    if (Array.isArray(s.choices) && s.choices.length) what += ', choosing ' + s.choices.map(function (c) { return '"' + c + '"'; }).join(' then ');
+    if (Array.isArray(s.battles) && s.battles.length) what += ', ' + s.battles.map(function (x) { return x.outcome === 'win' ? 'winning' : x.outcome === 'lose' ? 'losing' : 'escaping'; }).join(' then ');
+    return what;
+  };
+  C.pathText = function (path) { return (path || []).filter(function (s) { return s.by !== 'newGame'; }).map(C.stepText); };
+
+  // ---------------------------------------------------------------- static readings for the smells
+  var INERT = { face: 1, fade: 1, gil: 1, moveActor: 1, music: 1, party: 1, sfx: 1, text: 1, vehicle: 1, wait: 1, changeMap: 1 };
+  function inertList(list) {
+    var ok = true;
+    if (!Array.isArray(list)) return true;
+    ES.cmd.walk(list, function (c) { if (U.isObj(c) && !INERT[c.op] && c.op !== 'if' && c.op !== 'choice') ok = false; });
+    return ok;
+  }
+  // Every command list a story can run, with where it lives: [{recordId, fieldPath, cmds, dlg, node}].
+  function allLists(b) {
+    var out = [];
+    STORY.records.list('evt_', b).forEach(function (e) { (e.pages || []).forEach(function (p, i) { if (U.isObj(p) && Array.isArray(p.cmds)) out.push({ recordId: e.id, fieldPath: 'pages[' + i + ']', cmds: p.cmds }); }); });
+    STORY.records.list('dlg_', b).forEach(function (d) {
+      Object.keys(U.isObj(d.nodes) ? d.nodes : {}).sort().forEach(function (k) { var c = ES.dlg.compile(d, k); if (c) out.push({ recordId: d.id, fieldPath: 'nodes.' + k, cmds: c.cmds, dlg: d, node: k }); });
+    });
+    return out;
+  }
+
+  // ---------------------------------------------------------------- the six checks
+  function card(key) { var c = C.CARDS.filter(function (x) { return x.key === key; })[0]; return { key: key, title: c.title, lead: c.lead, items: [], facts: [] }; }
+  function item(cd, level, code, message, where) {
+    var it = { level: level, code: code, message: message };
+    Object.keys(where || {}).forEach(function (k) { if (where[k] !== undefined && where[k] !== null) it[k] = where[k]; });
+    cd.items.push(it);
+  }
+  function pathOf(w) { return w && Array.isArray(w.path) ? C.pathText(w.path) : []; }
+
+  function references(b, run, cd) {
+    var res = Kit.validate(b), mine = function (x) { return x.recordId === 'story' || STORY.PREFIXES.indexOf(Kit.ids.prefixOf(x.recordId)) >= 0; };
+    res.errors.filter(mine).forEach(function (x) { item(cd, 'error', 'lint', x.message, { recordId: x.recordId, fieldPath: x.fieldPath }); });
+    res.broken.filter(mine).forEach(function (x) { item(cd, 'error', 'broken', x.message, { recordId: x.recordId, fieldPath: x.fieldPath }); });
+    // Every ID a story record names, wherever it sits (conditions and commands included), must resolve.
+    var idx = Kit.index(b), own = {}, bad = {};
+    STORY.PREFIXES.forEach(function (p) { Object.keys(b.story.records[p] || {}).forEach(function (id) { own[id] = 1; }); });
+    function scan(node, rid, depth) {
+      if (depth > 24 || node == null) return;
+      if (typeof node === 'string') { if (/^[a-z]{3}_[a-z0-9_]*[a-z0-9]$/.test(node) && Kit.ids.isValid(node) && !own[node] && !idx.byId[node] && !bad[node]) bad[node] = rid; return; }
+      if (typeof node !== 'object') return;
+      if (Array.isArray(node)) { node.forEach(function (x) { scan(x, rid, depth + 1); }); return; }
+      Object.keys(node).sort().forEach(function (k) { if (k !== 'id') scan(node[k], rid, depth + 1); });
+    }
+    STORY.PREFIXES.forEach(function (p) { Object.keys(b.story.records[p] || {}).sort().forEach(function (id) { scan(b.story.records[p][id], id, 0); }); });
+    ['bindings', 'npcDialogue'].forEach(function (k) { scan(b.story[k], 'story', 0); });
+    Object.keys(bad).sort().forEach(function (id) { item(cd, 'error', 'unresolved', id + ' does not resolve to any record.', { recordId: bad[id] }); });
+    STORY.forwardRefs(b).filter(function (f) { return !f.ok; }).forEach(function (f) { item(cd, 'error', 'forward', 'Side quest ' + nameOf(f.recordId, f.recordId) + ' names completion flag ' + f.id + ', which is not a story flag.', { recordId: f.recordId, tab: 'flags' }); });
+    run.world.unknown.forEach(function (u) { item(cd, 'warning', 'site', nameOf(u.id, u.id) + ' cannot be placed: ' + u.why + '. The walk treats it as always reachable.', u.kind === 'npc' ? { npc: u.id } : { recordId: u.id }); });
+    var stamp = C.stamped(b), now = C.worldHash(b);
+    if (!stamp) item(cd, 'error', 'world-unstamped', 'The story has no record of the world it was built on. Rebuild it from the Quests, Dialogue, or Events tab, or confirm this world below.', { action: 'stamp' });
+    else if (stamp !== now) item(cd, 'error', 'world-changed', 'The world changed since the story was built on it (Day 148 regenerated it). Rebuild the quests, dialogue, and events on this world, or confirm it below once you have checked them.', { action: 'stamp' });
+    cd.facts.push(['World hash', now ? now : 'none'], ['Story built on', stamp ? (stamp === now ? 'this world' : stamp) : 'not recorded'], ['Story records', String(STORY.count(b))]);
+  }
+
+  function smells(b, run, cd) {
+    var R = run.result, capped = R.stats.capped, never = capped ? 'before the walk reached its cap' : 'in any playthrough';
+    // A choice that changes nothing.
+    allLists(b).forEach(function (L) {
+      ES.cmd.walk(L.cmds, function (c, p, pt) {
+        if (!U.isObj(c) || c.op !== 'choice' || !Array.isArray(c.options) || c.options.length < 2) return;
+        if (!c.options.every(function (o) { return !U.isObj(o) || inertList(o.cmds); })) return;
+        if (L.dlg) {
+          var n = L.dlg.nodes[L.node], nexts = (n.choices || []).map(function (ch) { return U.isObj(ch) && ch.next ? ch.next : ''; });
+          if (nexts.some(function (x) { return x !== nexts[0]; })) return;
+        }
+        item(cd, 'warning', 'inert-choice', 'This choice changes nothing, whichever option is picked' + (L.dlg ? ' (every option leads to the same place)' : '') + '.', { recordId: L.recordId, fieldPath: L.fieldPath });
+      });
+    });
+    // Dialogue nobody opens, and nodes nobody sees.
+    // A dialogue opens at its start node or at the node a page names (Phase 4), so every entry counts as a way in.
+    var opened = {};
+    Object.keys(b.story.npcDialogue || {}).forEach(function (npc) { (b.story.npcDialogue[npc] || []).forEach(function (p) { if (U.isObj(p) && p.dlg) { (opened[p.dlg] = opened[p.dlg] || {})[typeof p.node === 'string' && p.node ? p.node : ''] = 1; } }); });
+    STORY.records.list('dlg_', b).forEach(function (d) {
+      if (!opened[d.id]) { item(cd, 'warning', 'unused-dialogue', 'No person\'s page opens this dialogue, so nobody ever says it.', { recordId: d.id }); return; }
+      var reach = {};
+      Object.keys(opened[d.id]).forEach(function (entry) { ES.dlg.reach(entry ? { nodes: d.nodes, start: entry } : d).order.forEach(function (k) { reach[k] = 1; }); });
+      var stat = Object.keys(U.isObj(d.nodes) ? d.nodes : {}).sort().filter(function (k) { return !reach[k]; });
+      stat.forEach(function (k) { item(cd, 'warning', 'unreachable-node', 'Nothing leads to node ' + k + '.', { recordId: d.id, fieldPath: 'nodes.' + k }); });
+      Object.keys(U.isObj(d.nodes) ? d.nodes : {}).sort().forEach(function (k) {
+        if (stat.indexOf(k) >= 0 || R.dialogueNodes[d.id + '#' + k]) return;
+        item(cd, 'warning', 'unseen-node', 'Node ' + k + ' is never seen ' + never + ': the page that opens it never wins, or the choice that leads to it never shows.', { recordId: d.id, fieldPath: 'nodes.' + k });
+      });
+    });
+    // Pages that never win.
+    STORY.records.list('evt_', b).forEach(function (e) {
+      (e.pages || []).forEach(function (p, i) {
+        if (R.pages[e.id + '#' + i]) return;
+        item(cd, 'warning', 'page-never-wins', 'Page ' + (i + 1) + ' never runs ' + never + '.', { recordId: e.id, fieldPath: 'pages[' + i + ']' });
+      });
+    });
+    Object.keys(b.story.npcDialogue || {}).sort().forEach(function (npc) {
+      (b.story.npcDialogue[npc] || []).forEach(function (p, i) {
+        if (R.npcPages[npc + '#' + i]) return;
+        item(cd, 'warning', 'npc-page-never-wins', nameOf(npc, npc) + ': page ' + (i + 1) + ' never wins ' + never + '.', { npc: npc, recordId: U.isObj(p) ? p.dlg : null });
+      });
+    });
+    // Flags set but never read, and read but never set. The world's grants describe the world, not the story, so they
+    // do not count as setting a flag; a new game's open gates do. Quest completion flags are outputs for Day 146 and
+    // Day 150, so nothing in the story needs to read them. Gate flags are left to the proofs.
+    var xr = F.xref(b), gateFlags = {}, outputs = {};
+    Object.keys(b.story.bindings || {}).forEach(function (k) { var bd = b.story.bindings[k]; if (U.isObj(bd) && bd.flg) gateFlags[bd.flg] = 1; });
+    STORY.records.list('qst_', b).forEach(function (q) { if (q.completeFlag) outputs[q.completeFlag] = 1; });
+    STORY.rules('sdq_', b).forEach(function (q) { if (q.flag) outputs[q.flag] = 1; });
+    STORY.records.list('flg_', b).forEach(function (f) {
+      if (f.derived || gateFlags[f.id]) return;
+      var x = xr[f.id] || { reads: [], sets: [] }, sets = x.sets.filter(function (s) { return !(s.kind === 'world' && s.where === 'grants'); });
+      if (sets.length && !x.reads.length && !outputs[f.id]) item(cd, 'warning', 'set-never-read', 'This flag is set but nothing reads it.', { recordId: f.id });
+      if (x.reads.length && !sets.length) item(cd, 'warning', 'read-never-set', 'Something reads this flag but nothing ever sets it, so it stays at ' + (F.isInt(f['default']) ? f['default'] : 0) + '.', { recordId: f.id });
+    });
+    // Quest stages with no way out: not the last stage, no exit condition, and no command anywhere moves the quest past it.
+    var moves = {};
+    allLists(b).forEach(function (L) { var r = ES.cmd.refs(L.cmds); Object.keys(r.quests).forEach(function (q) { (moves[q] = moves[q] || {}); r.quests[q].forEach(function (s) { moves[q][s] = 1; }); }); });
+    STORY.records.list('qst_', b).forEach(function (q) {
+      var st = Array.isArray(q.stages) ? q.stages : [];
+      st.forEach(function (s, i) {
+        if (i === st.length - 1 || !U.isObj(s) || s.exitWhen) return;
+        var out = false;
+        for (var j = i + 1; j < st.length && !out; j++) if (moves[q.id] && moves[q.id][st[j].key]) out = true;
+        if (!out) item(cd, 'warning', 'stage-no-exit', 'Stage ' + (s.label || s.key) + ' has no exit condition and nothing moves the quest past it.', { recordId: q.id, fieldPath: 'stages[' + i + ']' });
+      });
+    });
+  }
+
+  function walkCard(b, run, cd) {
+    var R = run.result, S = R.stats;
+    if (S.capped) item(cd, 'warning', 'cap', 'The walk stopped at its cap of ' + S.cap + ' states (story.settings.walkCap). States past it were not explored, so the proofs below cover only what was reached.', {});
+    R.errors.forEach(function (e) {
+      var level = e.code === 'fork-cap' || e.code === 'chain' ? 'warning' : 'error';
+      item(cd, level, 'run-' + e.code, (e.evt ? nameOf(e.evt, e.evt) + ': ' : e.npc ? nameOf(e.npc, e.npc) + ': ' : '') + e.message, { recordId: e.evt || e.dlg || null, npc: e.evt ? null : e.npc, path: C.pathText(e.path) });
+    });
+    cd.facts.push(['States', String(S.states) + (S.capped ? ' (cap ' + S.cap + ')' : '')], ['Moves between them', String(S.edges)], ['Longest shortest path', plural(S.maxDepth, 'move')],
+      ['Runs played', String(S.runs)], ['Moves that change nothing', String(S.selfLoops)], ['Game overs (reloads)', String(S.gameovers)], ['Time', run.ms + ' ms']);
+  }
+
+  function proofs(b, run, cd) {
+    var R = run.result, W = run.world, capped = R.stats.capped, why = capped ? ' before the walk reached its cap' : '';
+    var chs = STORY.chapters(b), mains = mainQuests(b), mainOf = {};
+    mains.forEach(function (q) { mainOf[q.chapter] = q; });
+    chs.forEach(function (c, i) {
+      if (R.chapters[c.id]) return;
+      var q = mainOf[c.id];
+      item(cd, 'error', 'chapter', 'Chapter ' + (i + 1) + ', ' + (c.name || c.id) + ', is never entered' + why + '. Its chapter gate flag is never set.', q ? { recordId: q.id } : { recordId: 'story', fieldPath: 'bindings' });
+    });
+    mains.forEach(function (q) { if (!R.questsDone[q.id]) item(cd, 'error', 'main-quest', 'Main quest ' + (q.name || q.id) + ' never completes' + why + '.', { recordId: q.id }); });
+    if (!mains.length && chs.length) item(cd, 'error', 'no-main', 'The story has no main quests. Build them on the Quests tab.', { tab: 'quests' });
+    // Gate flags, in golden order. Every gate a new game does not open must be set by something, and that something must
+    // stand no later on the golden path than the first place that needs the gate.
+    var g = STORY.world.graph(b), start = g && Array.isArray(g.start) ? g.start : [], order = [];
+    if (g) {
+      var firstReader = {};
+      W.golden.forEach(function (k) { var n = g.nodes.filter(function (x) { return x.key === k; })[0]; (n && n.requires || []).forEach(function (gk) { if (firstReader[gk] === undefined) firstReader[gk] = k; }); });
+      STORY.world.gateKeys(b).forEach(function (k) {
+        var bd = b.story.bindings[k], flg = U.isObj(bd) ? bd.flg : null;
+        if (!flg || start.indexOf(k) >= 0) return;
+        var set = R.setters[flg], reader = firstReader[k] || null, row = { key: k, flg: flg, reader: reader, setter: set || null, site: null };
+        order.push(row);
+        if (!R.flags[flg] || !set) { item(cd, 'error', 'gate-never', 'Gate ' + k + ' never opens' + why + ': nothing in the story sets ' + nameOf(flg, flg) + '.', { recordId: flg }); return; }
+        var site = set.evt ? (W.events[set.evt] || {}).site : set.npc ? (W.npcs[set.npc] || {}).site : null;
+        row.site = site || null;
+        if (site && reader && W.pos[site] !== undefined && W.pos[reader] !== undefined && W.pos[site] > W.pos[reader]) {
+          item(cd, 'error', 'gate-order', 'Gate ' + k + ' is first needed at ' + reader + ', but the story opens it at ' + site + ', later on the golden path.', set.evt ? { recordId: set.evt } : { npc: set.npc });
+        }
+      });
+    }
+    STORY.records.list('end_', b).forEach(function (e) {
+      if (!R.endings[e.id]) item(cd, 'error', 'ending', 'Ending ' + (e.name || e.id) + ' is never reached' + why + '.', { recordId: e.id });
+    });
+    if (!STORY.records.list('end_', b).length) item(cd, 'error', 'no-endings', 'The story has no endings. Build them on the Start tab.', { tab: 'start' });
+    Q.list(b).forEach(function (q) {
+      if (q.kind !== 'side' && q.kind !== 'bstory') return;
+      if (!R.questsDone[q.id]) item(cd, q.kind === 'side' ? 'error' : 'warning', q.kind === 'side' ? 'side-quest' : 'bstory', (q.kind === 'side' ? 'Side quest ' : 'B story ') + (q.name || q.id) + ' never completes in any playthrough' + why + '.', { recordId: q.id });
+    });
+    mains.forEach(function (q) {
+      var w = R.endedWithout[q.id];
+      if (w && R.questsDone[q.id]) item(cd, 'warning', 'skippable', 'A playthrough can reach an ending without finishing ' + (q.name || q.id) + '.', { recordId: q.id, path: pathOf(w) });
+    });
+    if (R.golden && !R.goldenFull && mains.length && mains.every(function (q) { return R.questsDone[q.id]; })) item(cd, 'warning', 'golden-partial', 'Every main quest can be finished, but no single playthrough finishes all of them and then reaches an ending.', { tab: 'quests' });
+    cd.gates = order;
+    cd.facts.push(['Chapters entered', Object.keys(R.chapters).length + ' of ' + chs.length], ['Main quests completed', mains.filter(function (q) { return R.questsDone[q.id]; }).length + ' of ' + mains.length],
+      ['Endings reached', Object.keys(R.endings).length + ' of ' + STORY.records.list('end_', b).length], ['Golden path', R.golden ? plural(C.pathText(R.golden.path).length, 'step') + (R.goldenFull ? ', every main quest done' : '') : 'none']);
+  }
+
+  function softlock(b, run, cd) {
+    var R = run.result, L = R.softlock;
+    if (R.stats.capped) item(cd, 'warning', 'cap', 'States past the cap were not explored, so they count as able to finish. Raise the cap to prove them too.', {});
+    if (!Object.keys(R.endings).length && L.deepest) {
+      item(cd, 'error', 'no-finish', 'No playthrough reaches any ending. Progress stops here.', { path: pathOf(L.deepest), quests: questsText(L.deepest) });
+    } else L.reported.forEach(function (w) {
+      item(cd, 'error', 'softlock', (w.deadEnd ? 'A dead end: nothing more can happen' : 'A trap: play goes on, but no ending can be reached any more') + ' after this path.', { path: pathOf(w), quests: questsText(w) });
+    });
+    var unreported = L.entries - L.reported.length;
+    if (unreported > 0) item(cd, 'error', 'softlock-more', unreported + ' more ways into a state with no ending (' + L.count + ' stuck states in all).', {});
+    cd.facts.push(['Stuck states', String(L.count)], ['Ways in', String(L.entries)], ['Dead ends', String(L.deadEnds)]);
+  }
+  function questsText(w) { var q = w && w.quests ? w.quests : {}; return Object.keys(q).sort().map(function (k) { return nameOf(k, k) + ': ' + q[k]; }); }
+
+  function floor(b, run, cd) {
+    var p = X.playtime(b);
+    if (!p.meets) item(cd, 'error', 'floor', 'The chapters add up to ' + p.main + ' minutes, short of the ' + p.floor + ' minute floor by ' + p.short + '. Raise chapter target minutes in Saga Forge (Day 146).', { tab: 'start' });
+    cd.facts.push(['Main story', p.main + ' of ' + p.floor + ' minutes (' + (p.main / 60).toFixed(1) + ' hours)'], ['Side quests', p.side.minutes + ' minutes, not counted'], ['B stories', p.bstory.minutes + ' minutes, not counted']);
+  }
+
+  // ---------------------------------------------------------------- running them
+  var runCache = { b: null, key: null, out: null };
+  // {cards [{key, title, lead, status pass|warn|fail, errors, warnings, items, facts}], errors, warnings, run}. Memoized
+  // like the walk. Cards whose input is missing (no world yet) say so instead of running.
+  C.run = function (b) {
+    b = b || cur();
+    var key = b === cur() ? Kit.index(b) : null;
+    if (key && runCache.b === b && runCache.key === key) return runCache.out;
+    STORY.ensure(b);
+    var ready = STORY.readiness(b), cards = C.CARDS.map(function (c) { return card(c.key); }), by = {}, run = null;
+    cards.forEach(function (c) { by[c.key] = c; });
+    if (ready !== true) cards.forEach(function (c) { item(c, 'error', 'not-ready', ready, {}); });
+    else {
+      run = C.walk(b);
+      references(b, run, by.references); smells(b, run, by.smells); walkCard(b, run, by.walk); proofs(b, run, by.proofs); softlock(b, run, by.softlock); floor(b, run, by.floor);
+    }
+    var errors = 0, warnings = 0;
+    cards.forEach(function (c) {
+      c.errors = c.items.filter(function (x) { return x.level === 'error'; }).length;
+      c.warnings = c.items.length - c.errors;
+      c.status = c.errors ? 'fail' : c.warnings ? 'warn' : 'pass';
+      c.items.sort(function (x, z) { return (x.level === 'error' ? 0 : 1) - (z.level === 'error' ? 0 : 1); });
+      errors += c.errors; warnings += c.warnings;
+    });
+    var out = { cards: cards, errors: errors, warnings: warnings, run: run };
+    if (key) runCache = { b: b, key: key, out: out };
+    return out;
+  };
+  // True when the checks for this bundle's current state are already worked out (the tab draws at once, else it waits).
+  C.ready = function (b) { b = b || cur(); return !!b && runCache.b === b && runCache.key === Kit.index(b); };
+  // Forgets the memoized results, so the next read walks again.
+  C.invalidate = function () { runCache = { b: null, key: null, out: null }; walkCache = { b: null, key: null, out: null }; };
+  // Why Final is refused, or '' when the story is proven.
+  C.finalBlock = function (b) {
+    b = b || cur();
+    var r = C.run(b), bad = r.cards.filter(function (c) { return c.errors; });
+    if (!bad.length) return '';
+    var firstErr = bad[0].items.filter(function (x) { return x.level === 'error'; })[0];
+    return 'Final export is blocked: ' + plural(r.errors, 'story check') + ' fail' + (r.errors === 1 ? 's' : '') + ' (' + bad.map(function (c) { return c.title; }).join(', ') + '). First: ' + firstErr.message;
+  };
+  // The manifest's checks block: no timings, so two pages agree byte for byte.
+  C.summary = function (b) {
+    b = b || cur();
+    var r = C.run(b);
+    return {
+      engineVersion: ES.version, proven: !r.errors, errors: r.errors, warnings: r.warnings, worldHash: C.worldHash(b), worldStamp: C.stamped(b), storyDigest: STORY.engineIndex(b).digest,
+      cards: r.cards.map(function (c) { return { key: c.key, title: c.title, status: c.status, errors: c.errors, warnings: c.warnings, codes: c.items.map(function (x) { return x.code; }).filter(function (x, i, a) { return a.indexOf(x) === i; }).sort() }; })
+    };
+  };
+  C.walkStats = function (b) {
+    b = b || cur();
+    var r = C.run(b);
+    if (!r.run) return null;
+    var R = r.run.result, S = R.stats;
+    return { states: S.states, edges: S.edges, expanded: S.expanded, capped: S.capped, cap: S.cap, maxDepth: S.maxDepth, runs: S.runs, gameovers: S.gameovers,
+      endings: Object.keys(R.endings).sort(), golden: R.golden ? { steps: R.golden.path.length, full: R.goldenFull, ending: R.golden.ending } : null, softlocks: R.softlock.count, digest: R.digest };
+  };
+  // Opens the place an item points at: a record and field, a person's pages, or a tab.
+  C.jump = function (it) {
+    if (!it) return false;
+    if (it.npc && !(it.recordId && Kit.ids.prefixOf(it.recordId) === 'evt_')) { if (!Kit.go('dialogue')) return false; if (STORY.WS && STORY.WS.dialogue && STORY.WS.dialogue.focus) STORY.WS.dialogue.focus(it.npc); return true; }
+    if (it.recordId && Kit.jump.can(it.recordId)) return Kit.jump(it.recordId, it.fieldPath);
+    if (it.tab) return Kit.go(it.tab);
+    return false;
+  };
+  C.canJump = function (it) { return !!it && (!!it.npc || !!it.tab || (!!it.recordId && Kit.jump.can(it.recordId))); };
+})();
+// === STORY:CHECKS END ===
 // === WS:FLAGS BEGIN ===
 (function () {
   'use strict';
@@ -10841,6 +11796,117 @@ var ENGINE_STORY = (function () {
   STORY.endingsUi.playtimeCard = playtimeCard;
 })();
 // === WS:ENDINGS END ===
+// === WS:VALIDATION BEGIN ===
+(function () {
+  'use strict';
+  // The six story checks as cards on the Validation and Export tab, failing cards first. Each finding links to the place
+  // that fixes it: a record and field, a person's dialogue pages, or a tab. Paths into a softlock, an unreached ending, or
+  // a runtime error open as a numbered list of the moves that lead there. The walk can take a few seconds on a large
+  // story, so the tab draws a waiting card and works it out right after, once per change.
+  var U = Kit.util, el = U.el, esc = U.esc, C = STORY.checks;
+  function cur() { return Kit.bundle.current(); }
+  function UI() { return STORY.ui; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  var st = STORY.validationUi = { more: {}, scheduled: null };
+  var STATUS = { fail: ['chip-error', 'Fails'], warn: ['chip-warning', 'Passes with warnings'], pass: ['chip-ok', 'Passes'] };
+  var RANK = { fail: 0, warn: 1, pass: 2 };
+  var SHOW = 6;
+
+  function listBlock(title, lines, ordered) {
+    var d = el('details', 'vc-path');
+    d.appendChild(el('summary', null, esc(title)));
+    var l = el(ordered ? 'ol' : 'ul');
+    lines.forEach(function (t) { l.appendChild(el('li', null, esc(t))); });
+    d.appendChild(l);
+    return d;
+  }
+  function itemRow(it) {
+    var row = el('div', 'vc-item'), text = el('div', 'vc-item-text');
+    var who = it.recordId && it.recordId !== 'story' ? STORY.nameOf(it.recordId, it.recordId) : it.npc ? STORY.nameOf(it.npc, it.npc) : '';
+    text.innerHTML = UI().chip(it.level === 'error' ? 'chip-error' : 'chip-warning', it.level) + ' <span>' + esc(it.message) + '</span>' + (who && it.message.indexOf(who) < 0 ? '<small>' + esc(who + (it.fieldPath ? ', ' + it.fieldPath : '')) + '</small>' : '');
+    if (Array.isArray(it.path) && it.path.length) text.appendChild(listBlock('The path (' + plural(it.path.length, 'move') + ')', it.path, true));
+    if (Array.isArray(it.quests) && it.quests.length) text.appendChild(listBlock('Quests at that point', it.quests, false));
+    row.appendChild(text);
+    if (it.action === 'stamp') row.appendChild(UI().button('Confirm this world', 'check', '', confirmWorld));
+    else if (C.canJump(it)) row.appendChild(UI().button('Jump', 'jump', 'btn-ghost', function () { C.jump(it); }));
+    return row;
+  }
+  function confirmWorld() {
+    Kit.ui.confirm({ title: 'Confirm this world?', message: 'The story will be recorded as built on the world now loaded. Do this only after checking that its events, people, and sites still fit this world, or after rebuilding them.', okLabel: 'Confirm the world' }).then(function (ok) {
+      if (!ok) return;
+      C.stamp(cur());
+      Kit.ui.toast('The story is now recorded as built on this world.', 'ok');
+      Kit.rerender();
+    });
+  }
+  function gatesTable(cd) {
+    var rows = (cd.gates || []).map(function (g) {
+      var by = g.setter ? STORY.nameOf(g.setter.evt || g.setter.npc, g.setter.evt || g.setter.npc) : '';
+      return '<tr><th scope="row">' + esc(g.key) + '</th><td>' + (by ? esc(by) : UI().chip('chip-error', 'never')) + '</td><td>' + esc(g.site || '') + '</td><td>' + esc(g.reader || '') + '</td></tr>';
+    });
+    var d = el('details', 'vc-path vc-gates');
+    d.appendChild(el('summary', null, esc('Gates in golden order (' + rows.length + ')')));
+    d.appendChild(UI().table([{ label: 'Gate' }, { label: 'Opened by' }, { label: 'Standing at' }, { label: 'First needed at' }], rows));
+    return d;
+  }
+  function cardEl(cd) {
+    var s = STATUS[cd.status], box = el('section', 'vc-card vc-' + cd.status);
+    box.setAttribute('data-check', cd.key);
+    box.appendChild(el('h4', 'vc-title', UI().chip(s[0], s[1]) + ' <span>' + esc(cd.title) + '</span>' + (cd.errors ? ' ' + UI().chip('chip-error', plural(cd.errors, 'error')) : '') + (cd.warnings ? ' ' + UI().chip('chip-warning', plural(cd.warnings, 'warning')) : '')));
+    box.appendChild(el('p', 'vc-lead', esc(cd.lead)));
+    if (cd.facts.length) box.appendChild(el('div', 'vc-facts', UI().kv(cd.facts.map(function (f) { return [f[0], esc(f[1])]; }))));
+    if (cd.key === 'proofs' && cd.gates && cd.gates.length) box.appendChild(gatesTable(cd));
+    if (cd.items.length) {
+      var list = el('div', 'vc-items'), all = !!st.more[cd.key], shown = all ? cd.items : cd.items.slice(0, SHOW);
+      shown.forEach(function (it) { list.appendChild(itemRow(it)); });
+      box.appendChild(list);
+      if (cd.items.length > SHOW) {
+        var rest = cd.items.length - SHOW, mb = UI().button(all ? 'Show fewer' : 'Show ' + rest + ' more', null, 'btn-ghost vc-more', function () { st.more[cd.key] = !all; Kit.rerender(); });
+        box.appendChild(mb);
+      }
+    }
+    return box;
+  }
+  function waitingCard() {
+    var box = el('section', 'vc-card vc-wait');
+    box.setAttribute('data-check', 'waiting');
+    box.appendChild(el('h4', 'vc-title', '<span>' + esc('Checking the story') + '</span>'));
+    box.appendChild(el('p', 'vc-wait-line', esc('Walking every playthrough the story allows. This takes a moment on a large story.')));
+    return box;
+  }
+  // Works the checks out after this frame, then draws again. Once per bundle state.
+  function schedule() {
+    var b = cur(), key = b ? Kit.index(b) : null;
+    if (!key || st.scheduled === key) return;
+    st.scheduled = key;
+    setTimeout(function () { if (cur() !== b || Kit.index(b) !== key) return; C.run(b); Kit.rerender(); }, 30);
+  }
+  // The checks part of the Validation panel: a status line and the six cards. Returns the element.
+  st.cards = function () {
+    var b = cur(), wrap = el('div', 'vc-wrap');
+    var head = el('div', 'vc-head');
+    if (!C.ready(b)) {
+      head.appendChild(el('h3', 'section-h', 'Story checks'));
+      wrap.appendChild(head);
+      var w = el('div', 'vc-cards'); w.appendChild(waitingCard()); wrap.appendChild(w);
+      schedule();
+      return wrap;
+    }
+    var r = C.run(b), cards = r.cards.slice().sort(function (x, z) { return RANK[x.status] - RANK[z.status] || C.CARDS.map(function (c) { return c.key; }).indexOf(x.key) - C.CARDS.map(function (c) { return c.key; }).indexOf(z.key); });
+    var fails = cards.filter(function (c) { return c.status === 'fail'; }).length;
+    head.appendChild(el('h3', 'section-h', 'Story checks'));
+    head.appendChild(el('div', null, UI().chip(fails ? 'chip-error' : 'chip-ok', fails ? plural(fails, 'check') + ' failing' : 'Proven') + ' ' + UI().chip(r.warnings ? 'chip-warning' : 'chip-muted', plural(r.warnings, 'warning'))));
+    head.appendChild(UI().button('Walk again', 'check', 'btn-ghost', function () { C.invalidate(); st.scheduled = null; Kit.rerender(); }));
+    wrap.appendChild(head);
+    var list = el('div', 'vc-cards');
+    cards.forEach(function (cd) { list.appendChild(cardEl(cd)); });
+    wrap.appendChild(list);
+    return wrap;
+  };
+  // An ending lives on the Start tab's Endings card.
+  Kit.jump.register({ test: function (rid) { return Kit.ids.prefixOf(rid) === 'end_'; }, name: function (rid) { return STORY.nameOf(rid, rid); }, go: function (rid) { if (STORY.endingsUi) STORY.endingsUi.open[rid] = true; return Kit.go('start'); } });
+})();
+// === WS:VALIDATION END ===
 // === WS:STORY149 BEGIN ===
 (function () {
   'use strict';
@@ -10931,8 +11997,11 @@ var ENGINE_STORY = (function () {
     if (Array.isArray(node)) { for (var i = 0; i < node.length; i++) scanRefs(node[i], out, depth + 1); return; }
     Object.keys(node).forEach(function (k) { if (k !== 'id') scanRefs(node[k], out, depth + 1); });
   }
-  STORY.manifest = function (b, hash) {
+  // opts.lazy (the tab's preview): leave checks and walk null until the story checks for this state are worked out, so
+  // drawing the tab never runs the walk. An export always builds the full manifest.
+  STORY.manifest = function (b, hash, opts) {
     b = b || cur();
+    var lazy = !!(opts && opts.lazy) && !!STORY.checks && !STORY.checks.ready(b);
     STORY.ensure(b);
     var created = [], counts = {}, own = {}, refs = {}, idx = Kit.index(b), s = b.story;
     STORY.PREFIXES.forEach(function (p) { var ids = Object.keys(s.records[p] || {}).sort(); counts[p] = ids.length; ids.forEach(function (id) { created.push(id); own[id] = 1; }); });
@@ -10950,7 +12019,7 @@ var ENGINE_STORY = (function () {
       exportedAt: U.now(), created: created, referenced: referenced, unresolved: unresolved.sort(), forward: fw, storyOpened: Kit.codex.isOpened('story', b), counts: counts,
       validation: Kit.validate.summary(Kit.validate(b)), worldCheck: { clean: !wc.length, problems: wc.map(function (p) { return p.message; }) },
       // Phase 7 fills checks and walk; Phase 8 fills the Day 150 contract.
-      checks: STORY.checks ? STORY.checks.summary(b) : null, walk: STORY.checks && STORY.checks.walkStats ? STORY.checks.walkStats(b) : null, day150: STORY.day150 ? STORY.day150(b) : null,
+      checks: STORY.checks && !lazy ? STORY.checks.summary(b) : null, walk: STORY.checks && STORY.checks.walkStats && !lazy ? STORY.checks.walkStats(b) : null, day150: STORY.day150 ? STORY.day150(b) : null,
       engines: [{ key: 'story', global: ENG.GLOBAL, file: ENG.FILE, version: ENGINE_STORY.version }], loadOrder: ENG.LOAD_ORDER.slice()
     };
   };
@@ -10959,14 +12028,17 @@ var ENGINE_STORY = (function () {
   // Overrides the Day 146 export dialog, which belongs to forge 146. KIT:CORE text is unchanged; these are reassignments.
   // Files, in order: bundle, manifest, engine-story.js. exportFile restamps kit.contentHash without a status, so
   // forges['146'], ['147'], and ['148'] are never touched; the manifest and the engine header carry the same hash.
-  function finalBlock(b) {
+  // lazy (the tab): while the story checks for this state are not worked out yet, say so instead of walking now. An
+  // export always asks without lazy, so it waits for the proof.
+  function finalBlock(b, lazy) {
     var res = Kit.refreshValidation(), n = res.errors.length + res.broken.length;
     if (n) return 'Final export is blocked by ' + n + ' error' + (n === 1 ? '' : 's') + ' or broken reference' + (n === 1 ? '' : 's') + '.';
     var r = ready(b);
     if (r !== true) return 'Final export is blocked: ' + r;
     if (!STORY.canOpen(b)) return 'Final export is blocked: a side quest\'s completion flag points at a story flag that does not exist.';
-    // Phase 7 replaces this with the six checks: references, story smells, the walk, the proofs, no softlock, the floor.
-    if (!STORY.checks) return 'Final export is blocked: the story has not been proven yet. The reachability proof arrives in Phase 7, and Final opens the story namespace once it passes.';
+    // Phase 7: the six checks (references, story smells, the walk, the proofs, no softlock, the floor) must all pass.
+    if (!STORY.checks) return 'Final export is blocked: the story has not been proven yet.';
+    if (lazy && !STORY.checks.ready(b)) return 'Final export waits for the story checks, which are running now.';
     return STORY.checks.finalBlock(b);
   }
   STORY.finalBlock = finalBlock;
@@ -11005,8 +12077,8 @@ var ENGINE_STORY = (function () {
       return out;
     } catch (e) { Kit.ui.toast(e.message, 'error', 7000); return null; }
   };
-  function exportForm(host, st, onChange) {
-    var b = cur(), s = Kit.validate.summary(Kit.refreshValidation()), why = finalBlock(b);
+  function exportForm(host, st, onChange, lazy) {
+    var b = cur(), s = Kit.validate.summary(Kit.refreshValidation()), why = finalBlock(b, lazy);
     host.appendChild(el('div', null, kv([
       ['Project', esc(b.kit.title)], ['Story version', esc(b.story.version)], ['Engine', esc(STORY.GENERATOR + ' ' + ENGINE_STORY.version)],
       ['Story records', String(STORY.count(b))],
@@ -11173,13 +12245,19 @@ var ENGINE_STORY = (function () {
 
   // ---------------------------------------------------------------- Validation and Export
   function validationPanel(host) {
-    var b = cur(), res = Kit.refreshValidation(), s = Kit.validate.summary(res), why = finalBlock(b), wc = STORY.worldCheck(b);
+    var b = cur(), res = Kit.refreshValidation(), s = Kit.validate.summary(res), why = finalBlock(b, true), wc = STORY.worldCheck(b);
     var p = el('section', 'panel s9-val');
     p.appendChild(el('h3', 'section-h', 'Validation'));
     p.appendChild(el('p', null, chip(s.errors ? 'chip-error' : 'chip-ok', plural(s.errors, 'error')) + ' ' + chip(s.broken ? 'chip-broken' : 'chip-ok', s.broken + ' broken') + ' ' +
       chip(s.forward ? 'chip-forward' : 'chip-muted', s.forward + ' forward') + ' ' + chip(s.warnings ? 'chip-warning' : 'chip-muted', plural(s.warnings, 'warning')) + ' ' + chip(wc.length ? 'chip-broken' : 'chip-ok', wc.length ? 'World: ' + plural(wc.length, 'problem') : 'World clean')));
     p.appendChild(el('p', 's9-final ' + (why ? 'msg msg-warning' : 'msg s9-ok'), esc(why || 'Ready for a Final export.')));
-    var items = res.errors.concat(res.broken, res.warnings).slice(0, 8);
+    var all = res.errors.concat(res.broken, res.warnings), items = all.slice(0, 8), host2 = p;
+    if (items.length && STORY.validationUi) {
+      // With the story checks below, the raw validator findings fold away; the References card repeats every story error.
+      host2 = el('details', 'vc-path');
+      host2.appendChild(el('summary', null, esc('Validator findings (' + all.length + (all.length > items.length ? ', first ' + items.length + ' shown' : '') + ')')));
+      p.appendChild(host2);
+    }
     if (items.length) {
       var list = el('div', 's9-issues');
       items.forEach(function (it) {
@@ -11188,9 +12266,9 @@ var ENGINE_STORY = (function () {
         if (Kit.jump.can && Kit.jump.can(it.recordId)) row.appendChild(button('Jump', 'jump', 'btn-ghost', function () { Kit.jump(it.recordId, it.fieldPath); }));
         list.appendChild(row);
       });
-      p.appendChild(list);
+      host2.appendChild(list);
     }
-    p.appendChild(el('p', 'muted', 'Phase 7 adds the story checks here as pass or fail cards: references, story smells, the reachability walk, the proofs, no softlock, and the 12 hour floor.'));
+    if (STORY.validationUi) p.appendChild(STORY.validationUi.cards());
     var r = el('div', 'btn-row');
     r.appendChild(button('Check again', 'check', '', function () { Kit.refreshValidation(); Kit.rerender(); }));
     r.appendChild(button('Open the validation panel', 'warn', 'btn-ghost', Kit.openValidation));
@@ -11205,10 +12283,10 @@ var ENGINE_STORY = (function () {
     var st = STORY.exportUi = STORY.exportUi || exportState();
     var p = el('section', 'panel');
     p.appendChild(el('h3', 'section-h', 'Export the bundle'));
-    exportForm(p, st, function () { Kit.rerender(); });
+    exportForm(p, st, function () { Kit.rerender(); }, true);
     p.appendChild(button('Download', 'export', 'btn-primary', function () { STORY.exportNow(st.status, { engines: st.engines }); }));
     host.appendChild(p);
-    var m = el('section', 'panel'), man = STORY.manifest(cur(), '');
+    var m = el('section', 'panel'), man = STORY.manifest(cur(), '', { lazy: true });
     m.appendChild(el('h3', 'section-h', 'Manifest preview'));
     m.appendChild(el('div', null, kv([['Created', man.created.length + ' story IDs'], ['Referenced', man.referenced.length + ' IDs'],
       ['Unresolved', man.unresolved.length ? chip('chip-broken', String(man.unresolved.length)) : chip('chip-ok', '0')],

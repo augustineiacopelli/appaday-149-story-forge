@@ -88,8 +88,11 @@
     if (Array.isArray(node)) { for (var i = 0; i < node.length; i++) scanRefs(node[i], out, depth + 1); return; }
     Object.keys(node).forEach(function (k) { if (k !== 'id') scanRefs(node[k], out, depth + 1); });
   }
-  STORY.manifest = function (b, hash) {
+  // opts.lazy (the tab's preview): leave checks and walk null until the story checks for this state are worked out, so
+  // drawing the tab never runs the walk. An export always builds the full manifest.
+  STORY.manifest = function (b, hash, opts) {
     b = b || cur();
+    var lazy = !!(opts && opts.lazy) && !!STORY.checks && !STORY.checks.ready(b);
     STORY.ensure(b);
     var created = [], counts = {}, own = {}, refs = {}, idx = Kit.index(b), s = b.story;
     STORY.PREFIXES.forEach(function (p) { var ids = Object.keys(s.records[p] || {}).sort(); counts[p] = ids.length; ids.forEach(function (id) { created.push(id); own[id] = 1; }); });
@@ -107,7 +110,7 @@
       exportedAt: U.now(), created: created, referenced: referenced, unresolved: unresolved.sort(), forward: fw, storyOpened: Kit.codex.isOpened('story', b), counts: counts,
       validation: Kit.validate.summary(Kit.validate(b)), worldCheck: { clean: !wc.length, problems: wc.map(function (p) { return p.message; }) },
       // Phase 7 fills checks and walk; Phase 8 fills the Day 150 contract.
-      checks: STORY.checks ? STORY.checks.summary(b) : null, walk: STORY.checks && STORY.checks.walkStats ? STORY.checks.walkStats(b) : null, day150: STORY.day150 ? STORY.day150(b) : null,
+      checks: STORY.checks && !lazy ? STORY.checks.summary(b) : null, walk: STORY.checks && STORY.checks.walkStats && !lazy ? STORY.checks.walkStats(b) : null, day150: STORY.day150 ? STORY.day150(b) : null,
       engines: [{ key: 'story', global: ENG.GLOBAL, file: ENG.FILE, version: ENGINE_STORY.version }], loadOrder: ENG.LOAD_ORDER.slice()
     };
   };
@@ -116,14 +119,17 @@
   // Overrides the Day 146 export dialog, which belongs to forge 146. KIT:CORE text is unchanged; these are reassignments.
   // Files, in order: bundle, manifest, engine-story.js. exportFile restamps kit.contentHash without a status, so
   // forges['146'], ['147'], and ['148'] are never touched; the manifest and the engine header carry the same hash.
-  function finalBlock(b) {
+  // lazy (the tab): while the story checks for this state are not worked out yet, say so instead of walking now. An
+  // export always asks without lazy, so it waits for the proof.
+  function finalBlock(b, lazy) {
     var res = Kit.refreshValidation(), n = res.errors.length + res.broken.length;
     if (n) return 'Final export is blocked by ' + n + ' error' + (n === 1 ? '' : 's') + ' or broken reference' + (n === 1 ? '' : 's') + '.';
     var r = ready(b);
     if (r !== true) return 'Final export is blocked: ' + r;
     if (!STORY.canOpen(b)) return 'Final export is blocked: a side quest\'s completion flag points at a story flag that does not exist.';
-    // Phase 7 replaces this with the six checks: references, story smells, the walk, the proofs, no softlock, the floor.
-    if (!STORY.checks) return 'Final export is blocked: the story has not been proven yet. The reachability proof arrives in Phase 7, and Final opens the story namespace once it passes.';
+    // Phase 7: the six checks (references, story smells, the walk, the proofs, no softlock, the floor) must all pass.
+    if (!STORY.checks) return 'Final export is blocked: the story has not been proven yet.';
+    if (lazy && !STORY.checks.ready(b)) return 'Final export waits for the story checks, which are running now.';
     return STORY.checks.finalBlock(b);
   }
   STORY.finalBlock = finalBlock;
@@ -162,8 +168,8 @@
       return out;
     } catch (e) { Kit.ui.toast(e.message, 'error', 7000); return null; }
   };
-  function exportForm(host, st, onChange) {
-    var b = cur(), s = Kit.validate.summary(Kit.refreshValidation()), why = finalBlock(b);
+  function exportForm(host, st, onChange, lazy) {
+    var b = cur(), s = Kit.validate.summary(Kit.refreshValidation()), why = finalBlock(b, lazy);
     host.appendChild(el('div', null, kv([
       ['Project', esc(b.kit.title)], ['Story version', esc(b.story.version)], ['Engine', esc(STORY.GENERATOR + ' ' + ENGINE_STORY.version)],
       ['Story records', String(STORY.count(b))],
@@ -330,13 +336,19 @@
 
   // ---------------------------------------------------------------- Validation and Export
   function validationPanel(host) {
-    var b = cur(), res = Kit.refreshValidation(), s = Kit.validate.summary(res), why = finalBlock(b), wc = STORY.worldCheck(b);
+    var b = cur(), res = Kit.refreshValidation(), s = Kit.validate.summary(res), why = finalBlock(b, true), wc = STORY.worldCheck(b);
     var p = el('section', 'panel s9-val');
     p.appendChild(el('h3', 'section-h', 'Validation'));
     p.appendChild(el('p', null, chip(s.errors ? 'chip-error' : 'chip-ok', plural(s.errors, 'error')) + ' ' + chip(s.broken ? 'chip-broken' : 'chip-ok', s.broken + ' broken') + ' ' +
       chip(s.forward ? 'chip-forward' : 'chip-muted', s.forward + ' forward') + ' ' + chip(s.warnings ? 'chip-warning' : 'chip-muted', plural(s.warnings, 'warning')) + ' ' + chip(wc.length ? 'chip-broken' : 'chip-ok', wc.length ? 'World: ' + plural(wc.length, 'problem') : 'World clean')));
     p.appendChild(el('p', 's9-final ' + (why ? 'msg msg-warning' : 'msg s9-ok'), esc(why || 'Ready for a Final export.')));
-    var items = res.errors.concat(res.broken, res.warnings).slice(0, 8);
+    var all = res.errors.concat(res.broken, res.warnings), items = all.slice(0, 8), host2 = p;
+    if (items.length && STORY.validationUi) {
+      // With the story checks below, the raw validator findings fold away; the References card repeats every story error.
+      host2 = el('details', 'vc-path');
+      host2.appendChild(el('summary', null, esc('Validator findings (' + all.length + (all.length > items.length ? ', first ' + items.length + ' shown' : '') + ')')));
+      p.appendChild(host2);
+    }
     if (items.length) {
       var list = el('div', 's9-issues');
       items.forEach(function (it) {
@@ -345,9 +357,9 @@
         if (Kit.jump.can && Kit.jump.can(it.recordId)) row.appendChild(button('Jump', 'jump', 'btn-ghost', function () { Kit.jump(it.recordId, it.fieldPath); }));
         list.appendChild(row);
       });
-      p.appendChild(list);
+      host2.appendChild(list);
     }
-    p.appendChild(el('p', 'muted', 'Phase 7 adds the story checks here as pass or fail cards: references, story smells, the reachability walk, the proofs, no softlock, and the 12 hour floor.'));
+    if (STORY.validationUi) p.appendChild(STORY.validationUi.cards());
     var r = el('div', 'btn-row');
     r.appendChild(button('Check again', 'check', '', function () { Kit.refreshValidation(); Kit.rerender(); }));
     r.appendChild(button('Open the validation panel', 'warn', 'btn-ghost', Kit.openValidation));
@@ -362,10 +374,10 @@
     var st = STORY.exportUi = STORY.exportUi || exportState();
     var p = el('section', 'panel');
     p.appendChild(el('h3', 'section-h', 'Export the bundle'));
-    exportForm(p, st, function () { Kit.rerender(); });
+    exportForm(p, st, function () { Kit.rerender(); }, true);
     p.appendChild(button('Download', 'export', 'btn-primary', function () { STORY.exportNow(st.status, { engines: st.engines }); }));
     host.appendChild(p);
-    var m = el('section', 'panel'), man = STORY.manifest(cur(), '');
+    var m = el('section', 'panel'), man = STORY.manifest(cur(), '', { lazy: true });
     m.appendChild(el('h3', 'section-h', 'Manifest preview'));
     m.appendChild(el('div', null, kv([['Created', man.created.length + ' story IDs'], ['Referenced', man.referenced.length + ' IDs'],
       ['Unresolved', man.unresolved.length ? chip('chip-broken', String(man.unresolved.length)) : chip('chip-ok', '0')],

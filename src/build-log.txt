@@ -352,4 +352,86 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
   Next: Phase 7 (Opus), validation and the reachability proof: references, smells, the walk, the proofs, no softlock, and
     the 12 hour floor, using evt sites, triggers and pages, end_ conds and priorities, and STORY.events.golden as a smoke path.
 === END SESSION 6 ===
+=== SESSION 7 / PHASE 7 (2026-10-03, Opus): VALIDATION AND THE REACHABILITY PROOF ===
+  New: src/engine-walk.js (engine section ENGINE_STORY.walk, spliced last above the freeze line), src/story-checks.js
+    (STORY.checks, fence STORY:CHECKS after STORY:ENDINGS), src/ws-validation.js and src/story-validation.css (the check
+    cards on the Validation and Export tab). Engine version stays 1.0.0 (nothing has shipped).
+  The walk, ES.walk.run(idx, world, opts): breadth first search over quiet abstract story states, playing the real runner.
+    world {sites {key: {requires [flg]}}, events {evt: {site}}, npcs {npc: {site, map}}}; a site is open when every flag it
+    requires is 1 or more; no site or an unlisted one is always open. Moves, in a fixed order: mapEnter, step, and autorun
+    events at an open site whose page passes (sorted by ID); talking to a person at an open site (their talk event when one
+    passes, highest priority then ID, else their passing dialogue page). After each run the host's rules fire until none
+    applies: chapterStart events on a chapter change, battleEnd events after that run's battles, autoruns on the map the
+    player stands on. Choices fork every visible option; battles fork win, and lose and escape when the lists exist; a
+    loss with no lose list is game over (a reload), counted and never a state. opts {cap 50000, forks 4096, goal [qst]}.
+  DECISION, the abstract state: the engine state with gil and party cleared (no condition reads either); everything else
+    kept exactly. States keyed by a 64 bit hash (FNV-1a and xmur3 side by side over canonical JSON), since 32 bits would
+    likely collide within 50000 states. Breadth first, so every first path is a shortest one.
+  DECISION, inert moves: a page or conversation made only of commands that cannot change the abstract state (text,
+    staging, gil, party, and if or choice over those), not once and not an autorun, is counted without being played.
+    Exact, and it cut the four continent walk from 60595 runs to 2279. Autoruns always run, so one that would loop forever
+    is caught: a forced autorun that ends exactly where it began is the error autorun-loop.
+  The result: stats (states, edges, expanded, frontier, capped, maxDepth, runs, selfLoops, gameovers, forkCaps, boot),
+    first reaching nodes with shortest paths for endings, chapters, questsDone, endedWithout (an ending reached with that
+    quest unfinished), and firsts for questsStarted, questsFailed, flags, pages ('evt#page', nested calls included),
+    dialogueNodes, npcPages; setters {flg: {evt or npc}} (the root of the run that first moved it off its default);
+    golden (shortest path to an ending with every goal quest done, else to any ending) and goldenFull; softlock {count,
+    entries, deadEnds, reported (up to 5 ways in, each with path and quests), deepest}; errors (runtime errors with code,
+    event, and path). No softlock is reverse reachability from every ending; when capped, unexplored states count as able
+    to finish, and a state the cap cut short stays unexplored, so the cap never produces a false softlock.
+  DECISION, faster hashing: in a vm context (jsdom, Node tests, a headless Day 150) every global lookup goes through the
+    context's global object. The frame now binds imul, isArray, and stringify once; arithmetic and output are identical
+    (every structural ID and digest unchanged, Phase 0 and 1 still pass). Bare walk of the four continent story 8.1 s to
+    1.3 s; the runner and playtester gain too. util.keys is untouched (the Phase 0 scan pins its text).
+  STORY.checks: walkWorld(b) (sites from Day 148's nodes and regions, a region needing the gate into it; an event stands
+    on its site field, else its map's site, else its person's; golden order and positions, a region or optional site
+    taking its chapter's first golden node), walk, run (six cards, memoized on KIT:CORE's index identity), ready,
+    invalidate, finalBlock, summary (manifest checks: proven, counts, world hash and stamp, story digest, per card status
+    and codes, no timings), walkStats (manifest walk), stamp, stamped, worldHash, worldCurrent, stepText, pathText, jump.
+    references: story errors and broken references from Kit.validate, every ID a story record names resolves, side quest
+      flags, people and events the walk cannot place (warning), and the world stamp.
+    smells (warnings only): inert-choice, unused-dialogue, unreachable-node (from the start and every page's entry node),
+      unseen-node, page-never-wins, npc-page-never-wins, set-never-read (quest completion and sdq_ flags are outputs and
+      exempt), read-never-set (world grants do not count as setting; gate flags are left to the proofs), stage-no-exit.
+    walk: runtime errors (error; fork-cap and chain are warnings), the cap (warning naming story.settings.walkCap).
+    proofs: chapter, main-quest, gate-never, gate-order (a gate's setter must stand no later in golden order than the
+      first golden node requiring it), ending, side-quest (error), bstory (warning), skippable (warning: an ending
+      reachable with a main quest unfinished, with the path), golden-partial (warning).
+    softlock: each way into a stuck state with its path and the quests at that point (dead end or trap), or no-finish with
+      the deepest point when nothing reaches an ending.
+    floor: chapters against the floor; side and B story minutes never count.
+  DECISION, the world stamp: story.settings.worldHash, the 64 bit hash of the world namespace, is stamped whenever the
+    quests, dialogue, events, or endings scaffold builds (wrappers in STORY:CHECKS; a rerun on the same world changes
+    nothing). Final waits while it is missing (world-unstamped) or differs (world-changed, Day 148 regenerated the world);
+    the Validation tab offers Confirm this world. This is the plan's "current world hash".
+  DECISION, a short floor is not an unclean world: the story.playtime finding carries story: true, and STORY.worldCheck
+    skips tagged findings. Before this, a Charter short of 720 minutes made readiness fail with "world does not validate
+    cleanly" (and the import gate would have refused such a bundle); now the floor card reports it.
+  Final: STORY.finalBlock(b, lazy) checks Kit validation, readiness, the side quest flags, then STORY.checks.finalBlock.
+    The tab passes lazy (and STORY.manifest takes {lazy}) so drawing it never walks: it shows a waiting card, walks 30 ms
+    later, and draws again. Kit.buildExport and the export dialog stay synchronous, so an export always has the proof.
+  Tab: Story checks header (Proven or failing count, warnings, Walk again), six cards with failing first then warnings,
+    each with status, lead, facts, up to six findings (Show more), Jump to the record and field, a person's People view,
+    or a tab; paths and quests open as lists; the proofs card has the gate table in golden order; validator findings fold
+    into a details block. Kit.jump handles end_ (Start tab, ending opened).
+  Results: demo 19 states, 25 moves, two endings, golden path 10 steps finishing both main quests; four continents 862
+    states, 2141 moves, six chapters, eight quests, one ending, golden path 26 steps. Both proven, no softlock, no runtime
+    error. Real findings on the generated stories (warnings): a main quest giver's greeting never wins (the opener starts
+    the quest before the player can move), the main quest offer node is shadowed by the talk event, a giver of both a main
+    and a side quest has their main quest pages shadowed by the side quest pages, the last boss's quiet page never runs,
+    and the shortest path to an ending skips earlier main quests (skippable). Left for the author; not errors.
+  Test changes: phase0's three Phase 7 placeholders now expect the real checks (manifest checks and walk present, the
+    refusal names failing story checks, the tab shows six cards) and the stand in restores the real STORY.checks.
+  Tests: test/phase7.js 97 of 97 (static and the engine rules; the walk alone over the hand authored story: recursion,
+    backward, failed found with paths, no finish, two contexts; the cap; the golden goal; both scaffolded stories proven
+    and replayed byte for byte from a Draft in two bare vm contexts; seeded faults for every card: a missing flag, no stamp,
+    a changed world, each smell, a twice decided branch, an endless autorun, the cap, a seal never set, a gate opened too
+    late, an unreachable ending, a side quest nothing completes, the Doom choice softlock, the floor; Final refused then
+    allowed, opened in Days 146, 147, 148; the tab under jsdom; two pages agree; the stamped Draft round trip). phase0 89,
+    phase1 85, phase2 77, phase3 95, phase4 70, phase5 99, phase6 129 (their engine pins compare with the last commit, so
+    they pass once this phase is committed). test/layout.js 72 of 72 views at 390 and 1280, eight new Validation views.
+  Next: Phase 8 (Opus), export, the Day 150 contract, ship: the manifest's day150 block (load order, new game state, the
+    opening event, save flag mapping, boss rule; walk.golden.path is a ready replay script), test/phase8.js replaying the
+    golden path headlessly from only the four engines and the Final, README, the push, and the six item checklist.
+=== END SESSION 7 ===
 === END BUILD LOG ===

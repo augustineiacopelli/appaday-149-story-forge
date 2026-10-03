@@ -10,24 +10,27 @@
 var ENGINE_STORY = (function () {
   'use strict';
   var S = { version: '1.0.0' };
+  // Bound once here: inside a vm context (how jsdom, Node tests, and a headless Day 150 load this file) every lookup of a
+  // global such as Math goes through the context's global object, which is slow enough in a hashing loop to matter.
+  var imul = Math.imul, isArray = Array.isArray, stringify = JSON.stringify;
 
   // ---------------------------------------------------------------- util
   function keys(o) { return o && typeof o === 'object' ? Object.keys(o).sort() : []; }
   function each(o, fn) { var k = keys(o); for (var i = 0; i < k.length; i++) fn(o[k[i]], k[i], i); }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
-  function isObj(v) { return !!v && typeof v === 'object' && !Array.isArray(v); }
+  function isObj(v) { return !!v && typeof v === 'object' && !isArray(v); }
   // A deep copy of plain JSON data (objects, arrays, strings, numbers, booleans, null). Keys come out sorted, so two
   // copies of the same data are identical byte for byte however their keys were first written.
   function copy(v) {
-    if (Array.isArray(v)) { var a = new Array(v.length); for (var i = 0; i < v.length; i++) a[i] = copy(v[i]); return a; }
+    if (isArray(v)) { var a = new Array(v.length); for (var i = 0; i < v.length; i++) a[i] = copy(v[i]); return a; }
     if (isObj(v)) { var o = {}; each(v, function (x, k) { if (x !== undefined) o[k] = copy(x); }); return o; }
     return v;
   }
   // Canonical JSON: sorted keys, undefined dropped. Two equal states give the same text; the walk hashes it.
   function canon(v) {
-    if (Array.isArray(v)) { var p = []; for (var i = 0; i < v.length; i++) p.push(canon(v[i])); return '[' + p.join(',') + ']'; }
-    if (isObj(v)) { var q = []; each(v, function (x, k) { if (x !== undefined) q.push(JSON.stringify(k) + ':' + canon(x)); }); return '{' + q.join(',') + '}'; }
-    return JSON.stringify(v === undefined ? null : v);
+    if (isArray(v)) { var p = []; for (var i = 0; i < v.length; i++) p.push(canon(v[i])); return '[' + p.join(',') + ']'; }
+    if (isObj(v)) { var q = []; each(v, function (x, k) { if (x !== undefined) q.push(stringify(k) + ':' + canon(x)); }); return '{' + q.join(',') + '}'; }
+    return stringify(v === undefined ? null : v);
   }
   // FNV-1a over a string or a list of strings and numbers, for comparing records and states cheaply.
   function digest(a) {
@@ -35,8 +38,8 @@ var ENGINE_STORY = (function () {
     var h = 0x811c9dc5;
     for (var i = 0; i < a.length; i++) {
       var s = String(a[i]);
-      for (var j = 0; j < s.length; j++) { h ^= s.charCodeAt(j); h = Math.imul(h, 0x01000193); }
-      h ^= 44; h = Math.imul(h, 0x01000193);
+      for (var j = 0; j < s.length; j++) { h ^= s.charCodeAt(j); h = imul(h, 0x01000193); }
+      h ^= 44; h = imul(h, 0x01000193);
     }
     return ('0000000' + (h >>> 0).toString(16)).slice(-8) + ':' + a.length;
   }
@@ -46,8 +49,8 @@ var ENGINE_STORY = (function () {
   // xmur3, the same string hash ENGINE_WORLD uses, so story IDs are built exactly the way world IDs are.
   function xmur3(str) {
     str = String(str);
-    for (var i = 0, h = 1779033703 ^ str.length; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
-    return function () { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return (h ^= h >>> 16) >>> 0; };
+    for (var i = 0, h = 1779033703 ^ str.length; i < str.length; i++) { h = imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+    return function () { h = imul(h ^ (h >>> 16), 2246822507); h = imul(h ^ (h >>> 13), 3266489909); return (h ^= h >>> 16) >>> 0; };
   }
   function hashStr(s) { return xmur3(s)(); }
   S.hash = { xmur3: xmur3, str: hashStr };

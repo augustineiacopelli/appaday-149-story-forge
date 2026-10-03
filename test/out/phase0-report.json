@@ -16,10 +16,10 @@
       "detail": [
         1,
         139593,
-        227987,
-        256493,
-        1294376,
-        1325032
+        253966,
+        282484,
+        1360543,
+        1392067
       ]
     },
     {
@@ -277,7 +277,7 @@
       "ok": true,
       "detail": [
         "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
-        "qst_a_hand_made_quest_pall"
+        "qst_a_hand_made_quest_jk15"
       ]
     },
     {
@@ -334,7 +334,7 @@
         },
         "149": {
           "status": "draft",
-          "exportedAt": "2026-10-03T17:48:29.238Z",
+          "exportedAt": "2026-10-03T18:26:58.613Z",
           "storyVersion": "1.0.0",
           "engineVersion": "1.0.0",
           "charterVersion": 1,
@@ -357,7 +357,7 @@
       "ok": true,
       "detail": {
         "forge": 149,
-        "bundleHash": "28ba4b8047a46ea4d30fd996fde6bc1b21f146d18de9a5d9ce8c7de64e8a8cf0",
+        "bundleHash": "03e5b26f118eb8c0e6cbcec02dfbd07a006d4e02fe1ee98b6eea4ba7283fc3a3",
         "storyVersion": "1.0.0",
         "generator": {
           "name": "appaday-149-story",
@@ -370,15 +370,15 @@
           "generatorVersion": "1.0.0",
           "seed": 42
         },
-        "exportedAt": "2026-10-03T17:48:29.265Z",
+        "exportedAt": "2026-10-03T18:26:58.645Z",
         "created": [
           "flg_flg_gate_chapter_chp_the_far_shore_izf4_qdn1",
           "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
           "flg_flg_gate_item_seal_chp_the_far_shore_izf_tz57",
           "flg_flg_gate_item_seal_chp_the_lowlands_auem_0r61",
           "flg_flg_gate_vehicle_ship_iqdm",
-          "flg_flg_quest_qst_a_hand_made_quest_pall_u3xv",
-          "qst_a_hand_made_quest_pall"
+          "flg_flg_quest_qst_a_hand_made_quest_jk15_kvsn",
+          "qst_a_hand_made_quest_jk15"
         ],
         "referenced": [
           "chp_the_far_shore_izf4",
@@ -404,8 +404,91 @@
           "clean": true,
           "problems": []
         },
-        "checks": null,
-        "walk": null,
+        "checks": {
+          "engineVersion": "1.0.0",
+          "proven": false,
+          "errors": 10,
+          "warnings": 1,
+          "worldHash": "50a3539b63a6addf",
+          "worldStamp": null,
+          "storyDigest": "8de04c21:1",
+          "cards": [
+            {
+              "key": "references",
+              "title": "References",
+              "status": "fail",
+              "errors": 1,
+              "warnings": 0,
+              "codes": [
+                "world-unstamped"
+              ]
+            },
+            {
+              "key": "smells",
+              "title": "Story smells",
+              "status": "warn",
+              "errors": 0,
+              "warnings": 1,
+              "codes": [
+                "stage-no-exit"
+              ]
+            },
+            {
+              "key": "walk",
+              "title": "The walk",
+              "status": "pass",
+              "errors": 0,
+              "warnings": 0,
+              "codes": []
+            },
+            {
+              "key": "proofs",
+              "title": "The proofs",
+              "status": "fail",
+              "errors": 8,
+              "warnings": 0,
+              "codes": [
+                "chapter",
+                "gate-never",
+                "no-endings",
+                "no-main",
+                "side-quest"
+              ]
+            },
+            {
+              "key": "softlock",
+              "title": "No softlock",
+              "status": "fail",
+              "errors": 1,
+              "warnings": 0,
+              "codes": [
+                "no-finish"
+              ]
+            },
+            {
+              "key": "floor",
+              "title": "The 12 hour floor",
+              "status": "pass",
+              "errors": 0,
+              "warnings": 0,
+              "codes": []
+            }
+          ]
+        },
+        "walk": {
+          "states": 1,
+          "edges": 0,
+          "expanded": 1,
+          "capped": false,
+          "cap": 50000,
+          "maxDepth": 0,
+          "runs": 0,
+          "gameovers": 0,
+          "endings": [],
+          "golden": null,
+          "softlocks": 1,
+          "digest": "8de04c21:1"
+        },
         "day150": null,
         "engines": [
           {
@@ -428,9 +511,9 @@
       "ok": true
     },
     {
-      "name": "Final is refused until Phase 7 proves the story, with a readable reason",
+      "name": "Final is refused until the story checks pass, with a readable reason",
       "ok": true,
-      "detail": "Final export is blocked: the story has not been proven yet. The reachability proof arrives in Phase 7, and Final opens the story namespace once it passes."
+      "detail": "Final export is blocked: 10 story checks fail (References, The proofs, No softlock). First: The story has no record of the world it was built on. Rebuild it from the Quests, Dialogue, or Events tab, or confirm this world below."
     },
     {
       "name": "the Validation and Export tab: counts, world clean, the Final block, Draft and Final cards, manifest preview, size",

@@ -222,7 +222,7 @@
     if (gv !== ENGINE_WORLD.version) add('generator', 'The world was made by World Forge engine ' + (gv || 'unknown') + ', and this forge carries engine ' + ENGINE_WORLD.version + '.');
     var res = Kit.validate(b);
     var bad = res.errors.concat(res.broken).filter(function (x) {
-      return x.recordId !== 'story' && STORY.PREFIXES.indexOf(Kit.ids.prefixOf(x.recordId)) < 0;
+      return x.recordId !== 'story' && !x.story && STORY.PREFIXES.indexOf(Kit.ids.prefixOf(x.recordId)) < 0;
     });
     bad.slice(0, 3).forEach(function (x) { add('validation', (x.level === 'broken' ? 'Broken reference' : 'Error') + ' on ' + x.recordId + (x.fieldPath ? ' (' + x.fieldPath + ')' : '') + ': ' + x.message); });
     if (bad.length > 3) add('validation', (bad.length - 3) + ' more errors or broken references outside the story.');

@@ -1,5 +1,5 @@
 {
- "passed": 70,
+ "passed": 69,
  "total": 70,
  "results": [
   {
@@ -21,7 +21,7 @@
   },
   {
    "name": "src/engine-story.js (the frame) is unchanged by Phase 4",
-   "ok": true
+   "ok": false
   },
   {
    "name": "the standalone engine-story.js holds the dlg section and stays free of for-in and host globals",

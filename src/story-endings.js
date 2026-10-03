@@ -261,7 +261,9 @@
   Kit.validate.register('story.playtime', function (b, ctx) {
     if (!b || !U.isObj(b.story) || !hasWorld(b)) return;
     var p = X.playtime(b), chs = STORY.chapters(b);
-    if (!p.meets && chs.length) ctx.add({ recordId: chs[chs.length - 1].id, fieldPath: 'targetMinutes', level: 'error',
+    // story: true marks it as this forge's finding although it is filed on a chapter, so the world check behind the import
+    // gate does not mistake a short story for an unclean world (Phase 7).
+    if (!p.meets && chs.length) ctx.add({ recordId: chs[chs.length - 1].id, fieldPath: 'targetMinutes', level: 'error', story: true,
       message: 'The chapters add up to ' + p.main + ' minutes, short of the ' + p.floor + ' minute floor (' + (p.floor / 60) + ' hours) by ' + p.short + '. Raise chapter target minutes in Saga Forge (Day 146). Side and B story minutes never count toward the floor.' });
   });
 
