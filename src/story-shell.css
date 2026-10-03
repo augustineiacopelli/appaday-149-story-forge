@@ -1,0 +1,30 @@
+/* === STORY:SHELL CSS BEGIN === */
+.size-btn { padding: 0 8px; }
+.size-btn .chip { pointer-events: none; }
+.store-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 16px; background: color-mix(in srgb, var(--danger) 16%, var(--bg2)); border-bottom: 1px solid var(--danger); color: var(--ink); font-weight: 700; }
+.store-banner[hidden] { display: none; }
+.store-banner span { flex: 1 1 240px; min-width: 0; }
+.s9-hero .btn-row { margin-top: 10px; }
+.s9-grid { margin-top: 14px; margin-bottom: 14px; }
+.s9-grid .card .section-h, .s9-wide .section-h { margin-top: 0; }
+.s9-wide { margin-bottom: 14px; }
+.s9-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.s9-meter { height: 14px; border-radius: 99px; background: var(--bg2); border: 1px solid var(--line2); overflow: hidden; margin: 4px 0 8px; }
+.s9-meter i { display: block; height: 100%; background: var(--ok); }
+.s9-meter.s9-amber i { background: var(--warn); }
+.s9-meter.s9-red i { background: var(--danger); }
+.s9-sub { display: block; font-weight: 400; font-size: .82rem; color: var(--ink2); margin-top: 2px; }
+.s9-endings { margin: 6px 0 8px; padding-left: 1.3em; }
+.s9-endings li { margin: 4px 0; }
+.s9-fixtures { margin: 10px 0 14px; }
+.s9-opts { display: flex; flex-direction: column; gap: 2px; margin: 10px 0; }
+.s9-val .btn-row { margin-top: 10px; }
+.s9-ok { border-left: 3px solid var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); padding: 8px 12px; border-radius: 6px; }
+.s9-issues { display: flex; flex-direction: column; gap: 6px; margin: 8px 0; }
+.s9-issue { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.s9-issue-text { flex: 1 1 220px; min-width: 0; overflow-wrap: anywhere; }
+.tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
+.tbl th[scope=row] { min-width: 7.5em; }
+.brand-title { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+@media (max-width: 520px) { .brand-title { font-size: 1.02rem; letter-spacing: .03em; } .brand-num { display: none; } }
+/* === STORY:SHELL CSS END === */

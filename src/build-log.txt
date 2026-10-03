@@ -1,0 +1,113 @@
+=== BUILD LOG: APPADAY 149 STORY FORGE ===
+Each session reads this log first and appends to it last. Day 146's log lives in Day 146's index.html; Days 147 and 148
+  keep theirs in src/build-log.txt. The Planning session's five decisions (below, DECISIONS) are the plan of record.
+
+SESSION 0 / PHASE 0 (2026-10-03, Opus): SCAFFOLD, IMPORT GATE, EXPORT, FIXTURES. COMPLETE.
+  Repo layout (Day 148's pattern): sources in src/, build.js assembles index.html, tests in test/ under jsdom, day146.js,
+    day147.js, and day148.js locate sibling clones (never committed; app146.html, app147/, or app148/ also work).
+  Fences, in order: KIT:CORE CSS (verbatim from 146), STORY:SHELL CSS, then in the inline script KIT:CORE (verbatim),
+    ENGINE:STORY, STORY:STORE, STORY:DEMO, optional later fences (story-scaffold, story-checks, ws-flags, ws-quests,
+    ws-dialogue, ws-events, ws-validation, picked up by build.js when the file exists), WS:STORY149, APP:BOOT.
+  Vendored engines: engine-render.js and engine-audio.js byte equal to Day 147 (and to Day 148's copies, checked so Day
+    150 never loads two versions); engine-world.js byte equal to Day 148's root file with any '/* Bundle hash */' line
+    ignored on both sides. All three load by relative script tags, render, audio, world, before the inline script.
+    build.js stops on any difference (node build.js --revendor takes the owners' copies). ENGINE_BATTLE is not vendored.
+  ENGINE:STORY base (src/engine-story.js, version 1.0.0, deep frozen, one global, no host global): util {keys (sorted),
+    each, clamp, isObj, copy (sorted keys), canon, digest (FNV-1a)}, hash {xmur3, str} identical to ENGINE_WORLD's,
+    ids {PREFIXES, slug, structural(prefix, key)} built exactly as Day 148 builds world IDs and refusing non story
+    prefixes, gates {KINDS, parse(key) -> {key, kind chapter|seal|ship|airship|other, chapter}, keys(graph) sorted from
+    nodes' requires and grants and graph.start}. Phase 1 sections splice above the freeze line in this order when present:
+    engine-cond, engine-cmd, engine-run, engine-pages, engine-save, then engine-walk (Phase 7). Static scan in phase0: no
+    Math.random, Date, performance, eval, new Function, for in, window, document, Kit, ENGINE_WORLD, or localStorage, and
+    Object.keys only inside util.keys.
+  KIT:CORE is never edited. Day 149 layers on with public hooks only: Kit.codex.register for five story types
+    (StoryFlag, StoryQuest, StoryDialogue, StoryEvent, StoryEnding; envelope fields key, chapter ref chp_, origin, tags),
+    Kit.validate.register('story.envelope'), Kit.jump.register('story'), wrappers around Kit.store get/set/del (own keys)
+    and Kit.bundle.importText (the gate), and reassigned Kit.buildExport and Kit.openExport. Nothing is written to codex:
+    Day 146 already ships codex.prefixes entries for flg_ qst_ dlg_ evt_ end_ (ns story, forge 149, type null).
+  Story namespace: story = {version '1.0.0', generator {name 'appaday-149-story', version = ENGINE_STORY.version},
+    records {flg_, qst_, dlg_, evt_, end_}, bindings, scaffold, npcDialogue, settings, overrides}. STORY.ensure fills what
+    is missing and never overwrites; Kit.on('load') runs it. Settings: floorMinutes 720, walkCap 50000, draftTier
+    'sonnet', scaffold {sideQuests true, bStories true}.
+  Records: STORY.records list (sorted)/get/put/del at story.records[prefix][id]. STORY.envelope(prefix, key, name, body)
+    derives a structural ID through ENGINE_STORY (origin 'generated'); STORY.authored(prefix, name, body) mints with
+    Kit.ids.mint (origin 'user', key 'user|<id>'), which every scaffold rerun keeps. story.envelope warns when a
+    generated record's key no longer derives its ID. DECISION (Day 148's, kept): no field named id anywhere inside a
+    story record, condition, or command (use flg, qst, dlg, evt, end, npc, map, trp, itm, chr).
+  Reading helpers: STORY.chapters, endings (charter.sections.endings.endings), minutes, rules(prefix), world {list, get,
+    graph, gateKeys, overworld, emptyBossSlots}. The fixtures' graphs: demo 2 chapter keys, 2 seals, ship; four 6, 6,
+    ship, airship (14 keys). Empty boss slots: demo The Lowlands, four The Marches.
+  Import gate: Kit.bundle.importText refuses, each with a reason, bad JSON, a non bundle, no Day 148 Final
+    (kit.forges['148'].status must be 'final'; a Day 147 export and a Day 148 Draft are refused), world not in
+    kit.opened, and a world that does not validate cleanly. DECISION, the world check (STORY.worldCheck, memoized on
+    KIT:CORE's index identity): Day 148's page validators are not in this page, so the gate re-proves what a story
+    stands on with the vendored ENGINE_WORLD: the world's generator version equals the vendored engine's; KIT:CORE
+    validation has no errors or broken references outside the story namespace (story problems never make a world
+    unclean, so a Story Draft always reopens); every world record is filed under its own ID and prefix and a generated
+    one's structural key derives its ID; the progression graph exists, ENGINE_WORLD.progression.check finds nothing, and
+    every site and region it names is a record; the overworld map_ exists; every sdq_.giver resolves to an npc_. Day 148's
+    staleness digests are page side and are not repeated here; its Final stamp already required them current.
+    Kit.bundle.load (demo, slots, the Day 148 draft) is not gated; the Day 148 draft is checked with STORY.importable.
+  Open policy (Day 148's exact pattern): story stays out of kit.opened while drafting. STORY.FORWARD_FIELDS = sdq_.flag
+    -> flg_ (the save schema's flags list lives in the schema, nothing to fill); filling it (Phase 2) is the only write
+    outside story. A Draft closes story when STORY.canOpen is false. Kit.buildExport('final') refuses while there are
+    errors or broken references, while the bundle is not ready, while canOpen is false, and, until Phase 7 supplies
+    STORY.checks {finalBlock, summary, walkStats}, always ('the story has not been proven yet'). Proven with a test stand
+    in for STORY.checks: Final opens story, stamps 149 final, changes nothing outside story but sdq_.flag, and Days 146,
+    147, and 148 open it with 0 errors, 0 broken, 0 forward; Day 146 reads a dangling flag as forward while story is
+    closed and as broken once it is open (control).
+  Export: forges['149'] = {status, exportedAt, storyVersion, engineVersion, charterVersion, worldGeneratorVersion}, then
+    Kit.bundle.exportFile without a status so forges 146 to 148 are untouched. Files: <slug>-bundle.json,
+    <slug>-story-manifest.json {forge, bundleHash, storyVersion, generator, engineVersion, charterVersion, world {version,
+    generatorVersion, seed}, exportedAt, created, referenced, unresolved, forward, storyOpened, counts, validation,
+    worldCheck, checks (Phase 7), walk (Phase 7), day150 (Phase 8), engines, loadOrder [render, audio, world, story]},
+    engine-story.js (the page's own ENGINE:STORY fence cut at run time under a header carrying the bundle hash; build.js
+    writes the repo copy without a hash).
+  Round trip: a Story Draft with records and a filled sdq_.flag opens in Days 146 and 147 (re-exported as Drafts) and 148
+    (re-exported as a Final, which its checks still allow) with charter, codex, rules, art, world, and story canonically
+    identical and the same validation summary as the plain fixture; each re-export comes back into 149 identical. A Day
+    148 Draft re-export demotes forges['148'] and is refused here by design.
+  Storage (Day 148's pattern): own keys story149:draft, story149:slots, story149:suspend, story149:ui; kit:settings shared.
+    IndexedDB fallback in database appaday-149 with story149:where: markers and an in-memory mirror; APP:BOOT awaits
+    STORY.storage.ready(). Start offers "Open the Day 148 draft" when world148:draft exists (localStorage or Day 148's
+    appaday-148 database); Day 148's keys are never written, and a draft that is not a Day 148 Final is refused.
+  Fixtures: test/make-demo.js boots Day 148's own page, imports its Day 147 fixtures, sets seed 42, runs
+    WORLD.zones.apply (progression, overworld, interiors, zones, givers), checks WORLD.finalBlock, and exports a Final
+    with baking off (Day 150 regenerates maps; baking would only add size). DECISION: before Day 148 grows the world, one
+    Day 146 shaped edit raises chapter targetMinutes (demo 360 360; four 120 90 150 120 120 180) and targetPlayHours (12,
+    13), restamped with Day 146's hash, because Day 148's fixtures sum to 120 and 450 minutes and Phase 6 makes the 720
+    minute floor an error, so neither could ever export a Final from this forge. Results: demo 543 KB, 12 maps, 2 reg_,
+    3 twn_, 6 dgn_, 35 npc_; four 787 KB, 32 maps, 6 reg_, 7 twn_, 18 dgn_, 87 npc_. Both open in 146, 147, and 148 with
+    0 errors and 0 broken (warnings only: 146's party target, 148's empty boss slot). Embedded minified, ASCII escaped.
+  UI: header (theme, settings), topbar (title, size chip, validation badge, Save, Slots, Import, Export). Tabs: Start,
+    Flags, Quests, Dialogue, Events, Validation and Export (id export), and Dev with ?dev=1. Start: load buttons, Project,
+    World check (clean or problems, world record counts), Story namespace (counts by prefix, bindings, opened), Chapters on
+    the golden path (continent, minutes, sites, boss troop or an empty slot chip; hours against the floor), Gate keys to
+    bind by kind in chapter order with the empty boss slots named, Side quests (giver, completion flag), Endings. Flags,
+    Quests, Dialogue, Events are stubs naming their phase; a later fence registers STORY.WS[key] = {render, focus,
+    onLeave} and the mount picks it up. Validation and Export: counts, world check, the Final status line, up to eight
+    issues with Jump, then the export form (Draft or Final with the reason it is blocked, engine toggle), the manifest
+    preview with the Day 150 load order, and size.
+  Tests: test/phase0.js 89 of 89 (static contract and determinism scan; structural IDs equal to ENGINE_WORLD's hashing,
+    valid, collision free on 1500 keys, identical in two vm contexts; gate keys of both fixtures; boot, tabs, skeleton,
+    types; the gate's ten refusals; import keeps prior namespaces; the Start cards; records and the envelope; Draft
+    export and manifest; Final refused; the round trip through 146, 147, and 148 and back; sdq_.flag forward, the Final
+    path, the control; own keys, the Day 148 draft, the banner, IndexedDB; fixtures). test/layout.js 20 views at 390 and
+    1280 pass (no horizontal scroll, no target under 44 px, no script errors). Pictures: test/out/phase0-*.png.
+  Next: Phase 1, ENGINE:STORY core (src/engine-cond.js, engine-cmd.js, engine-run.js, engine-pages.js, engine-save.js):
+    cond.eval and lint, cmd.lint, run.start, step, choose, resolve, pages.pick, save.toFlags and fromFlags, branch
+    exclusivity in the engine, whole cutscenes replayed in two vm contexts byte for byte.
+=== END SESSION 0 ===
+DECISIONS (2026-10-03, from the Planning session, accepted as the plan of record):
+  1. Story Forge writes only the story namespace plus sdq_.flag (Day 148 wrote only sdq_.giver). It never edits world.
+  2. Gate flags and empty boss slots are done from the story side: story.bindings maps every Day 148 gate key to one flg_
+     (optional display itm_ from rules); an empty boss slot gets an auto generated boss event starting a chosen trp_. Day
+     150 resolves a boss as the world troop when set, else the story binding. dgn_.troop is never edited.
+  3. Gate binding flags and scaffolded records get structural IDs (ENGINE_STORY.ids.structural); hand made ones use
+     Kit.ids.mint.
+  4. Conditions are JSON trees: all, any, not, flag (eq ne gt gte lt lte), item, chapter, quest (stage equals, stage
+     reached, failed), true. No eval.
+  5. Commands are a closed nested vocabulary with no goto: text, choice, if, setFlag, addFlag, giveItem, takeItem, gil,
+     questStage, party, startBattle (win and lose lists), moveActor, face, wait, fade, music, sfx, changeMap, vehicle,
+     callEvent, ending.
+=== END BUILD LOG ===

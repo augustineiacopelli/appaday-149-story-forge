@@ -1,0 +1,9 @@
+{
+  "name": "appaday-149-tests",
+  "private": true,
+  "description": "Execution workspace tests for Day 149. Run npm install here once, then node phase0.js (node make-demo.js rebuilds the fixtures from Day 148; layout.js needs Playwright).",
+  "dependencies": {
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^24.1.3"
+  }
+}

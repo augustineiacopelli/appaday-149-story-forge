@@ -1,0 +1,725 @@
+{
+  "results": [
+    {
+      "name": "index.html is pure ASCII",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "inline script parses",
+      "ok": true,
+      "detail": true
+    },
+    {
+      "name": "script fences in order: KIT:CORE, ENGINE:STORY, STORY:STORE, STORY:DEMO, WS:STORY149, APP:BOOT",
+      "ok": true,
+      "detail": [
+        1,
+        139593,
+        146230,
+        172696,
+        818961,
+        848725
+      ]
+    },
+    {
+      "name": "every fence opens and closes exactly once",
+      "ok": true
+    },
+    {
+      "name": "CSS fences KIT:CORE CSS then STORY:SHELL CSS",
+      "ok": true
+    },
+    {
+      "name": "KIT:CORE JS and CSS byte for byte equal to Day 146",
+      "ok": true
+    },
+    {
+      "name": "vendored engine-render.js and engine-audio.js byte equal to Day 147 and to Day 148's copies",
+      "ok": true,
+      "detail": [
+        true,
+        true
+      ]
+    },
+    {
+      "name": "vendored engine-world.js byte equal to Day 148's root file (bundle hash line aside)",
+      "ok": true
+    },
+    {
+      "name": "page loads the three engines by relative script tags, render, audio, world, before the inline script",
+      "ok": true
+    },
+    {
+      "name": "backlink appears in header and footer",
+      "ok": true
+    },
+    {
+      "name": "no forbidden APIs (roundRect, ellipse, confirm, bare remove)",
+      "ok": true
+    },
+    {
+      "name": "engine-story.js is the ENGINE:STORY fence byte for byte under its header",
+      "ok": true
+    },
+    {
+      "name": "ENGINE:STORY uses no Math.random, Date, performance, eval, new Function, for in, or host global, and Object.keys only inside util.keys, which sorts",
+      "ok": true,
+      "detail": {
+        "hits": [],
+        "objectKeys": 1
+      }
+    },
+    {
+      "name": "engine-story.js loads alone in a bare context and declares one deep frozen global",
+      "ok": true,
+      "detail": [
+        "ENGINE_STORY"
+      ]
+    },
+    {
+      "name": "ENGINE_STORY.hash.str and ids.slug equal ENGINE_WORLD's on 1500 keys",
+      "ok": true
+    },
+    {
+      "name": "structural IDs: valid KIT IDs, no collisions in 1500 keys, the same in two contexts, with or without the underscore",
+      "ok": true
+    },
+    {
+      "name": "ids.structural refuses world and rules prefixes",
+      "ok": true,
+      "detail": "flg_flg_gate_vehicle_ship_iqdm"
+    },
+    {
+      "name": "gates.keys and parse read Day 148's graph: four has 6 chapter keys, 6 seals, ship, airship, nothing unknown",
+      "ok": true,
+      "detail": {
+        "chapter": 6,
+        "seal": 6,
+        "airship": 1,
+        "ship": 1
+      }
+    },
+    {
+      "name": "the demo graph: 2 chapter keys, 2 seals, the vehicles its graph names",
+      "ok": true,
+      "detail": {
+        "kDemo": {
+          "chapter": 2,
+          "seal": 2,
+          "ship": 1
+        },
+        "vDemo": [
+          "ship"
+        ]
+      }
+    },
+    {
+      "name": "gates.parse names the chapter of chapter and seal keys and returns other for anything else",
+      "ok": true
+    },
+    {
+      "name": "boots with no page errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "ENGINE_RENDER, ENGINE_AUDIO, ENGINE_WORLD from the vendored files and ENGINE_STORY from the fence",
+      "ok": true
+    },
+    {
+      "name": "six tabs and Dev: start, flags, quests, dialogue, events, export; all but start and dev locked without a world",
+      "ok": true,
+      "detail": "start flags(locked) quests(locked) dialogue(locked) events(locked) export(locked) dev"
+    },
+    {
+      "name": "the sixth tab is Validation and Export, and the active tab is start",
+      "ok": true
+    },
+    {
+      "name": "a fresh bundle gets the story skeleton: records, bindings, scaffold, npcDialogue, settings, overrides",
+      "ok": true,
+      "detail": {
+        "version": "1.0.0",
+        "generator": {
+          "name": "appaday-149-story",
+          "version": "1.0.0"
+        },
+        "records": {
+          "flg_": {},
+          "qst_": {},
+          "dlg_": {},
+          "evt_": {},
+          "end_": {}
+        },
+        "bindings": {},
+        "scaffold": {},
+        "npcDialogue": {},
+        "settings": {
+          "floorMinutes": 720,
+          "walkCap": 50000,
+          "draftTier": "sonnet",
+          "scaffold": {
+            "sideQuests": true,
+            "bStories": true
+          }
+        },
+        "overrides": {}
+      }
+    },
+    {
+      "name": "five story prefixes reserved by KIT:CORE for forge 149 in namespace story, each with a Codex type",
+      "ok": true
+    },
+    {
+      "name": "structural IDs are valid KIT IDs from ENGINE_STORY",
+      "ok": true,
+      "detail": "flg_flg_gate_vehicle_ship_iqdm"
+    },
+    {
+      "name": "import refuses a Day 147 export and a Day 148 Draft: no Day 148 Final, with a readable reason",
+      "ok": true,
+      "detail": [
+        "This bundle has no Day 148 Final export. Open it in World Forge (Day 148), generate the world, and export a Final; Story Forge writes its story onto a finished world.",
+        "This bundle has no Day 148 Final export. Open it in World Forge (Day 148), generate the world, and export a Final; Story Forge writes its story onto a finished world."
+      ]
+    },
+    {
+      "name": "import refuses a Final whose world namespace is not opened",
+      "ok": true,
+      "detail": "This bundle's world namespace is not opened. Export a Final from World Forge (Day 148), which opens it once every world check passes."
+    },
+    {
+      "name": "import refuses a world that does not validate cleanly: a missing giver, with the reason",
+      "ok": true,
+      "detail": "This bundle's world does not validate cleanly: Broken reference on sdq_frozen_lantern_l6q4 (giver): Broken reference: npc_npc_twn_chp_the_frost_reach_f7k1_start_r_nkau does not exist. (and 1 more) Fix it in World Forge (Day 148) and export a Final again."
+    },
+    {
+      "name": "import refuses another World Forge engine version, a missing site record, a tampered structural key, and no graph",
+      "ok": true,
+      "detail": [
+        "This bundle's world does not validate cleanly: The world was made by World Forge engine 0.9.0, and this forge carries engine 1.0.0. Fix it in World Forge (Day 148) and export a Final again.",
+        "This bundle's world does not validate cleanly: Site dgn|chp_the_lowlands_auem|boss has no world record. Fix it in World Forge (Day 148) and export a Final again.",
+        "This bundle's world does not validate cleanly: World record twn_twn_chp_the_lowlands_auem_start_c7hb no longer matches the ID its structural key derives. Fix it in World Forge (Day 148) and export a Final again.",
+        "This bundle's world does not validate cleanly: The world has no progression graph. Fix it in World Forge (Day 148) and export a Final again."
+      ]
+    },
+    {
+      "name": "import refuses non bundles and bad JSON",
+      "ok": true
+    },
+    {
+      "name": "a refused import leaves the draft untouched",
+      "ok": true
+    },
+    {
+      "name": "a Day 148 Final export imports with its hash verified",
+      "ok": true
+    },
+    {
+      "name": "import leaves charter, codex, rules, art, and world canonically identical",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "import fills the story skeleton and nothing else",
+      "ok": true
+    },
+    {
+      "name": "the demo validates with no errors or broken references, and the world check is clean",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "the four continent fixture imports too",
+      "ok": true
+    },
+    {
+      "name": "Start: world check clean with record counts, six chapters, 13.0 hours at the floor, The Marches an empty slot",
+      "ok": true,
+      "detail": "StartLoad a Day 148 Final export or the demo. Story Forge reads the Charter, the Rules, the art, and the finished world, writes only the story namespace (and later each side quest's completion flag), and exports a bundle Days 146, 147, and 148 still open.Load a Day 148 bundleLoad the demoSettingsProjectTitleFour ContinentsCharterLocked v1Forges146 final, 147 final, 148 finalOpenedcharter, rules, a"
+    },
+    {
+      "name": "Start: 14 gate keys to bind by kind, the empty boss slot named, both side quests with giver and no flag yet, one ending",
+      "ok": true
+    },
+    {
+      "name": "later tabs unlock once a ready bundle is loaded",
+      "ok": true
+    },
+    {
+      "name": "Flags, Quests, Dialogue, Events are stubs naming their phase",
+      "ok": true
+    },
+    {
+      "name": "story records are indexed by KIT:CORE under story.records",
+      "ok": true,
+      "detail": "story.records.flg_.flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo"
+    },
+    {
+      "name": "a scaffolded record is structural and generated; a hand made one is minted and user",
+      "ok": true,
+      "detail": [
+        "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
+        "qst_a_hand_made_quest_2qtf"
+      ]
+    },
+    {
+      "name": "story records validate with the envelope types (chapter refs resolve)",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "STORY.records.put refuses non story prefixes",
+      "ok": true
+    },
+    {
+      "name": "a scaffolded record whose key no longer derives its ID is a warning; a user record is exempt",
+      "ok": true,
+      "detail": [
+        "Story record flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo does not match the ID its structural key derives."
+      ]
+    },
+    {
+      "name": "Draft export: three files (bundle, story manifest, engine-story.js)",
+      "ok": true,
+      "detail": [
+        "demo-saga-bundle.json",
+        "demo-saga-story-manifest.json",
+        "engine-story.js"
+      ]
+    },
+    {
+      "name": "Draft stamps forge 149 and leaves forges 146, 147, and 148 untouched",
+      "ok": true,
+      "detail": {
+        "146": {
+          "status": "final",
+          "exportedAt": "2026-10-01T18:12:57.142Z",
+          "charterVersion": 1
+        },
+        "147": {
+          "status": "final",
+          "exportedAt": "2026-10-02T12:44:00.761Z",
+          "artVersion": "1.0.0",
+          "charterVersion": 1
+        },
+        "148": {
+          "status": "final",
+          "exportedAt": "2026-10-03T12:24:22.344Z",
+          "worldVersion": "1.0.0",
+          "generatorVersion": "1.0.0",
+          "charterVersion": 1
+        },
+        "149": {
+          "status": "draft",
+          "exportedAt": "2026-10-03T12:34:13.930Z",
+          "storyVersion": "1.0.0",
+          "engineVersion": "1.0.0",
+          "charterVersion": 1,
+          "worldGeneratorVersion": "1.0.0"
+        }
+      }
+    },
+    {
+      "name": "Draft leaves story out of kit.opened",
+      "ok": true,
+      "detail": [
+        "charter",
+        "rules",
+        "art",
+        "world"
+      ]
+    },
+    {
+      "name": "manifest: forge 149, hash equals the bundle hash, created story IDs, the chapter referenced, nothing unresolved, world clean, load order",
+      "ok": true,
+      "detail": {
+        "forge": 149,
+        "bundleHash": "12f9a7b8666e398d40380e72a46cb31ae3285b51a2699bc9785a61e681189808",
+        "storyVersion": "1.0.0",
+        "generator": {
+          "name": "appaday-149-story",
+          "version": "1.0.0"
+        },
+        "engineVersion": "1.0.0",
+        "charterVersion": 1,
+        "world": {
+          "version": "1.0.0",
+          "generatorVersion": "1.0.0",
+          "seed": 42
+        },
+        "exportedAt": "2026-10-03T12:34:13.982Z",
+        "created": [
+          "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
+          "qst_a_hand_made_quest_2qtf"
+        ],
+        "referenced": [
+          "chp_the_lowlands_auem"
+        ],
+        "unresolved": [],
+        "forward": [],
+        "storyOpened": false,
+        "counts": {
+          "flg_": 1,
+          "qst_": 1,
+          "dlg_": 0,
+          "evt_": 0,
+          "end_": 0
+        },
+        "validation": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 0
+        },
+        "worldCheck": {
+          "clean": true,
+          "problems": []
+        },
+        "checks": null,
+        "walk": null,
+        "day150": null,
+        "engines": [
+          {
+            "key": "story",
+            "global": "ENGINE_STORY",
+            "file": "engine-story.js",
+            "version": "1.0.0"
+          }
+        ],
+        "loadOrder": [
+          "engine-render.js",
+          "engine-audio.js",
+          "engine-world.js",
+          "engine-story.js"
+        ]
+      }
+    },
+    {
+      "name": "exported engine-story.js is the page fence under a header carrying the bundle hash, the repository file plus that line",
+      "ok": true
+    },
+    {
+      "name": "Final is refused until Phase 7 proves the story, with a readable reason",
+      "ok": true,
+      "detail": "Final export is blocked: the story has not been proven yet. The reachability proof arrives in Phase 7, and Final opens the story namespace once it passes."
+    },
+    {
+      "name": "the Validation and Export tab: counts, world clean, the Final block, Draft and Final cards, manifest preview, size",
+      "ok": true
+    },
+    {
+      "name": "Day 146 opens the 149 Draft: hash verified, prior namespaces and story identical",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Day 146 sees no new errors or broken references",
+      "ok": true,
+      "detail": {
+        "now": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 1
+        },
+        "before": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 1
+        },
+        "err": []
+      }
+    },
+    {
+      "name": "Day 146 re-exports (Draft) with story and forge 149 untouched",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Day 147 opens the 149 Draft: hash verified, prior namespaces and story identical",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Day 147 sees no new errors or broken references",
+      "ok": true,
+      "detail": {
+        "now": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 0
+        },
+        "before": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 0
+        },
+        "err": []
+      }
+    },
+    {
+      "name": "Day 147 re-exports (Draft) with story and forge 149 untouched",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Day 148 opens the 149 Draft: hash verified, prior namespaces and story identical",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Day 148 sees no new errors or broken references",
+      "ok": true,
+      "detail": {
+        "now": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 1
+        },
+        "before": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 0,
+          "warnings": 1
+        },
+        "err": []
+      }
+    },
+    {
+      "name": "Day 148 re-exports (Final) with story and forge 149 untouched",
+      "ok": true,
+      "detail": null
+    },
+    {
+      "name": "Day 148 still exports a Final over the Story Draft, and keeps world opened and story closed",
+      "ok": true,
+      "detail": [
+        "charter",
+        "rules",
+        "art",
+        "world"
+      ]
+    },
+    {
+      "name": "149 reopens the Day 146 re-export: hash verified, every namespace identical to the 149 Draft",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "149 reopens the Day 147 re-export: hash verified, every namespace identical to the 149 Draft",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "149 reopens the Day 148 re-export: hash verified, every namespace identical to the 149 Draft",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "a Day 148 Draft re-export is refused here (it is no longer a Day 148 Final), with the reason",
+      "ok": true,
+      "detail": "This bundle has no Day 148 Final export. Open it in World Forge (Day 148), generate the world, and export a Final; Story Forge writes its story onto a finished world."
+    },
+    {
+      "name": "forward refs: one resolving flag, one missing; story cannot open",
+      "ok": true,
+      "detail": [
+        {
+          "recordId": "sdq_frozen_lantern_l6q4",
+          "field": "flag",
+          "id": "flg_flg_quest_sdq_frozen_lantern_l6q4_done_i53c",
+          "ok": true
+        },
+        {
+          "recordId": "sdq_lost_ring_r3q1",
+          "field": "flag",
+          "id": "flg_missing_zz99",
+          "ok": false
+        }
+      ]
+    },
+    {
+      "name": "with story closed both flags read as forward here, never broken",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 2,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "Draft keeps story closed and the manifest lists the missing flag as unresolved",
+      "ok": true,
+      "detail": [
+        "flg_missing_zz99"
+      ]
+    },
+    {
+      "name": "Day 146 imports it: 0 broken, both flags forward and owed by 149",
+      "ok": true,
+      "detail": {
+        "matches": true,
+        "summary": {
+          "errors": 0,
+          "broken": 0,
+          "forward": 2,
+          "warnings": 1
+        },
+        "errors": [],
+        "broken": [],
+        "forward": [
+          "flg_flg_quest_sdq_frozen_lantern_l6q4_done_i53c",
+          "flg_missing_zz99"
+        ],
+        "pageErrors": []
+      }
+    },
+    {
+      "name": "the world check ignores story problems: a dangling story flag does not make the world unclean",
+      "ok": true
+    },
+    {
+      "name": "Final opens story, stamps forge 149 final, leaves 146, 147, and 148 alone",
+      "ok": true,
+      "detail": [
+        "charter",
+        "rules",
+        "art",
+        "world",
+        "story"
+      ]
+    },
+    {
+      "name": "Final changes nothing outside story but sdq_.flag",
+      "ok": true
+    },
+    {
+      "name": "Day 146 opens the 149 Final: flags resolve, 0 errors, 0 broken, 0 forward",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 1
+      }
+    },
+    {
+      "name": "Day 147 opens the 149 Final: flags resolve, 0 errors, 0 broken, 0 forward",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 0
+      }
+    },
+    {
+      "name": "Day 148 opens the 149 Final: flags resolve, 0 errors, 0 broken, 0 forward",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 0,
+        "forward": 0,
+        "warnings": 1
+      }
+    },
+    {
+      "name": "control: an opened story with a missing flag is broken in Day 146 (why story opens only on Final)",
+      "ok": true,
+      "detail": {
+        "errors": 0,
+        "broken": 1,
+        "forward": 0,
+        "warnings": 1
+      }
+    },
+    {
+      "name": "149 keeps its own draft and offers the Day 148 draft on Start",
+      "ok": true,
+      "detail": {
+        "title": "Untitled Saga",
+        "active": "start",
+        "offer": true
+      }
+    },
+    {
+      "name": "Open the Day 148 draft copies it in and leaves world148:draft and kit:draft untouched",
+      "ok": true
+    },
+    {
+      "name": "a Day 148 draft that is not a Final is refused with the gate's reason",
+      "ok": true
+    },
+    {
+      "name": "storage banner shows on a refused save and clears on success",
+      "ok": true
+    },
+    {
+      "name": "a refused localStorage save moves the draft to IndexedDB with a marker",
+      "ok": true,
+      "detail": {
+        "where": "idb",
+        "keys": [
+          "story149:ui",
+          "story149:where:story149:draft"
+        ]
+      }
+    },
+    {
+      "name": "the next boot restores the draft from IndexedDB",
+      "ok": true,
+      "detail": "Four Continents"
+    },
+    {
+      "name": "only story149: keys were written (no kit:draft, no world148:, no art147:)",
+      "ok": true,
+      "detail": [
+        "story149:ui",
+        "story149:where:story149:draft"
+      ]
+    },
+    {
+      "name": "STORY_DEMO fixtures are the Day 148 exports, verbatim",
+      "ok": true
+    },
+    {
+      "name": "both fixtures are Day 148 Finals, world opened, seed 42, at or over 720 minutes",
+      "ok": true,
+      "detail": [
+        {
+          "f148": "final",
+          "opened": true,
+          "minutes": 720,
+          "seed": 42
+        },
+        {
+          "f148": "final",
+          "opened": true,
+          "minutes": 780,
+          "seed": 42
+        }
+      ]
+    },
+    {
+      "name": "Dev loads a fixture into a fresh draft, ready",
+      "ok": true
+    }
+  ]
+}
