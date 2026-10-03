@@ -1,5 +1,5 @@
 {
- "passed": 76,
+ "passed": 77,
  "total": 77,
  "results": [
   {
@@ -24,7 +24,7 @@
   },
   {
    "name": "engine-story.js is unchanged by Phase 2 (equal to the committed file)",
-   "ok": false
+   "ok": true
   },
   {
    "name": "boots with no page errors and STORY.flags is the Phase 2 API",

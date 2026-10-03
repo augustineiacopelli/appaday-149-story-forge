@@ -1,5 +1,5 @@
 {
- "passed": 127,
+ "passed": 129,
  "total": 129,
  "results": [
   {
@@ -20,14 +20,12 @@
   },
   {
    "name": "Phase 6 changes no engine code: every src/engine-*.js equals the last commit",
-   "ok": false,
-   "detail": [
-    "engine-story.js"
-   ]
+   "ok": true,
+   "detail": []
   },
   {
    "name": "the standalone engine-story.js is byte for byte what Phase 5 shipped",
-   "ok": false
+   "ok": true
   },
   {
    "name": "build.js picks up the three new files",
@@ -687,7 +685,7 @@
       "auto": true
      },
      {
-      "id": "evt_uses_it_8o81",
+      "id": "evt_uses_it_l0f6",
       "name": "Uses it",
       "auto": false
      }
