@@ -199,4 +199,31 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
   Next: Phase 3 (quests): scaffold qst_ from the main chapters and side quest seeds, stages with exitWhen, completeFlag
     from the bound flags, then call STORY.flags.sync.
 === END SESSION 2 ===
+=== SESSION 3 / PHASE 3 (2026-10-03, Sonnet) ===
+  Quests as state machines. New: src/story-quests.js (STORY.quests), src/ws-cond.js (condition tree and flag change
+    editors, reused by Phases 4 and 5), src/ws-quests.js and src/story-quests.css (the Quests tab). Engine untouched.
+  DECISION, scaffold is explicit: the Quests tab button (Build quests from the world, then Update quests) runs
+    STORY.quests.scaffold; opening a Final does not build quests, so earlier phase tests stay valid. Idempotent, keeps
+    edits and hand made quests, drops generated quests the world, seeds, or Charter no longer ask for. It calls
+    STORY.flags.sync before and after, so every quest gets its flg|quest| slot flag.
+  DECISION, completion flags: main and B story quests get flg|qdone|<qst> (kind quest, 0 to 1). Not flg|done|, because
+    the Phase 2 sync drops unwanted flg|done| keys. Side quests reuse the seed's own flag (flg|done|<sdq> unless chosen).
+  Scaffold content: main quest per chapter from the golden path (arrive, key, boss, exit, done; the finale has no exit).
+    Key stage exits when its seal flag is set, boss stage when every chapter and vehicle gate it grants is set; arrive and
+    exit have no exit condition (a talk event moves them, Phase 5). Giver is the start town's elder, else a resident.
+    Side quest per sdq_: offer, accept, done, copying chapter, giver, rewards, text. B story per chr_ with a bStoryline:
+    meet, up to five beats (lines, else sentences), done.
+  Extra stage fields the engine ignores: site (a Day 148 node key), note; branch field at (a stage key, drawing hint
+    only). reads is derived from the conditions and rebuilt on every edit.
+  Editing: Q.edit commits only when it adds no error the quest did not already have; the stage and group editors hold a
+    draft and commit whole (replaceStage, replaceGroup), so a half built condition never reaches the record.
+  Validator story.quests: stages, keys, labels, sets, condition lint against an index that includes the candidate,
+    refs (giver, chr, chapter, completion flag, rewards), 255 stage and 22 group save limits, shared completion flags.
+  Tab: expandable cards, hand built inline SVG in its own sideways scroll box (page never scrolls sideways), stage
+    buttons under the picture, stage, group, and failure editors, settings dialog, Reset to generated, Delete with usedBy.
+  Test change: phase0 fixture quest now has two stages (a quest with none is an error as of Phase 3).
+  Tests: test/phase3.js 95 of 95 (includes an engine playthrough of a generated main quest and the save slot round
+    trip). phase0 89, phase1 85, phase2 77. layout.js 34 of 34 views at 390 and 1280.
+  Next: Phase 4 (dialogue graphs) on Sonnet; reuse STORY.condUI and STORY.setsUI.
+=== END SESSION 3 ===
 === END BUILD LOG ===

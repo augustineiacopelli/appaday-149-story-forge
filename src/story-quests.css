@@ -1,0 +1,51 @@
+/* === STORY:QUESTS CSS BEGIN === */
+.qs-toggles { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 10px 0 0; }
+.qs-notes { margin: 8px 0; overflow-wrap: anywhere; }
+.qs-scroll { overflow-x: auto; overflow-y: hidden; margin: 12px 0 6px; padding: 6px 0; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); max-width: 100%; }
+.qs-svg { display: block; max-width: none; font-family: inherit; }
+.qs-box { fill: var(--panel2); stroke: var(--line); stroke-width: 1.5; }
+.qs-box-in { fill: none; stroke: var(--line); stroke-width: 1; }
+.qs-node { cursor: pointer; outline: none; }
+.qs-node:hover .qs-box, .qs-node:focus .qs-box { stroke: var(--accent); }
+.qs-node.sel .qs-box { stroke: var(--accent); stroke-width: 3; fill: var(--accent-soft); }
+.qs-node.sel .qs-box-in { stroke: var(--accent); }
+.qs-node:focus-visible .qs-box { stroke-width: 3; }
+.qs-num { fill: var(--ink2); font-size: 11px; font-weight: 800; }
+.qs-label { fill: var(--ink); font-size: 12px; font-weight: 700; }
+.qs-hint { fill: var(--ink2); font-size: 11px; }
+.qs-edge { fill: none; stroke: var(--ink2); stroke-width: 1.5; }
+.qs-edge-branch { stroke-dasharray: 4 3; }
+.qs-edge-fail { stroke: var(--danger); stroke-dasharray: 5 4; }
+.qs-arrow { fill: var(--ink2); }
+.qs-arrow-fail { fill: var(--danger); }
+.qs-fail rect { fill: transparent; stroke: var(--danger); stroke-width: 1.5; }
+.qs-fail-t { fill: var(--danger); font-size: 12px; font-weight: 800; }
+.qs-group polygon { fill: var(--panel2); stroke: var(--accent); stroke-width: 2; }
+.qs-glabel { fill: var(--ink); font-size: 12px; font-weight: 700; }
+.qs-pill rect { fill: var(--panel2); stroke: var(--accent); stroke-width: 1.5; }
+.qs-pill-t { fill: var(--ink); font-size: 11px; font-weight: 700; }
+.qs-failline { margin: 4px 0 8px; color: var(--danger); font-size: .88rem; overflow-wrap: anywhere; }
+.qs-stagebar .btn { white-space: normal; text-align: left; height: auto; min-height: 44px; overflow-wrap: anywhere; }
+.qs-edit { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); min-width: 0; }
+.qs-fail-edit { border-color: var(--danger); }
+.qs-edit-h { margin: 0 0 8px; font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+.qs-out { margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px dashed var(--line); }
+.qs-pick { max-width: 100%; white-space: normal; text-align: left; height: auto; min-height: 44px; overflow-wrap: anywhere; }
+.qs-empty { color: var(--ink2); font-style: italic; }
+.qs-pickrow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.qs-rewards { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+/* the condition and flag change editors (src/ws-cond.js) */
+.cu { min-width: 0; }
+.cu-node { padding: 8px; margin: 6px 0; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel2); min-width: 0; }
+.cu-group > .cu-kids { margin: 6px 0 6px 10px; padding-left: 8px; border-left: 3px solid var(--accent); }
+.cu-head, .cu-leaf { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-width: 0; }
+.cu-leaf { margin-top: 6px; }
+.cu-sel, .cu-num { min-width: 0; flex: 0 1 auto; width: auto; max-width: 100%; }
+.cu-num { width: 6.5em; }
+.cu-pick { max-width: 100%; white-space: normal; text-align: left; height: auto; min-height: 44px; overflow-wrap: anywhere; }
+.cu-empty { color: var(--ink2); font-style: italic; }
+.cu-word { color: var(--ink2); overflow-wrap: anywhere; }
+.cu-none { margin: 4px 0; }
+.cu-rm { margin-left: auto; }
+.cu-sets { min-width: 0; }
+/* === STORY:QUESTS CSS END === */

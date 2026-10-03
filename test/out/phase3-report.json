@@ -1,0 +1,583 @@
+{
+ "passed": 95,
+ "total": 95,
+ "results": [
+  {
+   "name": "the four new sources exist and are pure ASCII",
+   "ok": true
+  },
+  {
+   "name": "no forbidden APIs in the new JavaScript",
+   "ok": true,
+   "detail": [
+    null,
+    null,
+    null
+   ]
+  },
+  {
+   "name": "no dashes used as punctuation in the new UI prose (no em or en dash, no spaced hyphen between words)",
+   "ok": true
+  },
+  {
+   "name": "index.html carries the STORY:QUESTS, WS:COND, WS:QUESTS and quests CSS fences, in that order after STORY:SCAFFOLD",
+   "ok": true
+  },
+  {
+   "name": "engine-story.js is unchanged by Phase 3 (equal to the committed file)",
+   "ok": true
+  },
+  {
+   "name": "the standalone engine-story.js at the root matches src",
+   "ok": true
+  },
+  {
+   "name": "boots with no page errors and STORY.quests is the Phase 3 API",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "qst_ is the StoryQuest Codex type and carries stages, branches, fail, and rewards fields",
+   "ok": true
+  },
+  {
+   "name": "opening a Final does not build quests by itself (the scaffold is a button)",
+   "ok": true
+  },
+  {
+   "name": "expected: six main quests and two side quests, none built yet",
+   "ok": true,
+   "detail": {
+    "by": {
+     "main": {
+      "want": 6,
+      "have": 0
+     },
+     "side": {
+      "want": 2,
+      "have": 0
+     },
+     "bstory": {
+      "want": 0,
+      "have": 0
+     }
+    },
+    "total": 8,
+    "missing": 8
+   }
+  },
+  {
+   "name": "the scaffold builds 8 quests: one main per chapter, one side per seed, and says so",
+   "ok": true,
+   "detail": [
+    8,
+    "8 quests built, 6 completion flags made, 8 flags made for saves and side quests."
+   ]
+  },
+  {
+   "name": "every quest ID equals ENGINE_STORY.ids.structural of its key, and the scaffold names it",
+   "ok": true
+  },
+  {
+   "name": "the main quests follow the chapter order and keys are qst|main|<chapter>",
+   "ok": true
+  },
+  {
+   "name": "chapters one to five have five stages (arrive, key, boss, exit, done); the last has four (no exit)",
+   "ok": true,
+   "detail": [
+    "arrive>key>boss>exit>done",
+    "arrive>key>boss>exit>done",
+    "arrive>key>boss>exit>done",
+    "arrive>key>boss>exit>done",
+    "arrive>key>boss>exit>done",
+    "arrive>key>boss>done"
+   ]
+  },
+  {
+   "name": "the key stage exits when the seal flag the key dungeon grants is set, tied to the story binding",
+   "ok": true
+  },
+  {
+   "name": "the boss stage exits when every gate the boss grants is open; the finale boss has no exit condition",
+   "ok": true
+  },
+  {
+   "name": "each stage carries the Day 148 site it happens at; the done stage has none",
+   "ok": true
+  },
+  {
+   "name": "the exit stage reads \"Take the road to <region>\" from the progression region",
+   "ok": true,
+   "detail": "Take the road to Westland"
+  },
+  {
+   "name": "the giver is a person who lives in the start town",
+   "ok": true,
+   "detail": [
+    "npc_npc_twn_chp_the_lowlands_auem_start_resi_ia27",
+    13
+   ]
+  },
+  {
+   "name": "main quests have their own completion flag (flg|qdone|<qst>, kind quest, 0 to 1), set by the last stage",
+   "ok": true
+  },
+  {
+   "name": "side quests copy name, chapter, giver, rewards and note from the seed and reuse the seed's completion flag",
+   "ok": true
+  },
+  {
+   "name": "every quest has its save slot flag (flg|quest|<qst>) after the scaffold, so Day 146 saves resolve",
+   "ok": true
+  },
+  {
+   "name": "the engine index reads the generated quests: stages, sets, exits",
+   "ok": true
+  },
+  {
+   "name": "Q.check finds nothing wrong with any generated quest",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "Kit validation reports no error or broken reference for story quests",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "reads is derived from the conditions: the key stage flag is listed on the main quest",
+   "ok": true
+  },
+  {
+   "name": "records, scaffold and flags are key sorted",
+   "ok": true
+  },
+  {
+   "name": "a second scaffold changes nothing: not changed, same story bytes, no touch",
+   "ok": true,
+   "detail": {
+    "created": [],
+    "removed": [],
+    "flagsMade": [],
+    "flagsDropped": [],
+    "changed": false,
+    "skipped": null,
+    "sync": {
+     "created": [],
+     "removed": [],
+     "bound": [
+      "chapter:chp_the_far_shore_izf4",
+      "chapter:chp_the_frost_reach_f7k1",
+      "chapter:chp_the_last_light_l9t3",
+      "chapter:chp_the_lowlands_auem",
+      "chapter:chp_the_marches_m4r2",
+      "chapter:chp_the_sunken_coast_s2c9",
+      "item:seal:chp_the_far_shore_izf4",
+      "item:seal:chp_the_frost_reach_f7k1",
+      "item:seal:chp_the_last_light_l9t3",
+      "item:seal:chp_the_lowlands_auem",
+      "item:seal:chp_the_marches_m4r2",
+      "item:seal:chp_the_sunken_coast_s2c9",
+      "vehicle:airship",
+      "vehicle:ship"
+     ],
+     "rebound": [],
+     "dropped": [],
+     "sdq": {
+      "filled": [],
+      "kept": []
+     },
+     "changed": false,
+     "skipped": null
+    }
+   }
+  },
+  {
+   "name": "expected now says nothing is missing and the summary counts eight quests",
+   "ok": true
+  },
+  {
+   "name": "two fresh pages scaffolding the same Final give byte identical story namespaces",
+   "ok": true
+  },
+  {
+   "name": "the demo (2 chapters, no seeds, no B stories) gets exactly two main quests, the second without an exit stage",
+   "ok": true,
+   "detail": [
+    5,
+    4
+   ]
+  },
+  {
+   "name": "an event moves the quest into its key stage",
+   "ok": true
+  },
+  {
+   "name": "with the seal not yet found the quest stays at the key stage",
+   "ok": true
+  },
+  {
+   "name": "the seal flag moves it on to the boss stage",
+   "ok": true,
+   "detail": {
+    "closed": [],
+    "failed": false,
+    "stage": "boss"
+   }
+  },
+  {
+   "name": "the boss grants open the gates and the quest reaches the exit stage",
+   "ok": true,
+   "detail": {
+    "closed": [],
+    "failed": false,
+    "stage": "exit"
+   }
+  },
+  {
+   "name": "entering the last stage sets the completion flag and the slot packs the stage",
+   "ok": true
+  },
+  {
+   "name": "the save round trip through the quest slot flags returns the same quest state",
+   "ok": true,
+   "detail": {
+    "closed": [],
+    "failed": false,
+    "stage": "done"
+   }
+  },
+  {
+   "name": "an edited generated quest is kept by the scaffold (the stage label and note survive)",
+   "ok": true
+  },
+  {
+   "name": "a hand made quest (origin user, minted ID, its own completion flag) is kept by the scaffold",
+   "ok": true
+  },
+  {
+   "name": "removing a seed drops its generated side quest and its flag (through the flag sync), nothing else",
+   "ok": true,
+   "detail": [
+    null,
+    [
+     "qst_qst_side_sdq_lost_ring_r3q1_vesk"
+    ],
+    {
+     "created": [],
+     "removed": [
+      "flg_flg_quest_qst_qst_side_sdq_lost_ring_r3q_sxkp"
+     ],
+     "bound": [
+      "chapter:chp_the_far_shore_izf4",
+      "chapter:chp_the_frost_reach_f7k1",
+      "chapter:chp_the_last_light_l9t3",
+      "chapter:chp_the_lowlands_auem",
+      "chapter:chp_the_marches_m4r2",
+      "chapter:chp_the_sunken_coast_s2c9",
+      "item:seal:chp_the_far_shore_izf4",
+      "item:seal:chp_the_frost_reach_f7k1",
+      "item:seal:chp_the_last_light_l9t3",
+      "item:seal:chp_the_lowlands_auem",
+      "item:seal:chp_the_marches_m4r2",
+      "item:seal:chp_the_sunken_coast_s2c9",
+      "vehicle:airship",
+      "vehicle:ship"
+     ],
+     "rebound": [],
+     "dropped": [],
+     "sdq": {
+      "filled": [],
+      "kept": []
+     },
+     "changed": true,
+     "skipped": null
+    }
+   ]
+  },
+  {
+   "name": "after dropping stale records the story is settled again: a rerun changes nothing",
+   "ok": true
+  },
+  {
+   "name": "a character with a storyline gets a B story quest: meet, one stage per beat, done; tied to the character; no chapter",
+   "ok": true,
+   "detail": [
+    [
+     "meet",
+     "beat1",
+     "beat2",
+     "beat3",
+     "done"
+    ]
+   ]
+  },
+  {
+   "name": "beats cap at five, split single paragraphs by sentence, trim long ones",
+   "ok": true,
+   "detail": [
+    "One.",
+    "Two!",
+    "Three?",
+    "Four.",
+    "Five."
+   ]
+  },
+  {
+   "name": "turning off the B story setting drops the generated B story and its flag",
+   "ok": true
+  },
+  {
+   "name": "turning off the side quest setting drops the side quests, and the seeds' flags remain",
+   "ok": true
+  },
+  {
+   "name": "Q.reset restores a generated quest and refuses a hand made one",
+   "ok": true
+  },
+  {
+   "name": "addStage puts the new stage before the ending and gives it a free key",
+   "ok": true
+  },
+  {
+   "name": "duplicate stage keys are refused and nothing is written",
+   "ok": true
+  },
+  {
+   "name": "a bad stage key (capital, space) is refused",
+   "ok": true
+  },
+  {
+   "name": "moveStage swaps neighbours and refuses to go off either end",
+   "ok": true
+  },
+  {
+   "name": "an exit condition on a stage is saved, and reads is rebuilt from it",
+   "ok": true
+  },
+  {
+   "name": "an exit condition naming a flag that does not exist is refused",
+   "ok": true
+  },
+  {
+   "name": "an empty flag in a half built condition is refused without losing the stored record",
+   "ok": true
+  },
+  {
+   "name": "sets with a flag that does not exist, or a fractional value, are refused",
+   "ok": true
+  },
+  {
+   "name": "a quest cannot drop below two stages",
+   "ok": true
+  },
+  {
+   "name": "addGroup makes a group with two outcomes at the chosen stage",
+   "ok": true
+  },
+  {
+   "name": "outcomes can be added and updated; a group needs unique outcome keys",
+   "ok": true
+  },
+  {
+   "name": "a branch group decided at a stage that does not exist is refused; removing the stage clears the hint",
+   "ok": true
+  },
+  {
+   "name": "the engine shape of a branch group is read: closed groups appear in the index",
+   "ok": true
+  },
+  {
+   "name": "removing the group, then outcomes beyond the last, leaves the record valid",
+   "ok": true
+  },
+  {
+   "name": "setFail stores a failure with a condition and flag changes; null removes it",
+   "ok": true
+  },
+  {
+   "name": "a failure condition naming a missing chapter is refused",
+   "ok": true
+  },
+  {
+   "name": "update changes name, giver and rewards; a giver that is not in the world is refused",
+   "ok": true
+  },
+  {
+   "name": "rewards must be items or equipment from the Rules, with a quantity from 1 to 99",
+   "ok": true
+  },
+  {
+   "name": "a completion flag that does not exist is refused; none gives a warning, not an error",
+   "ok": true
+  },
+  {
+   "name": "save limits: more than 255 stages is an error",
+   "ok": true
+  },
+  {
+   "name": "a stale problem that was already there never blocks an unrelated edit",
+   "ok": true
+  },
+  {
+   "name": "Kit validation shows a quest whose exit condition names a missing flag, on the quest and the field",
+   "ok": true,
+   "detail": [
+    {
+     "recordId": "qst_qst_main_chp_the_lowlands_auem_382x",
+     "fieldPath": "stages[1].exitWhen.flg",
+     "message": "flg_gone does not resolve to a flag.",
+     "level": "error"
+    }
+   ]
+  },
+  {
+   "name": "usedBy finds an event that names the quest, and remove returns it so the caller can warn",
+   "ok": true
+  },
+  {
+   "name": "condText says it in words: a set flag, a count, all and any groups, a quest state, a chapter; no dashes",
+   "ok": true,
+   "detail": "Seal: The Lowlands is fewer than 3"
+  },
+  {
+   "name": "the Quests tab is the real tab, not the stub, and offers Build quests from the world",
+   "ok": true
+  },
+  {
+   "name": "the build button makes eight quest cards and the header counts them",
+   "ok": true
+  },
+  {
+   "name": "the button now says Update quests",
+   "ok": true
+  },
+  {
+   "name": "opening a quest draws the state machine in inline SVG: five stage nodes, four edges, one terminal double border",
+   "ok": true
+  },
+  {
+   "name": "each node is a focusable button with an accessible label and the picture is a labelled group",
+   "ok": true
+  },
+  {
+   "name": "a stage button bar under the picture lists every stage with at least 44px touch height by CSS",
+   "ok": true
+  },
+  {
+   "name": "clicking a node selects it and opens its editor",
+   "ok": true
+  },
+  {
+   "name": "Save stage commits the label to the bundle and redraws",
+   "ok": true
+  },
+  {
+   "name": "the stage editor shows the condition editor with the exit condition and its flag picker",
+   "ok": true
+  },
+  {
+   "name": "the flag change editor offers an add button",
+   "ok": true
+  },
+  {
+   "name": "Add branch group adds a diamond and two pills to the picture",
+   "ok": true
+  },
+  {
+   "name": "Add a failure rule draws the red Failed node and bus",
+   "ok": true
+  },
+  {
+   "name": "Delete stage removes the selected stage from the picture",
+   "ok": true
+  },
+  {
+   "name": "a refused save (empty label) shows the reason in the editor and writes nothing",
+   "ok": true
+  },
+  {
+   "name": "the Side filter shows the two side quests",
+   "ok": true
+  },
+  {
+   "name": "Add quest opens a dialog that makes a hand made quest with a flag of its own",
+   "ok": true
+  },
+  {
+   "name": "the dialog made the quest: nine quests, one yours, and the Yours filter shows it",
+   "ok": true
+  },
+  {
+   "name": "the Yours filter lists exactly one quest",
+   "ok": true
+  },
+  {
+   "name": "a qst_ ID in a validation card jumps to the quest",
+   "ok": true
+  },
+  {
+   "name": "no page errors during the whole tab tour",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "the Start and Validation tabs still render after quests exist, with no page errors",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "the Draft carries eight quests, their completion flags, and every slot flag",
+   "ok": true
+  },
+  {
+   "name": "Day 146 opens the Draft with the quests: hash verified, no errors, no broken references, namespaces identical",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "s": {
+     "errors": 0,
+     "broken": 0,
+     "forward": 2,
+     "warnings": 1
+    },
+    "e": [],
+    "same": [],
+    "err": null
+   }
+  },
+  {
+   "name": "Day 147 opens the Draft with the quests: hash verified, no errors, no broken references, namespaces identical",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "s": {
+     "errors": 0,
+     "broken": 0,
+     "forward": 2,
+     "warnings": 0
+    },
+    "e": [],
+    "same": [],
+    "err": null
+   }
+  },
+  {
+   "name": "Day 148 opens the Draft with the quests: hash verified, no errors, no broken references, namespaces identical",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "s": {
+     "errors": 0,
+     "broken": 0,
+     "forward": 2,
+     "warnings": 1
+    },
+    "e": [],
+    "same": [],
+    "err": null
+   }
+  }
+ ]
+}

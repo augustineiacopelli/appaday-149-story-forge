@@ -135,7 +135,7 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   Kit.bundle.importText(demoText); await wait(10); b = Kit.bundle.current();
   const chp = b.charter.sections.chapters[0].id;
   const flg = STORY.records.put(STORY.envelope('flg_', 'flg|gate|chapter:' + chp, 'Reached ' + chp, { chapter: chp, kind: 'gate', initial: 1 }));
-  const qst = STORY.records.put(STORY.authored('qst_', 'A hand made quest', { chapter: chp, kind: 'side' }));
+  const qst = STORY.records.put(STORY.authored('qst_', 'A hand made quest', { chapter: chp, kind: 'side', stages: [{ key: 'begin', label: 'Begin', sets: [] }, { key: 'done', label: 'Done', sets: [] }] }));
   Kit.bundle.touch('test');
   let idx = Kit.index();
   check('story records are indexed by KIT:CORE under story.records', idx.byId[flg.id] && idx.byId[qst.id] && idx.byId[flg.id].path.indexOf('story.records.flg_') === 0, idx.byId[flg.id] && idx.byId[flg.id].path);
