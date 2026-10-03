@@ -1,0 +1,516 @@
+{
+ "passed": 99,
+ "total": 99,
+ "results": [
+  {
+   "name": "the three new sources exist and are pure ASCII",
+   "ok": true
+  },
+  {
+   "name": "no forbidden APIs in the new JavaScript (and no randomness or storage of its own)",
+   "ok": true
+  },
+  {
+   "name": "no dashes used as punctuation in the new prose",
+   "ok": true
+  },
+  {
+   "name": "index.html carries STORY:EVENTS after STORY:DIALOGUE, WS:EVENTS after WS:DIALOGUE, and the events CSS fence",
+   "ok": true
+  },
+  {
+   "name": "Phase 5 changes no engine code: every src/engine-*.js equals the last commit",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "the standalone engine-story.js is byte for byte what Phase 4 shipped",
+   "ok": true
+  },
+  {
+   "name": "demo: the scaffold builds every kind the world asks for ({\"open\":2,\"talk\":2,\"prize\":2,\"boss\":2,\"exit\":1,\"finale\":1})",
+   "ok": true,
+   "detail": {
+    "boss": 2,
+    "exit": 1,
+    "finale": 1,
+    "open": 2,
+    "prize": 2,
+    "talk": 2
+   }
+  },
+  {
+   "name": "demo: every event ID derives from its structural key, and every generated event carries gen equal to its own digest",
+   "ok": true
+  },
+  {
+   "name": "demo: records are filed in sorted order",
+   "ok": true
+  },
+  {
+   "name": "demo: no event has an error or an unexpected warning (the finale says endings are still to come)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "demo: KIT:CORE validation has no errors and no broken references after the scaffold",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "demo: the scaffold never touches charter, codex, rules, art, or world",
+   "ok": true
+  },
+  {
+   "name": "demo: the finale flag exists with its structural ID and the opener and finale once pages got their save slots",
+   "ok": true
+  },
+  {
+   "name": "demo: a second run changes nothing",
+   "ok": true
+  },
+  {
+   "name": "demo: every boss event steps on the boss cell Day 148 placed, and starts the world troop where there is one",
+   "ok": true
+  },
+  {
+   "name": "demo: every seal chest steps on the prize chest of its key dungeon and sets that chapter's seal flag",
+   "ok": true
+  },
+  {
+   "name": "demo: every exit steps on its overworld gate cell, completes the chapter, and runs the next opener",
+   "ok": true
+  },
+  {
+   "name": "demo: openers fire at chapter start once, play the continent's field role, and after the first wait for the previous chapter",
+   "ok": true
+  },
+  {
+   "name": "demo: every main quest giver has a talk event that only moves the first stage, so the rest falls through to their dialogue",
+   "ok": true
+  },
+  {
+   "name": "demo: the finale is an autorun on the finale boss map, once, on the finale flag the last boss win sets",
+   "ok": true
+  },
+  {
+   "name": "demo: the page raised no errors",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "four: the scaffold builds every kind the world asks for ({\"open\":6,\"talk\":6,\"prize\":6,\"boss\":6,\"exit\":5,\"finale\":1})",
+   "ok": true,
+   "detail": {
+    "boss": 6,
+    "exit": 5,
+    "finale": 1,
+    "open": 6,
+    "prize": 6,
+    "talk": 6
+   }
+  },
+  {
+   "name": "four: every event ID derives from its structural key, and every generated event carries gen equal to its own digest",
+   "ok": true
+  },
+  {
+   "name": "four: records are filed in sorted order",
+   "ok": true
+  },
+  {
+   "name": "four: no event has an error or an unexpected warning (the finale says endings are still to come)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "four: KIT:CORE validation has no errors and no broken references after the scaffold",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "four: the scaffold never touches charter, codex, rules, art, or world",
+   "ok": true
+  },
+  {
+   "name": "four: the finale flag exists with its structural ID and the opener and finale once pages got their save slots",
+   "ok": true
+  },
+  {
+   "name": "four: a second run changes nothing",
+   "ok": true
+  },
+  {
+   "name": "four: every boss event steps on the boss cell Day 148 placed, and starts the world troop where there is one",
+   "ok": true
+  },
+  {
+   "name": "four: every seal chest steps on the prize chest of its key dungeon and sets that chapter's seal flag",
+   "ok": true
+  },
+  {
+   "name": "four: every exit steps on its overworld gate cell, completes the chapter, and runs the next opener",
+   "ok": true
+  },
+  {
+   "name": "four: openers fire at chapter start once, play the continent's field role, and after the first wait for the previous chapter",
+   "ok": true
+  },
+  {
+   "name": "four: every main quest giver has a talk event that only moves the first stage, so the rest falls through to their dialogue",
+   "ok": true
+  },
+  {
+   "name": "four: the finale is an autorun on the finale boss map, once, on the finale flag the last boss win sets",
+   "ok": true
+  },
+  {
+   "name": "four: the page raised no errors",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "demo: The Lowlands is an empty slot filled by default with its chapter's largest troop (ties by ID)",
+   "ok": true
+  },
+  {
+   "name": "choosing a troop stores it in story.settings.bossTroops and refreshes the unedited boss event",
+   "ok": true
+  },
+  {
+   "name": "a boss slot the world fills cannot be overridden from the story, and an unknown troop is refused",
+   "ok": true
+  },
+  {
+   "name": "clearing the choice goes back to the default and removes the empty settings entry",
+   "ok": true
+  },
+  {
+   "name": "Day 150 can resolve every boss: the world troop when set, else the troop of the story boss event naming the dungeon",
+   "ok": true
+  },
+  {
+   "name": "demo: the golden path through events alone completes every main quest (2) and reaches the finale",
+   "ok": true,
+   "detail": [
+    "Opener: The Lowlands",
+    "Talk: The Lowlands: Start town: Elder",
+    "Seal chest: The Lowlands",
+    "Boss: The Lowlands",
+    "Exit: The Lowlands",
+    "Talk: The Far Shore: Start town: Elder",
+    "Seal chest: The Far Shore",
+    "Boss: The Far Shore",
+    "Finale"
+   ]
+  },
+  {
+   "name": "demo: it visits opener, giver, seal, boss, exit in order each chapter, and every seal and gate flag ends set",
+   "ok": true
+  },
+  {
+   "name": "demo: the golden path is deterministic (same state hash twice)",
+   "ok": true
+  },
+  {
+   "name": "demo: two bare vm contexts holding only engine-story.js and the Draft replay the golden path to the page's exact state",
+   "ok": true,
+   "detail": {
+    "ra": {
+     "hash": "85a7c695:1",
+     "digest": "1c1cbb79:1"
+    },
+    "rb": {
+     "hash": "85a7c695:1",
+     "digest": "1c1cbb79:1"
+    },
+    "page": "85a7c695:1"
+   }
+  },
+  {
+   "name": "four: the golden path through events alone completes every main quest (6) and reaches the finale",
+   "ok": true,
+   "detail": [
+    "Opener: The Lowlands",
+    "Talk: The Lowlands: Start town: Elder",
+    "Seal chest: The Lowlands",
+    "Boss: The Lowlands",
+    "Exit: The Lowlands",
+    "Talk: The Marches: Start town: Elder",
+    "Seal chest: The Marches",
+    "Boss: The Marches",
+    "Exit: The Marches",
+    "Talk: The Far Shore: Start town: Elder",
+    "Seal chest: The Far Shore",
+    "Boss: The Far Shore",
+    "Exit: The Far Shore",
+    "Talk: The Frost Reach: Start town: Elder",
+    "Seal chest: The Frost Reach",
+    "Boss: The Frost Reach",
+    "Exit: The Frost Reach",
+    "Talk: The Sunken Coast: Start town: Elder",
+    "Seal chest: The Sunken Coast",
+    "Boss: The Sunken Coast",
+    "Exit: The Sunken Coast",
+    "Talk: The Last Light: Start town: Elder",
+    "Seal chest: The Last Light",
+    "Boss: The Last Light",
+    "Finale"
+   ]
+  },
+  {
+   "name": "four: it visits opener, giver, seal, boss, exit in order each chapter, and every seal and gate flag ends set",
+   "ok": true
+  },
+  {
+   "name": "four: the golden path is deterministic (same state hash twice)",
+   "ok": true
+  },
+  {
+   "name": "four: two bare vm contexts holding only engine-story.js and the Draft replay the golden path to the page's exact state",
+   "ok": true,
+   "detail": {
+    "ra": {
+     "hash": "5ea95e78:1",
+     "digest": "0fbaf0cd:1"
+    },
+    "rb": {
+     "hash": "5ea95e78:1",
+     "digest": "0fbaf0cd:1"
+    },
+    "page": "5ea95e78:1"
+   }
+  },
+  {
+   "name": "two hand made endings are in place (Phase 6 will generate them)",
+   "ok": true
+  },
+  {
+   "name": "rebuilding refreshes the unedited finale into an ending chain: highest priority first, the always ending as the last else",
+   "ok": true
+  },
+  {
+   "name": "the finale no longer warns about a missing ending",
+   "ok": true
+  },
+  {
+   "name": "the golden path now ends the game on the fallback ending",
+   "ok": true
+  },
+  {
+   "name": "editing a page of a generated event marks it edited and keeps its origin",
+   "ok": true
+  },
+  {
+   "name": "a new troop for an edited boss event is stored but the event is kept as the author left it",
+   "ok": true
+  },
+  {
+   "name": "a rebuild reports the edited event as kept and leaves it alone",
+   "ok": true
+  },
+  {
+   "name": "Reset to generated brings back the scaffold's event with the chosen troop",
+   "ok": true
+  },
+  {
+   "name": "when a giver changes, the old unedited talk event is dropped and the edited one becomes the author's",
+   "ok": true
+  },
+  {
+   "name": "the edit API refuses a battle without a troop, a missing stage, a step without a site, the last page, a blank name, and a talk event without a person, writing nothing",
+   "ok": true,
+   "detail": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+   ]
+  },
+  {
+   "name": "a hand made event gets a minted ID, origin user, kind custom, and one empty page",
+   "ok": true
+  },
+  {
+   "name": "a rebuild keeps the hand made event",
+   "ok": true
+  },
+  {
+   "name": "the command tree inserts (creating a missing else), moves, removes, and replaces by path, never touching its input",
+   "ok": true
+  },
+  {
+   "name": "children lists an if's then and else, a choice option's commands, and a battle's win, lose, and escape",
+   "ok": true
+  },
+  {
+   "name": "cmdText reads all 21 commands as a sentence",
+   "ok": true
+  },
+  {
+   "name": "the validator story.events reports an event that calls a missing event",
+   "ok": true
+  },
+  {
+   "name": "the Events tab mounts with a build button and no events yet",
+   "ok": true
+  },
+  {
+   "name": "Build makes 30 events and lists them, up to date",
+   "ok": true
+  },
+  {
+   "name": "the empty boss slot card offers a troop for The Marches",
+   "ok": true
+  },
+  {
+   "name": "choosing a troop in the card updates the boss event",
+   "ok": true
+  },
+  {
+   "name": "the Bosses filter shows the six boss events",
+   "ok": true
+  },
+  {
+   "name": "an open event shows its trigger, page tabs, a condition editor, and every command as a block, nested lists included",
+   "ok": true
+  },
+  {
+   "name": "page tabs switch the page shown",
+   "ok": true
+  },
+  {
+   "name": "Add opens the command dialog for the chosen kind",
+   "ok": true
+  },
+  {
+   "name": "Save inserts the command at the end of the page and the event is now edited",
+   "ok": true
+  },
+  {
+   "name": "the troop picker lists the Rules troops",
+   "ok": true
+  },
+  {
+   "name": "editing the battle through its dialog changes the troop",
+   "ok": true
+  },
+  {
+   "name": "a refused command list is reported and not saved",
+   "ok": true
+  },
+  {
+   "name": "Down moves a command one place later",
+   "ok": true
+  },
+  {
+   "name": "Remove takes a command out",
+   "ok": true
+  },
+  {
+   "name": "Reset to generated is offered for the edited event",
+   "ok": true
+  },
+  {
+   "name": "Play the golden path lists every step and says how far it got",
+   "ok": true
+  },
+  {
+   "name": "Play on an event opens the playtester at its first stop with the inspector",
+   "ok": true
+  },
+  {
+   "name": "the battle stops for Win and Lose",
+   "ok": true
+  },
+  {
+   "name": "Lose with no loss list is game over",
+   "ok": true
+  },
+  {
+   "name": "Back returns to the battle, exactly as it was",
+   "ok": true
+  },
+  {
+   "name": "after a win the event ends and the inspector shows the gate flags the boss opened",
+   "ok": true,
+   "detail": "InspectorChapterThe Far ShoreGil0PartynobodyItemsnoneEndingnot yetQuests (started)No quest has started.Flags (not at their default)Chapter gate: The Far Shore1Chapter gate: The Lowlands1Vehicle gate: Ship1Show every quest and flag"
+  },
+  {
+   "name": "a choice shows its options as buttons",
+   "ok": true
+  },
+  {
+   "name": "picking an option runs its commands (gil 7 in the inspector)",
+   "ok": true
+  },
+  {
+   "name": "carry on keeps the state between runs (gil 57)",
+   "ok": true
+  },
+  {
+   "name": "jumping to an evt_ opens the Events tab with it expanded",
+   "ok": true
+  },
+  {
+   "name": "Settings opens the event settings dialog",
+   "ok": true
+  },
+  {
+   "name": "the tab raised no errors through all of it",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "two fresh pages build byte for byte the same story with its events",
+   "ok": true
+  },
+  {
+   "name": "the Draft carries the 30 events and the finale flag",
+   "ok": true
+  },
+  {
+   "name": "Day 146 opens the Draft with the events: hash verified, prior namespaces identical, no errors, no broken references",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "e": [],
+    "br": [],
+    "err": null,
+    "same": []
+   }
+  },
+  {
+   "name": "Day 147 opens the Draft with the events: hash verified, prior namespaces identical, no errors, no broken references",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "e": [],
+    "br": [],
+    "err": null,
+    "same": []
+   }
+  },
+  {
+   "name": "Day 148 opens the Draft with the events: hash verified, prior namespaces identical, no errors, no broken references",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "e": [],
+    "br": [],
+    "err": null,
+    "same": []
+   }
+  },
+  {
+   "name": "the Draft reopens here with the same story",
+   "ok": true
+  },
+  {
+   "name": "a reopened Draft needs no rebuild",
+   "ok": true
+  }
+ ]
+}

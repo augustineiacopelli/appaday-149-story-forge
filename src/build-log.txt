@@ -248,4 +248,85 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
   Tests: test/phase4.js 70 of 70. phase0 89, phase1 85, phase2 77, phase3 95. layout.js 44 of 44 views at 390 and 1280.
   Next: Phase 5 (events and cutscenes, the playtester).
 === END SESSION 4 ===
+=== SESSION 5 / PHASE 5 (2026-10-03, Opus) ===
+  Events and cutscenes. New: src/story-events.js (STORY.events, fence STORY:EVENTS after STORY:DIALOGUE), src/ws-events.js
+    and src/story-events.css (the Events tab). build.js JS_FENCES gained src/story-events.js. No engine code changed:
+    every src/engine-*.js and the root engine-story.js are byte for byte Phase 4's (test/phase5.js checks it).
+  Record shape: the engine's {trigger, map, at, npc, trp, priority, pages [{cond, cmds, once}]} plus fields it ignores:
+    kind (open talk arrive prize boss exit finale custom), chapter, site (the Day 148 node or region key, for the Phase 7
+    walk), dgn and slot (boss events), gen (see regeneration), notes. Codex type StoryEvent now has these fields.
+  Scaffold (explicit, the Events tab button; idempotent; structural IDs from ENGINE_STORY.ids.structural('evt_', key)):
+    evt|open|<chp>    chapterStart, once: fade, music field:<slug of continent label>, narration, main quest to stage 1.
+    evt|talk|<npc>    one per main quest giver, a page per chapter: at the first stage (arrive) moves to the next.
+    evt|arrive|<chp>  only when a main quest has no giver: mapEnter on the start town moves the first stage on.
+    evt|prize|<chp>   step on the key dungeon's prize chest cell (map_.features kind chest, prize, item item:seal:<chp>):
+                      page 2 (seal not set) gives the binding's display itm_ when one is set and sets the seal flags;
+                      page 1 says the chest is empty. Without a prize chest, mapEnter on the deepest floor.
+    evt|boss|<chp>    step on world.zones.bosses' cell: music boss, startBattle with the world troop (or the story's
+                      choice for an empty slot), win: music victory, set every non seal gate the boss grants (and the
+                      finale flag in the finale chapter); no lose list, so a loss is game over. Page 1: all is quiet.
+    evt|exit|<chp>    step on the overworld gate cell (ow.gates where gate is the next chapter key and from is this
+                      region): at the exit stage, narration (landfall for a landing), quest to done, callEvent the next
+                      opener. Without a cell, an autorun on the overworld, once.
+    evt|finale        autorun on the finale boss map, once, on flag flg|story|finale >= 1 (a new managed flag, kind
+                      story, 0 to 1, tracked in story.scaffold): last main quest to done, then the ending chain.
+    Demo builds 10 events, four continents 30. Both validate with 0 errors and 0 broken; a rerun changes nothing.
+  DECISION, regeneration: every generated event carries gen, the digest of its record without id, key, origin, tags,
+    gen. A rebuild refreshes a generated event only while it is unedited (digest still equals gen), so building quests or
+    endings later updates the events that read them; an edited one is kept and reported. An edited generated event the
+    world no longer asks for becomes origin user (gen dropped) instead of being deleted; an unedited one is removed.
+  DECISION, empty boss slots: the chosen troop lives in story.settings.bossTroops {dgn_: trp_} (bindings hold gate keys
+    only; the Phase 2 sync drops other keys). Unchosen, the default is that chapter's troop with the most members, ties
+    by ID (demo The Lowlands: trp_lowland_pack_r3w4; four The Marches: trp_march_mixed_m5x3). setBossTroop refreshes an
+    unedited boss event and refuses a slot the world fills. Day 150 boss rule: the world troop when set, else the
+    startBattle troop of the story boss event whose dgn names the dungeon.
+  DECISION, chapter openers: Day 150 checks chapterStart events at a new game and whenever the chapter changes. A boss
+    win sets the next chapter's gate, so an opener after the first also waits for the previous main quest to be done
+    (cond all [chapter eq, quest done]) and the previous exit runs it with callEvent at landfall. Found by the golden path:
+    a plain chapterStart opener would have announced chapter 2 while the player stood in the chapter 1 boss room.
+  DECISION, talking: Day 150 runs a person's talk event when one of its pages passes, else their npcDialogue page. Talk
+    events hold pages only for a main quest's first stage, which no dialogue moves; every other stage falls through to
+    the Phase 4 dialogue, and side and B story givers keep their offer, accept, and turn in dialogue (a talk event there
+    would shadow it). This narrows the plan's "talk events for every giver" to every main quest giver.
+  DECISION, endings in the finale: end_ records ordered by priority (highest first), then structural key; each becomes
+    if cond then [music (role or mus_ from end_.music), ending] else the next; an always true ending ends the chain.
+    Until Phase 6 makes end_ records the finale says "The tale is told." and warns no-ending. Phase 6 only needs to make
+    the endings and run the events scaffold; the unedited finale refreshes itself.
+  Edit API (STORY.events): edit refuses any change that adds an error the event did not have; update (name, notes,
+    chapter, trigger, map, at, npc, trp, priority; a trigger change drops site fields it no longer needs), addPage,
+    updatePage (cond, once, cmds), removePage (never the last), movePage, setCmds, add (minted ID, origin user, kind
+    custom), remove, reset, usedBy. E.tree addresses commands by the runner's own paths ([2, 'then', 0], [0, 'options',
+    1, 'cmds', 3]): get, list, put, insert (creates a missing then, else, win, lose, escape, or option cmds), remove,
+    move, children, count; every call returns a new list. cmdText and condText read all 21 commands and every condition.
+  Validator story.events: ENGINE_STORY.pages.lint plus kind, chapter, dgn, a cell outside its map, a boss event with no
+    troop (boss-troop), a finale with no ending (warning), two boss events for one dungeon (warning).
+  Golden path (E.golden): from a new game, fire the first event in story order whose active page has a condition, never
+    the same event twice from one state, choices take their first visible option, battles are won. Demo 9 events, four
+    25; every main quest completes on both. One path only; Phase 7 proves every path.
+  Tab: header (stats, Build or Update events, Add event, Play the golden path), golden path panel (steps link to their
+    events), Empty boss slots card (troop select per slot), Playtester (event, forced page or the story's pick, start
+    chapter, quest stages, carry on from the last run; a log with text, staging, effects; Continue, choice buttons, Win,
+    Lose, Escape when the battle has an escape list, Back to the state before the last stop; an inspector with chapter,
+    gil, party, items, ending, started quests, and flags off their default, or everything), and the event list with
+    filters (All, Openers, Talk, Seals, Bosses, Exits, Finale, Yours). An open event shows where it fires, its problems,
+    page tabs (opens on the last page, the one checked first), the condition editor, once, and the command tree: every
+    command a block with Edit, Up, Down, Remove (44 px), nested lists under it, and an add control on every list that
+    opens a per command dialog (all 21 commands; a refused save keeps the dialog open with the reason). The playtester
+    session (E.session) is plain data: a frame per stop, so Back is exact. Kit.jump opens any evt_.
+  Other edits: the Dialogue tab shows any command it cannot edit through STORY.events.cmdText; the Quests tab hint no
+    longer names Phase 5; the Start tab's boss cell names the troop the story fills an empty slot with.
+  Tests: test/phase5.js 99 of 99 (static and no engine change; the scaffold on both fixtures: kinds, IDs, gen, sites
+    from the world, boss slots, idempotent, world untouched; the golden path through events alone, replayed from a Draft
+    in two bare vm contexts to the page's exact state hash; endings feed the finale; edits kept, reset, orphans; every
+    edit API refusal; the command tree; the validator; the Events tab under jsdom: build, filters, page tabs, add, edit
+    through the troop picker, move, remove, the golden path panel, the playtester through Continue, Lose to game over,
+    Back, Win, a choice, carry on, the inspector, jump, settings; two pages agree; the round trip through Days 146, 147,
+    148 and back). phase0 89 (the Events stub check now asserts the real tab), phase1 85, phase2 77, phase3 95, phase4 70.
+    test/layout.js 56 of 56 views at 390 and 1280, six of them new Events views. Playwright note: this sandbox has
+    Chromium 1194 at /opt/pw-browsers, so install playwright@1.56.0 and set PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers.
+  Next: Phase 6 (Sonnet), endings and the playtime floor: an end_ per Charter ending (structural ID from index and name,
+    cond, priority, music ending:<n>), exactly one fallback with cond true, then STORY.events.scaffold so the finale picks
+    them up; 720 minute floor as an error. Phase 7's walk can use evt site, trigger, and pages as built here, and
+    STORY.events.golden as a smoke path.
+=== END SESSION 5 ===
 === END BUILD LOG ===

@@ -278,7 +278,8 @@
       var reg = regs.filter(function (r) { return r.chapter === c.id; })[0];
       var sites = dgn.concat(twn).filter(function (s) { return s.chapter === c.id; });
       var boss = dgn.filter(function (d) { return d.chapter === c.id && d.role === 'boss'; })[0];
-      var bossCell = !boss ? chip('chip-muted', 'no boss dungeon') : boss.troop ? esc(nameOf(boss.troop)) + (boss.finale ? ' ' + chip('chip-accent', 'finale') : '') : chip('chip-warning', 'empty slot', 'Day 148 left this boss slot empty; the story fills it with a boss event (Phase 5).');
+      var slotT = boss && !boss.troop && STORY.events ? STORY.events.bossTroop(boss.id, b).trp : null;
+      var bossCell = !boss ? chip('chip-muted', 'no boss dungeon') : boss.troop ? esc(nameOf(boss.troop)) + (boss.finale ? ' ' + chip('chip-accent', 'finale') : '') : (slotT ? esc(nameOf(slotT)) + ' ' : '') + chip('chip-warning', 'empty slot', 'Day 148 left this boss slot empty; the story fills it with its boss event (Events tab).');
       return '<tr><th scope="row">' + esc(c.name || c.id) + (reg ? '<small class="s9-sub">' + esc(reg.name) + '</small>' : '') + '</th><td>' + esc(c.continentLabel || 'Default') + '</td><td class="num">' + esc(c.targetMinutes || 0) + '</td><td class="num">' + sites.length + '</td><td>' + bossCell + '</td></tr>';
     })));
     var okFloor = total >= floor;

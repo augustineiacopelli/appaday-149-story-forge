@@ -1,0 +1,70 @@
+/* === STORY:EVENTS CSS BEGIN === */
+.ev-pickrow, .ev-pvrow, .ev-xy, .ev-adder, .ev-ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; min-width: 0; }
+.ev-pvrow .field { min-width: 0; flex: 1 1 14em; }
+.ev-xy .field { min-width: 0; flex: 1 1 6em; }
+.ev-pick { max-width: 100%; white-space: normal; text-align: left; height: auto; min-height: 44px; overflow-wrap: anywhere; }
+.ev-empty { color: var(--ink2); font-style: italic; }
+.ev-num { width: 7em; max-width: 100%; }
+.ev-lines { width: 100%; min-height: 5em; resize: vertical; }
+.ev-notes { margin: 8px 0; overflow-wrap: anywhere; }
+.ev-probs { margin: 8px 0; padding-left: 1.2em; font-size: .88rem; overflow-wrap: anywhere; }
+.ev-err { color: var(--danger); }
+.ev-warn { color: var(--ink2); }
+.ev-ok { color: var(--ok); }
+.ev-chg { color: var(--accent); font-weight: 700; }
+.ev-none { margin: 4px 0; }
+.ev-sub { margin: 12px 0 6px; font-size: .78rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
+.ev-pages .btn { min-height: 44px; }
+.ev-page { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); min-width: 0; }
+.ev-pagebar { margin-top: 10px; }
+.ev-cond { min-width: 0; }
+.ev-list { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ev-nest { padding-left: 10px; border-left: 2px solid var(--line2); margin-left: 4px; }
+.ev-cmd { padding: 6px 8px; border: 1px solid var(--line); border-left: 4px solid var(--line2); border-radius: var(--radius-sm); background: var(--panel2); min-width: 0; }
+.ev-op-text, .ev-op-choice { border-left-color: var(--accent2); }
+.ev-op-if, .ev-op-callEvent, .ev-op-questStage { border-left-color: var(--accent); }
+.ev-op-startBattle, .ev-op-ending { border-left-color: var(--danger); }
+.ev-op-setFlag, .ev-op-addFlag, .ev-op-giveItem, .ev-op-takeItem, .ev-op-gil, .ev-op-party { border-left-color: var(--ok); }
+.ev-cmd-h { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between; }
+.ev-cmd-t { overflow-wrap: anywhere; min-width: 0; flex: 1 1 12em; }
+.ev-cmd-b { display: flex; flex-wrap: wrap; gap: 4px; }
+.ev-mini { min-height: 44px; min-width: 44px; padding: 0 10px; }
+.ev-kid { margin-top: 8px; min-width: 0; }
+.ev-kid-h { font-size: .78rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--ink2); margin-bottom: 4px; overflow-wrap: anywhere; }
+.ev-adder { margin-top: 4px; }
+.ev-opsel { flex: 1 1 12em; min-width: 0; max-width: 100%; }
+.ev-dlg { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ev-opts { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ev-opt { padding: 8px 10px; border: 1px dashed var(--line); border-radius: var(--radius-sm); min-width: 0; }
+.ev-check { display: flex; gap: 8px; align-items: center; min-height: 44px; cursor: pointer; }
+.ev-check input { width: 22px; height: 22px; flex: 0 0 auto; }
+.ev-slot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.ev-slot-n { min-width: 0; flex: 1 1 14em; overflow-wrap: anywhere; }
+.ev-slot select { flex: 1 1 12em; min-width: 0; max-width: 100%; }
+.ev-qd { margin: 8px 0; }
+.ev-qd summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 700; }
+.ev-qd summary::before { content: '\25B8'; margin-right: 8px; color: var(--accent); }
+.ev-qd[open] summary::before { content: '\25BE'; }
+.ev-split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; margin-top: 10px; }
+@media (max-width: 760px) { .ev-split { grid-template-columns: minmax(0, 1fr); } }
+.ev-left { min-width: 0; }
+.ev-log { padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel2); max-height: 24em; overflow-y: auto; min-width: 0; }
+.ev-l { margin: 4px 0; overflow-wrap: anywhere; }
+.ev-l-fx, .ev-l-stage { color: var(--ink2); font-style: italic; }
+.ev-l-stage { font-size: .88rem; }
+.ev-l-err { color: var(--danger); font-weight: 700; }
+.ev-l-end { color: var(--accent); font-weight: 800; }
+.ev-l-pick { color: var(--accent); font-weight: 700; }
+.ev-ctl { margin-top: 8px; }
+.ev-opt.btn { text-align: left; white-space: normal; height: auto; min-height: 44px; overflow-wrap: anywhere; flex: 1 1 100%; justify-content: flex-start; }
+.ev-donemsg { flex: 1 1 100%; }
+.ev-insp { padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); min-width: 0; }
+.ev-insp-list { margin: 8px 0; }
+.ev-insp-h { font-weight: 800; font-size: .85rem; margin-bottom: 4px; }
+.ev-insp-row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dashed var(--line); font-size: .88rem; }
+.ev-insp-row span { min-width: 0; overflow-wrap: anywhere; }
+.ev-insp-row span:last-child { text-align: right; flex: 0 1 auto; }
+.ev-gsteps { margin: 8px 0; padding-left: 1.6em; }
+.ev-gsteps li { margin: 2px 0; overflow-wrap: anywhere; }
+.ev-glink { min-height: 44px; padding: 0 6px; text-align: left; white-space: normal; height: auto; }
+/* === STORY:EVENTS CSS END === */

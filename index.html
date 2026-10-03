@@ -249,6 +249,87 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
   Tests: test/phase4.js 70 of 70. phase0 89, phase1 85, phase2 77, phase3 95. layout.js 44 of 44 views at 390 and 1280.
   Next: Phase 5 (events and cutscenes, the playtester).
 === END SESSION 4 ===
+=== SESSION 5 / PHASE 5 (2026-10-03, Opus) ===
+  Events and cutscenes. New: src/story-events.js (STORY.events, fence STORY:EVENTS after STORY:DIALOGUE), src/ws-events.js
+    and src/story-events.css (the Events tab). build.js JS_FENCES gained src/story-events.js. No engine code changed:
+    every src/engine-*.js and the root engine-story.js are byte for byte Phase 4's (test/phase5.js checks it).
+  Record shape: the engine's {trigger, map, at, npc, trp, priority, pages [{cond, cmds, once}]} plus fields it ignores:
+    kind (open talk arrive prize boss exit finale custom), chapter, site (the Day 148 node or region key, for the Phase 7
+    walk), dgn and slot (boss events), gen (see regeneration), notes. Codex type StoryEvent now has these fields.
+  Scaffold (explicit, the Events tab button; idempotent; structural IDs from ENGINE_STORY.ids.structural('evt_', key)):
+    evt|open|<chp>    chapterStart, once: fade, music field:<slug of continent label>, narration, main quest to stage 1.
+    evt|talk|<npc>    one per main quest giver, a page per chapter: at the first stage (arrive) moves to the next.
+    evt|arrive|<chp>  only when a main quest has no giver: mapEnter on the start town moves the first stage on.
+    evt|prize|<chp>   step on the key dungeon's prize chest cell (map_.features kind chest, prize, item item:seal:<chp>):
+                      page 2 (seal not set) gives the binding's display itm_ when one is set and sets the seal flags;
+                      page 1 says the chest is empty. Without a prize chest, mapEnter on the deepest floor.
+    evt|boss|<chp>    step on world.zones.bosses' cell: music boss, startBattle with the world troop (or the story's
+                      choice for an empty slot), win: music victory, set every non seal gate the boss grants (and the
+                      finale flag in the finale chapter); no lose list, so a loss is game over. Page 1: all is quiet.
+    evt|exit|<chp>    step on the overworld gate cell (ow.gates where gate is the next chapter key and from is this
+                      region): at the exit stage, narration (landfall for a landing), quest to done, callEvent the next
+                      opener. Without a cell, an autorun on the overworld, once.
+    evt|finale        autorun on the finale boss map, once, on flag flg|story|finale >= 1 (a new managed flag, kind
+                      story, 0 to 1, tracked in story.scaffold): last main quest to done, then the ending chain.
+    Demo builds 10 events, four continents 30. Both validate with 0 errors and 0 broken; a rerun changes nothing.
+  DECISION, regeneration: every generated event carries gen, the digest of its record without id, key, origin, tags,
+    gen. A rebuild refreshes a generated event only while it is unedited (digest still equals gen), so building quests or
+    endings later updates the events that read them; an edited one is kept and reported. An edited generated event the
+    world no longer asks for becomes origin user (gen dropped) instead of being deleted; an unedited one is removed.
+  DECISION, empty boss slots: the chosen troop lives in story.settings.bossTroops {dgn_: trp_} (bindings hold gate keys
+    only; the Phase 2 sync drops other keys). Unchosen, the default is that chapter's troop with the most members, ties
+    by ID (demo The Lowlands: trp_lowland_pack_r3w4; four The Marches: trp_march_mixed_m5x3). setBossTroop refreshes an
+    unedited boss event and refuses a slot the world fills. Day 150 boss rule: the world troop when set, else the
+    startBattle troop of the story boss event whose dgn names the dungeon.
+  DECISION, chapter openers: Day 150 checks chapterStart events at a new game and whenever the chapter changes. A boss
+    win sets the next chapter's gate, so an opener after the first also waits for the previous main quest to be done
+    (cond all [chapter eq, quest done]) and the previous exit runs it with callEvent at landfall. Found by the golden path:
+    a plain chapterStart opener would have announced chapter 2 while the player stood in the chapter 1 boss room.
+  DECISION, talking: Day 150 runs a person's talk event when one of its pages passes, else their npcDialogue page. Talk
+    events hold pages only for a main quest's first stage, which no dialogue moves; every other stage falls through to
+    the Phase 4 dialogue, and side and B story givers keep their offer, accept, and turn in dialogue (a talk event there
+    would shadow it). This narrows the plan's "talk events for every giver" to every main quest giver.
+  DECISION, endings in the finale: end_ records ordered by priority (highest first), then structural key; each becomes
+    if cond then [music (role or mus_ from end_.music), ending] else the next; an always true ending ends the chain.
+    Until Phase 6 makes end_ records the finale says "The tale is told." and warns no-ending. Phase 6 only needs to make
+    the endings and run the events scaffold; the unedited finale refreshes itself.
+  Edit API (STORY.events): edit refuses any change that adds an error the event did not have; update (name, notes,
+    chapter, trigger, map, at, npc, trp, priority; a trigger change drops site fields it no longer needs), addPage,
+    updatePage (cond, once, cmds), removePage (never the last), movePage, setCmds, add (minted ID, origin user, kind
+    custom), remove, reset, usedBy. E.tree addresses commands by the runner's own paths ([2, 'then', 0], [0, 'options',
+    1, 'cmds', 3]): get, list, put, insert (creates a missing then, else, win, lose, escape, or option cmds), remove,
+    move, children, count; every call returns a new list. cmdText and condText read all 21 commands and every condition.
+  Validator story.events: ENGINE_STORY.pages.lint plus kind, chapter, dgn, a cell outside its map, a boss event with no
+    troop (boss-troop), a finale with no ending (warning), two boss events for one dungeon (warning).
+  Golden path (E.golden): from a new game, fire the first event in story order whose active page has a condition, never
+    the same event twice from one state, choices take their first visible option, battles are won. Demo 9 events, four
+    25; every main quest completes on both. One path only; Phase 7 proves every path.
+  Tab: header (stats, Build or Update events, Add event, Play the golden path), golden path panel (steps link to their
+    events), Empty boss slots card (troop select per slot), Playtester (event, forced page or the story's pick, start
+    chapter, quest stages, carry on from the last run; a log with text, staging, effects; Continue, choice buttons, Win,
+    Lose, Escape when the battle has an escape list, Back to the state before the last stop; an inspector with chapter,
+    gil, party, items, ending, started quests, and flags off their default, or everything), and the event list with
+    filters (All, Openers, Talk, Seals, Bosses, Exits, Finale, Yours). An open event shows where it fires, its problems,
+    page tabs (opens on the last page, the one checked first), the condition editor, once, and the command tree: every
+    command a block with Edit, Up, Down, Remove (44 px), nested lists under it, and an add control on every list that
+    opens a per command dialog (all 21 commands; a refused save keeps the dialog open with the reason). The playtester
+    session (E.session) is plain data: a frame per stop, so Back is exact. Kit.jump opens any evt_.
+  Other edits: the Dialogue tab shows any command it cannot edit through STORY.events.cmdText; the Quests tab hint no
+    longer names Phase 5; the Start tab's boss cell names the troop the story fills an empty slot with.
+  Tests: test/phase5.js 99 of 99 (static and no engine change; the scaffold on both fixtures: kinds, IDs, gen, sites
+    from the world, boss slots, idempotent, world untouched; the golden path through events alone, replayed from a Draft
+    in two bare vm contexts to the page's exact state hash; endings feed the finale; edits kept, reset, orphans; every
+    edit API refusal; the command tree; the validator; the Events tab under jsdom: build, filters, page tabs, add, edit
+    through the troop picker, move, remove, the golden path panel, the playtester through Continue, Lose to game over,
+    Back, Win, a choice, carry on, the inspector, jump, settings; two pages agree; the round trip through Days 146, 147,
+    148 and back). phase0 89 (the Events stub check now asserts the real tab), phase1 85, phase2 77, phase3 95, phase4 70.
+    test/layout.js 56 of 56 views at 390 and 1280, six of them new Events views. Playwright note: this sandbox has
+    Chromium 1194 at /opt/pw-browsers, so install playwright@1.56.0 and set PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers.
+  Next: Phase 6 (Sonnet), endings and the playtime floor: an end_ per Charter ending (structural ID from index and name,
+    cond, priority, music ending:<n>), exactly one fallback with cond true, then STORY.events.scaffold so the finale picks
+    them up; 720 minute floor as an error. Phase 7's walk can use evt site, trigger, and pages as built here, and
+    STORY.events.golden as a smoke path.
+=== END SESSION 5 ===
 === END BUILD LOG ===
 -->
 <!doctype html>
@@ -712,6 +793,76 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
 .dg-opts { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .dg-opt { text-align: left; white-space: normal; height: auto; min-height: 44px; overflow-wrap: anywhere; }
 /* === STORY:DIALOGUE CSS END === */
+/* === STORY:EVENTS CSS BEGIN === */
+.ev-pickrow, .ev-pvrow, .ev-xy, .ev-adder, .ev-ctl { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; min-width: 0; }
+.ev-pvrow .field { min-width: 0; flex: 1 1 14em; }
+.ev-xy .field { min-width: 0; flex: 1 1 6em; }
+.ev-pick { max-width: 100%; white-space: normal; text-align: left; height: auto; min-height: 44px; overflow-wrap: anywhere; }
+.ev-empty { color: var(--ink2); font-style: italic; }
+.ev-num { width: 7em; max-width: 100%; }
+.ev-lines { width: 100%; min-height: 5em; resize: vertical; }
+.ev-notes { margin: 8px 0; overflow-wrap: anywhere; }
+.ev-probs { margin: 8px 0; padding-left: 1.2em; font-size: .88rem; overflow-wrap: anywhere; }
+.ev-err { color: var(--danger); }
+.ev-warn { color: var(--ink2); }
+.ev-ok { color: var(--ok); }
+.ev-chg { color: var(--accent); font-weight: 700; }
+.ev-none { margin: 4px 0; }
+.ev-sub { margin: 12px 0 6px; font-size: .78rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
+.ev-pages .btn { min-height: 44px; }
+.ev-page { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); min-width: 0; }
+.ev-pagebar { margin-top: 10px; }
+.ev-cond { min-width: 0; }
+.ev-list { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ev-nest { padding-left: 10px; border-left: 2px solid var(--line2); margin-left: 4px; }
+.ev-cmd { padding: 6px 8px; border: 1px solid var(--line); border-left: 4px solid var(--line2); border-radius: var(--radius-sm); background: var(--panel2); min-width: 0; }
+.ev-op-text, .ev-op-choice { border-left-color: var(--accent2); }
+.ev-op-if, .ev-op-callEvent, .ev-op-questStage { border-left-color: var(--accent); }
+.ev-op-startBattle, .ev-op-ending { border-left-color: var(--danger); }
+.ev-op-setFlag, .ev-op-addFlag, .ev-op-giveItem, .ev-op-takeItem, .ev-op-gil, .ev-op-party { border-left-color: var(--ok); }
+.ev-cmd-h { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between; }
+.ev-cmd-t { overflow-wrap: anywhere; min-width: 0; flex: 1 1 12em; }
+.ev-cmd-b { display: flex; flex-wrap: wrap; gap: 4px; }
+.ev-mini { min-height: 44px; min-width: 44px; padding: 0 10px; }
+.ev-kid { margin-top: 8px; min-width: 0; }
+.ev-kid-h { font-size: .78rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--ink2); margin-bottom: 4px; overflow-wrap: anywhere; }
+.ev-adder { margin-top: 4px; }
+.ev-opsel { flex: 1 1 12em; min-width: 0; max-width: 100%; }
+.ev-dlg { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ev-opts { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ev-opt { padding: 8px 10px; border: 1px dashed var(--line); border-radius: var(--radius-sm); min-width: 0; }
+.ev-check { display: flex; gap: 8px; align-items: center; min-height: 44px; cursor: pointer; }
+.ev-check input { width: 22px; height: 22px; flex: 0 0 auto; }
+.ev-slot { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.ev-slot-n { min-width: 0; flex: 1 1 14em; overflow-wrap: anywhere; }
+.ev-slot select { flex: 1 1 12em; min-width: 0; max-width: 100%; }
+.ev-qd { margin: 8px 0; }
+.ev-qd summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 700; }
+.ev-qd summary::before { content: '\25B8'; margin-right: 8px; color: var(--accent); }
+.ev-qd[open] summary::before { content: '\25BE'; }
+.ev-split { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; margin-top: 10px; }
+@media (max-width: 760px) { .ev-split { grid-template-columns: minmax(0, 1fr); } }
+.ev-left { min-width: 0; }
+.ev-log { padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel2); max-height: 24em; overflow-y: auto; min-width: 0; }
+.ev-l { margin: 4px 0; overflow-wrap: anywhere; }
+.ev-l-fx, .ev-l-stage { color: var(--ink2); font-style: italic; }
+.ev-l-stage { font-size: .88rem; }
+.ev-l-err { color: var(--danger); font-weight: 700; }
+.ev-l-end { color: var(--accent); font-weight: 800; }
+.ev-l-pick { color: var(--accent); font-weight: 700; }
+.ev-ctl { margin-top: 8px; }
+.ev-opt.btn { text-align: left; white-space: normal; height: auto; min-height: 44px; overflow-wrap: anywhere; flex: 1 1 100%; justify-content: flex-start; }
+.ev-donemsg { flex: 1 1 100%; }
+.ev-insp { padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); min-width: 0; }
+.ev-insp-list { margin: 8px 0; }
+.ev-insp-h { font-weight: 800; font-size: .85rem; margin-bottom: 4px; }
+.ev-insp-row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dashed var(--line); font-size: .88rem; }
+.ev-insp-row span { min-width: 0; overflow-wrap: anywhere; }
+.ev-insp-row span:last-child { text-align: right; flex: 0 1 auto; }
+.ev-gsteps { margin: 8px 0; padding-left: 1.6em; }
+.ev-gsteps li { margin: 2px 0; overflow-wrap: anywhere; }
+.ev-glink { min-height: 44px; padding: 0 6px; text-align: left; white-space: normal; height: auto; }
+/* === STORY:EVENTS CSS END === */
 </style>
 </head>
 <body>
@@ -7039,6 +7190,867 @@ var ENGINE_STORY = (function () {
   };
 })();
 // === STORY:DIALOGUE END ===
+// === STORY:EVENTS BEGIN ===
+(function () {
+  'use strict';
+  // Phase 5: events and cutscenes. An evt_ record is the shape ENGINE_STORY.pages and the runner already read:
+  //   trigger mapEnter | talk | step | autorun | battleEnd | chapterStart
+  //   map (map_), at [x, y] (step), npc (npc_, talk), trp (trp_, battleEnd, optional), priority (higher runs first)
+  //   pages [{cond, cmds, once}]   the highest page whose condition passes runs (RPG Maker's rightmost rule)
+  // and fields the engine ignores: kind (open | talk | arrive | prize | boss | exit | finale | custom), chapter, site (the
+  // Day 148 progression node or region key the event stands on, for the Phase 7 walk), dgn (a boss event's dungeon), slot
+  // (true when the story fills an empty boss slot), gen (the digest of what the scaffold made), notes.
+  // The scaffold builds, from the world, the quests, and the endings, with structural IDs (so a rerun renames nothing):
+  //   evt|open|<chp>    a chapter opener: chapterStart, once; music, narration, and the main quest's first stage
+  //   evt|talk|<npc>    a talk event on every main quest giver: the first stage (arrive) moves on when you speak to them
+  //   evt|arrive|<chp>  only when a main quest has no giver: entering the start town moves the first stage on instead
+  //   evt|prize|<chp>   the key dungeon's prize chest (a step on its cell): sets the seal flags, shows the display item
+  //   evt|boss|<chp>    the boss tile (a step on its cell): starts the world troop, or the troop the story chose for an
+  //                     empty slot; a win sets the next chapter and vehicle flags (and the finale flag in the last chapter)
+  //   evt|exit|<chp>    the overworld gate cell to the next region: the main quest's exit stage completes the chapter
+  //   evt|finale        an autorun on the finale boss map once the finale flag is set: closes the last main quest and
+  //                     picks the ending, highest priority whose condition passes (end_ records arrive in Phase 6)
+  // DECISION, regeneration: a generated event carries gen, the digest of the record the scaffold made. A rerun refreshes
+  // a generated event only while it is unedited (its digest still equals gen), so building quests or endings later updates
+  // the events that read them, and an author's edit is never overwritten. An edited generated event the world no longer
+  // asks for becomes the author's (origin user) instead of being deleted.
+  // DECISION, empty boss slots: the troop the story chooses lives in story.settings.bossTroops {dgn_: trp_} (bindings hold
+  // gate keys only, and the Phase 2 sync drops any other key). Unchosen, the scaffold picks the troop of that chapter with
+  // the most members (ties by ID). Day 150 resolves a boss as the world troop when set, else the startBattle troop of the
+  // story's boss event for that dungeon (the event whose dgn names it).
+  // DECISION, chapter openers: Day 150 checks chapterStart events at a new game and whenever the chapter changes. A boss
+  // win sets the next chapter's gate, so an opener after the first also waits for the previous main quest to be done, and
+  // the previous chapter's exit event runs it with callEvent at landfall: the chapter card plays on arrival, once.
+  // DECISION, talking: Day 150 runs a person's talk event when one of its pages passes, else their npcDialogue page. The
+  // talk events here only hold pages for stages a dialogue does not move (a main quest's first stage), so every other
+  // stage still falls through to the Phase 4 dialogue, and side quests stay with their offer, accept, and turn in dialogue.
+  var U = Kit.util, ES = ENGINE_STORY, F = STORY.flags, Q = STORY.quests;
+  function cur() { return Kit.bundle.current(); }
+  var E = STORY.events = {};
+  E.KINDS = ['open', 'talk', 'arrive', 'prize', 'boss', 'exit', 'finale', 'custom'];
+  E.KIND_LABEL = { open: 'Opener', talk: 'Talk', arrive: 'Arrival', prize: 'Seal chest', boss: 'Boss', exit: 'Exit', finale: 'Finale', custom: 'Yours' };
+  E.TRIGGERS = ES.pages.TRIGGERS.slice();
+  E.TRIGGER_LABEL = { mapEnter: 'Entering a map', talk: 'Talking to a person', step: 'Stepping on a cell', autorun: 'At once on a map', battleEnd: 'After a battle', chapterStart: 'When a chapter starts' };
+  E.FINALE_FLAG_KEY = 'flg|story|finale';
+  E.PRIORITY = { finale: 20, boss: 10, prize: 10, exit: 5, open: 0, talk: 0, arrive: 0, custom: 0 };
+  var ENVELOPE = { id: 1, key: 1, origin: 1, tags: 1, gen: 1 };
+  function trim(s) { return String(s === undefined || s === null ? '' : s).trim(); }
+  function cut(s, n) { s = trim(s); if (s.length <= n) return s; return s.slice(0, n - 3).replace(/\s+\S*$/, '') + '...'; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  function sortedObj(o) { var r = {}; Object.keys(o || {}).sort().forEach(function (k) { r[k] = o[k]; }); return r; }
+  function nameOf(id, fb) { return STORY.nameOf ? STORY.nameOf(id, fb) : (fb || id || ''); }
+  function isInt(v) { return F.isInt(v); }
+  function clone(v) { return v === undefined ? v : JSON.parse(JSON.stringify(v)); }
+
+  // ---------------------------------------------------------------- the Codex type
+  var EVENT_FIELDS = [
+    { key: 'kind', label: 'Kind', type: 'enum', values: E.KINDS, help: 'What the scaffold made this event for, or custom for one made by hand.' },
+    { key: 'trigger', label: 'Trigger', type: 'enum', values: E.TRIGGERS, required: true, help: 'mapEnter, step, and autorun need a map (step also a cell); talk needs a person; battleEnd may name a troop; chapterStart needs no site.' },
+    { key: 'map', label: 'Map', type: 'ref', refPrefix: 'map_' },
+    { key: 'at', label: 'Cell', type: 'list', of: { type: 'int', min: 0, max: 4095 }, help: 'A cell [x, y] on the map, for a step event.' },
+    { key: 'npc', label: 'Person', type: 'ref', refPrefix: 'npc_' },
+    { key: 'trp', label: 'Troop', type: 'ref', refPrefix: 'trp_', help: 'For battleEnd: only after this troop. Empty means any battle.' },
+    { key: 'dgn', label: 'Boss dungeon', type: 'ref', refPrefix: 'dgn_', help: 'The dungeon a boss event stands for. Day 150 uses its battle troop when the world left the slot empty.' },
+    { key: 'slot', label: 'Fills an empty slot', type: 'bool' },
+    { key: 'site', label: 'Site', type: 'text', max: 160, help: 'The Day 148 progression node or region this event stands on.' },
+    { key: 'priority', label: 'Priority', type: 'int', min: -999, max: 999, help: 'When two events fire on the same spot, the higher priority runs first.' },
+    { key: 'pages', label: 'Pages', type: 'list', itemLabel: 'Page', help: 'The highest page whose condition passes runs. A once page runs one time and then steps aside.', of: [
+      { key: 'cond', label: 'Runs when', type: 'object' },
+      { key: 'cmds', label: 'Commands', type: 'list' },
+      { key: 'once', label: 'Once', type: 'bool' }
+    ] },
+    { key: 'gen', label: 'Generated digest', type: 'text', max: 40, derived: true, help: 'The digest of what the scaffold made. While the record still matches it, a rebuild may refresh it.' },
+    { key: 'notes', label: 'Note', type: 'longtext', max: 1200 }
+  ];
+  Kit.codex.register({ name: STORY.TYPES['evt_'].name, prefix: 'evt_', label: STORY.TYPES['evt_'].label, ns: 'story', forge: STORY.FORGE, group: 'story', dependsOn: [], fields: U.clone(STORY.ENVELOPE_FIELDS).concat(EVENT_FIELDS) });
+
+  // ---------------------------------------------------------------- ids and digests
+  E.idFor = function (key) { return ES.ids.structural('evt_', key); };
+  E.keys = {
+    open: function (chp) { return 'evt|open|' + chp; },
+    talk: function (npc) { return 'evt|talk|' + npc; },
+    arrive: function (chp) { return 'evt|arrive|' + chp; },
+    prize: function (chp) { return 'evt|prize|' + chp; },
+    boss: function (chp) { return 'evt|boss|' + chp; },
+    exit: function (chp) { return 'evt|exit|' + chp; },
+    finale: function () { return 'evt|finale'; }
+  };
+  E.finaleFlag = function () { return F.idFor(E.FINALE_FLAG_KEY); };
+  function strip(rec) { var o = {}; Object.keys(rec || {}).forEach(function (k) { if (!ENVELOPE[k]) o[k] = rec[k]; }); return o; }
+  E.genOf = function (rec) { return ES.util.digest(ES.util.canon(strip(rec))); };
+  // A generated event an author has changed since the scaffold made it.
+  E.isEdited = function (rec) { return !!rec && rec.origin === 'generated' && typeof rec.gen === 'string' && E.genOf(rec) !== rec.gen; };
+  function stamp(rec) { rec.gen = E.genOf(rec); return rec; }
+
+  // ---------------------------------------------------------------- music roles (Day 147's vocabulary)
+  // Static roles plus field:<slug of each continent label> (field:default when none) and ending:<n> per Charter ending,
+  // computed the way Day 147's ART.musicRoles computes them, so a role named here is one Day 147 can score.
+  E.STATIC_ROLES = ['title', 'town', 'dungeon', 'battle', 'boss', 'victory', 'defeat', 'ending'];
+  function slug(s) { return U.slug ? U.slug(s) : trim(s).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''); }
+  E.fieldRole = function (chp, b) {
+    var c = STORY.chapters(b).filter(function (x) { return x.id === chp; })[0], s = c && typeof c.continentLabel === 'string' ? slug(c.continentLabel.trim()) : '';
+    return 'field:' + (s || 'default');
+  };
+  E.musicRoles = function (b) {
+    b = b || cur();
+    var out = E.STATIC_ROLES.slice(), seen = {};
+    STORY.chapters(b).forEach(function (c) { var s = typeof c.continentLabel === 'string' ? slug(c.continentLabel.trim()) : ''; if (s && !seen[s]) { seen[s] = 1; out.push('field:' + s); } });
+    if (!Object.keys(seen).length) out.push('field:default');
+    STORY.endings(b).forEach(function (e, i) { out.push('ending:' + (i + 1)); });
+    var user = b && b.art && Array.isArray(b.art.musicRoles) ? b.art.musicRoles : [];
+    user.forEach(function (r) { if (U.isObj(r) && r.kind === 'user' && typeof r.key === 'string' && out.indexOf(r.key) < 0) out.push(r.key); });
+    return out;
+  };
+
+  // ---------------------------------------------------------------- reading the world
+  function gateFlag(b, key) { var bd = b.story.bindings[key]; return U.isObj(bd) && typeof bd.flg === 'string' && bd.flg ? bd.flg : F.gateId(key); }
+  function gateItem(b, key) { var bd = b.story.bindings[key]; return U.isObj(bd) && typeof bd.itm === 'string' && bd.itm ? bd.itm : null; }
+  function flagIs(flg, cmp, value) { return { op: 'flag', flg: flg, cmp: cmp, value: value }; }
+  function allOf(list) { return list.length === 0 ? null : list.length === 1 ? list[0] : { op: 'all', of: list }; }
+  function anyOf(list) { return list.length === 0 ? null : list.length === 1 ? list[0] : { op: 'any', of: list }; }
+  function worldName(id, fb, b) { var r = id && STORY.world.get(id, b); return r && r.name ? r.name : fb; }
+  function chapterNodes(g, chp) {
+    var m = {};
+    (g ? g.nodes : []).forEach(function (n) { if (n.chapter === chp && n.golden && n.kind && n.role && !m[n.kind + ':' + n.role]) m[n.kind + ':' + n.role] = n; });
+    return m;
+  }
+  function mainQuest(chp, b) { var id = Q.idFor(Q.mainKey(chp)); var q = b.story.records.qst_[id]; return q && Array.isArray(q.stages) && q.stages.length ? q : null; }
+  function stageAfter(q, key) { for (var i = 0; i < q.stages.length - 1; i++) if (q.stages[i].key === key) return q.stages[i + 1]; return null; }
+  function stageBy(q, test) { return q.stages.filter(test)[0] || null; }
+  function atStage(q, key) { return { op: 'quest', qst: q.id, is: 'at', stage: key }; }
+  function moveTo(q, key) { return { op: 'questStage', qst: q.id, stage: key }; }
+  // The cell of a feature on a site's maps: {map, at} or null. Maps are searched in the order the world lists them.
+  function featureOn(site, test, b) {
+    var maps = site && Array.isArray(site.maps) ? site.maps : [];
+    for (var i = 0; i < maps.length; i++) {
+      var m = STORY.world.get(maps[i], b), fs = m && Array.isArray(m.features) ? m.features : [];
+      for (var j = 0; j < fs.length; j++) if (U.isObj(fs[j]) && test(fs[j]) && Array.isArray(fs[j].at)) return { map: maps[i], at: [fs[j].at[0], fs[j].at[1]] };
+    }
+    return null;
+  }
+  function lastMap(site) { var m = site && Array.isArray(site.maps) ? site.maps : []; return m.length ? m[m.length - 1] : null; }
+  function bossZone(dgnId, b) { var z = b.world && b.world.zones && Array.isArray(b.world.zones.bosses) ? b.world.zones.bosses : []; return z.filter(function (x) { return U.isObj(x) && x.site === dgnId; })[0] || null; }
+  // The troop the story fills an empty boss slot with: the chosen one, else the troop of that chapter with the most
+  // members (ties by ID), else the first troop of the Rules. null when the Rules have no troop at all.
+  E.defaultTroop = function (chp, b) {
+    var trs = STORY.rules('trp_', b), size = function (t) { return Array.isArray(t.members) ? t.members.length : 0; };
+    var mine = trs.filter(function (t) { return t.chapter === chp; }).sort(function (x, y) { return size(y) - size(x) || (x.id < y.id ? -1 : x.id > y.id ? 1 : 0); });
+    return mine.length ? mine[0].id : trs.length ? trs[0].id : null;
+  };
+  E.bossTroop = function (dgn, b) {
+    b = b || cur();
+    var d = STORY.world.get(dgn, b), z = bossZone(dgn, b), world = (z && z.troop) || (d && d.troop) || null;
+    if (world) return { trp: world, slot: false, chosen: false };
+    var set = b.story && b.story.settings && U.isObj(b.story.settings.bossTroops) ? b.story.settings.bossTroops : {};
+    var have = typeof set[dgn] === 'string' && STORY.rules('trp_', b).some(function (t) { return t.id === set[dgn]; }) ? set[dgn] : null;
+    return { trp: have || E.defaultTroop(d && d.chapter, b), slot: true, chosen: !!have };
+  };
+  // Every boss dungeon on the golden path with where its boss stands: [{chapter, dgn, name, map, at, troop, slot, chosen,
+  // finale, grants}] in chapter order.
+  E.bosses = function (b) {
+    b = b || cur();
+    var g = STORY.world.graph(b), chs = STORY.chapters(b), out = [];
+    chs.forEach(function (c, i) {
+      var n = chapterNodes(g, c.id)['dgn:boss'];
+      if (!n || !n.record) return;
+      var d = STORY.world.get(n.record, b), z = bossZone(n.record, b), spot = z && z.map && Array.isArray(z.at) ? { map: z.map, at: [z.at[0], z.at[1]] } : featureOn(d, function (f) { return f.kind === 'boss'; }, b);
+      var t = E.bossTroop(n.record, b);
+      out.push({ chapter: c.id, node: n.key, dgn: n.record, name: d && d.name || n.record, map: spot ? spot.map : lastMap(d), at: spot ? spot.at : null, troop: t.trp, slot: t.slot, chosen: t.chosen,
+        finale: z ? !!z.finale : i === chs.length - 1, grants: (n.grants || []).filter(function (k) { return ES.gates.parse(k).kind !== 'seal'; }) });
+    });
+    return out;
+  };
+
+  // ---------------------------------------------------------------- endings (read for the finale; Phase 6 makes them)
+  // end_ records in the order the finale tests them: highest priority first, then by structural key. A condition that is
+  // missing or {op: 'true'} always passes, so nothing after it can ever be reached; the chain stops there.
+  function alwaysTrue(c) { return c === undefined || c === null || (U.isObj(c) && c.op === 'true'); }
+  E.endingOrder = function (b) {
+    b = b || cur();
+    return STORY.records.list('end_', b).slice().sort(function (x, y) {
+      var px = isInt(x.priority) ? x.priority : 0, py = isInt(y.priority) ? y.priority : 0;
+      return py - px || (String(x.key) < String(y.key) ? -1 : String(x.key) > String(y.key) ? 1 : 0);
+    });
+  };
+  function endingCmds(list) {
+    if (!list.length) return [];
+    var e = list[0], then = [];
+    if (typeof e.music === 'string' && e.music) then.push(/^mus_/.test(e.music) ? { op: 'music', mus: e.music } : { op: 'music', role: e.music });
+    then.push({ op: 'ending', end: e.id });
+    if (alwaysTrue(e.cond)) return then;
+    var rest = endingCmds(list.slice(1)), c = { op: 'if', cond: clone(e.cond), then: then };
+    if (rest.length) c['else'] = rest;
+    return [c];
+  }
+
+  // ---------------------------------------------------------------- what the world and the quests ask for
+  function giverSite(npc, b) {
+    var g = STORY.world.graph(b), town = STORY.world.list('twn_', b).filter(function (t) { return Array.isArray(t.people) && t.people.indexOf(npc) >= 0; })[0];
+    var n = town && g ? g.nodes.filter(function (x) { return x.record === town.id; })[0] : null;
+    return n ? n.key : null;
+  }
+  function narrate(lines) { return { op: 'text', lines: lines.filter(function (l) { return !!trim(l); }) }; }
+  // {events [{key, id, name, kind, chapter, body}], flags [{key, id, name, body}]}: every event and managed flag the world,
+  // the quests, and the endings ask for, in a stable order. Pure: reads the bundle, writes nothing.
+  E.wanted = function (b) {
+    b = b || cur();
+    var out = [], flags = [], g = STORY.world.graph(b), chs = STORY.chapters(b), ow = STORY.world.overworld(b), bosses = E.bosses(b), givers = {};
+    if (!g) return { events: out, flags: flags };
+    var finaleFlag = E.finaleFlag(), finaleBoss = null;
+    function add(kind, key, name, chp, body) {
+      body.kind = kind;
+      if (chp) body.chapter = chp;
+      if (body.priority === undefined) body.priority = E.PRIORITY[kind] || 0;
+      out.push({ key: key, id: E.idFor(key), name: name, kind: kind, chapter: chp || null, body: body });
+    }
+    chs.forEach(function (c, i) {
+      var n = chapterNodes(g, c.id), q = mainQuest(c.id, b), cn = c.name || c.id, town = n['twn:start'], townRec = town && STORY.world.get(town.record, b);
+      var first = q ? q.stages[0] : null, second = q && first ? stageAfter(q, first.key) : null, giver = q && typeof q.giver === 'string' && STORY.world.get(q.giver, b) ? q.giver : null;
+      var townMap = townRec && Array.isArray(townRec.maps) && townRec.maps.length ? townRec.maps[0] : null;
+      // The chapter opener.
+      var open = [{ op: 'fade', to: 'out', frames: 30 }, { op: 'music', role: E.fieldRole(c.id, b) }, narrate(['Chapter ' + (i + 1) + ': ' + cn + '.', cut(c.summary, 220)]), { op: 'fade', to: 'in', frames: 30 }];
+      if (q && first) {
+        open.push(moveTo(q, first.key));
+        if (!giver && !townMap && second && !first.exitWhen) open.push(moveTo(q, second.key));
+      }
+      var prevQ = i > 0 ? mainQuest(chs[i - 1].id, b) : null, oc = { op: 'chapter', chp: c.id, cmp: 'eq' };
+      if (prevQ) oc = { op: 'all', of: [oc, { op: 'quest', qst: prevQ.id, is: 'done' }] };
+      add('open', E.keys.open(c.id), 'Opener: ' + cn, c.id, { trigger: 'chapterStart', site: 'reg|' + c.id, pages: [{ cond: oc, cmds: open, once: true }],
+        notes: 'Plays once when ' + cn + ' begins: the field music, a line of narration, and the main quest set to its first stage.' + (prevQ ? ' It waits until the previous chapter is complete, so the boss win does not announce it early; the previous exit runs it on arrival.' : '') });
+      // Who moves the first stage on: the giver (a talk event, gathered below) or, without one, entering the start town.
+      if (q && first && second && !first.exitWhen) {
+        if (giver) (givers[giver] = givers[giver] || []).push({ q: q, first: first, second: second, chapter: c.id, index: i });
+        else if (townMap) add('arrive', E.keys.arrive(c.id), 'Arrival: ' + (townRec.name || cn), c.id, { trigger: 'mapEnter', map: townMap, site: town.key, pages: [{ cond: atStage(q, first.key), cmds: [narrate(['You reach ' + (townRec.name || 'the town') + '.']), moveTo(q, second.key)] }],
+          notes: 'The main quest has no giver, so entering the start town moves its first stage on.' });
+      }
+      // The key dungeon's prize: the seal flags.
+      var keyN = n['dgn:key'];
+      if (keyN && keyN.record) {
+        var dk = STORY.world.get(keyN.record, b), seals = (keyN.grants || []).filter(function (k) { return ES.gates.parse(k).kind === 'seal'; });
+        if (seals.length) {
+          var spot = featureOn(dk, function (f) { return f.kind === 'chest' && f.prize && seals.indexOf(f.item) >= 0; }, b) || featureOn(dk, function (f) { return f.kind === 'chest' && f.prize; }, b);
+          var give = [narrate(['Inside the chest lies the seal of ' + cn + '.'])];
+          seals.forEach(function (k) { var it = gateItem(b, k); if (it) give.push({ op: 'giveItem', itm: it, qty: 1 }); give.push({ op: 'setFlag', flg: gateFlag(b, k), value: 1 }); });
+          var notHave = anyOf(seals.map(function (k) { return flagIs(gateFlag(b, k), 'lt', 1); }));
+          var pb = { site: keyN.key, pages: [{ cmds: [narrate(['The chest is empty.'])] }, { cond: notHave, cmds: give }] };
+          if (spot) { pb.trigger = 'step'; pb.map = spot.map; pb.at = spot.at; } else { pb.trigger = 'mapEnter'; pb.map = lastMap(dk); }
+          pb.notes = spot ? 'The prize chest of ' + (dk && dk.name || 'the key dungeon') + '. Opening it sets the seal, which moves the main quest past its key stage.' : 'Day 148 placed no prize chest, so the seal is given on entering the deepest floor.';
+          add('prize', E.keys.prize(c.id), 'Seal chest: ' + cn, c.id, pb);
+        }
+      }
+      // The exit gate to the next region.
+      var exitN = n['gate:exit'], exitStage = q ? stageBy(q, function (s) { return s.site === (exitN && exitN.key); }) || stageBy(q, function (s) { return s.key === 'exit'; }) : null;
+      if (exitN && q && exitStage) {
+        var after = stageAfter(q, exitStage.key), nextKey = (exitN.requires || []).filter(function (k) { return ES.gates.parse(k).kind === 'chapter'; })[0];
+        var reg = (g.regions || []).filter(function (r) { return r.key === exitN.to; })[0], cell = null;
+        (ow && Array.isArray(ow.gates) ? ow.gates : []).forEach(function (gt) { if (!cell && U.isObj(gt) && gt.gate === nextKey && (!exitN.regionRecord || gt.from === exitN.regionRecord) && Array.isArray(gt.cells) && gt.cells.length) cell = gt.cells[0]; });
+        var words = exitN.via === 'landing' ? 'You make landfall on ' + (reg && reg.label || 'a new shore') + '.' : 'The road to ' + (reg && reg.label || 'the next region') + ' lies open.';
+        var xc = [narrate([words])], nextCh = chs[i + 1];
+        if (after) xc.push(moveTo(q, after.key));
+        if (after && nextCh && after.key === q.stages[q.stages.length - 1].key) xc.push({ op: 'callEvent', evt: E.idFor(E.keys.open(nextCh.id)) });
+        var xb = { site: exitN.key, pages: [{ cond: atStage(q, exitStage.key), cmds: xc }] };
+        if (cell && ow) { xb.trigger = 'step'; xb.map = ow.id; xb.at = [cell[0], cell[1]]; } else if (ow) { xb.trigger = 'autorun'; xb.map = ow.id; xb.pages[0].once = true; }
+        xb.notes = cell ? 'The overworld cell where ' + cn + ' gives way to the next region. Crossing it completes the chapter.' : 'Day 148 placed no gate cell, so the chapter completes on the overworld at once.';
+        if (ow) add('exit', E.keys.exit(c.id), 'Exit: ' + cn, c.id, xb);
+      }
+    });
+    // Talk events: one per main quest giver, a page per chapter they give a quest in (later chapters to the right).
+    Object.keys(givers).sort().forEach(function (npc) {
+      var list = givers[npc].sort(function (x, y) { return x.index - y.index; }), who = worldName(npc, 'the giver', b);
+      var pages = list.map(function (x) {
+        return { cond: atStage(x.q, x.first.key), cmds: [{ op: 'text', speaker: npc, lines: ['You made it, traveler. We have waited for you.', 'Your road leads on: ' + (trim(x.second.label) || x.second.key) + '.'] }, moveTo(x.q, x.second.key)] };
+      });
+      var body = { trigger: 'talk', npc: npc, pages: pages, notes: 'Speaking to ' + who + ' moves the main quest past its first stage. Any other time, ' + who + ' says their dialogue page.' };
+      var site = giverSite(npc, b); if (site) body.site = site;
+      add('talk', E.keys.talk(npc), 'Talk: ' + who, list[0].chapter, body);
+    });
+    // Bosses, and the finale after the last one.
+    bosses.forEach(function (bs) {
+      var cn = (chs.filter(function (c) { return c.id === bs.chapter; })[0] || {}).name || bs.chapter, flags = bs.grants.map(function (k) { return gateFlag(b, k); });
+      var win = [{ op: 'music', role: 'victory' }];
+      flags.forEach(function (f) { win.push({ op: 'setFlag', flg: f, value: 1 }); });
+      var words = ['The ' + (nameOf(bs.troop, 'enemy') || 'enemy') + ' falls.'];
+      if (bs.grants.indexOf('vehicle:ship') >= 0) words.push('A ship waits at the shore. It is yours now.');
+      if (bs.grants.indexOf('vehicle:airship') >= 0) words.push('The airship is yours. The sky is open.');
+      if (bs.finale) { win.push({ op: 'setFlag', flg: finaleFlag, value: 1 }); words.push('The last shadow is gone.'); finaleBoss = bs; }
+      win.push(narrate(words));
+      var battle = { op: 'startBattle', win: win };
+      if (bs.troop) battle.trp = bs.troop;
+      var notYet = bs.finale ? flagIs(finaleFlag, 'lt', 1) : anyOf(flags.map(function (f) { return flagIs(f, 'lt', 1); }));
+      var body = { dgn: bs.dgn, site: bs.node, pages: [{ cmds: [narrate(['All is quiet now.'])] }, { cond: notYet, cmds: [{ op: 'music', role: 'boss' }, narrate(['Something stirs in the dark ahead.']), battle] }] };
+      if (bs.slot) body.slot = true;
+      if (bs.at && bs.map) { body.trigger = 'step'; body.map = bs.map; body.at = bs.at; } else { body.trigger = 'mapEnter'; body.map = bs.map; }
+      body.notes = (bs.slot ? 'Day 148 left this boss slot empty, so the story fills it with ' + (bs.troop ? nameOf(bs.troop, bs.troop) : 'a troop you choose') + '. ' : '') + 'A win sets ' + (bs.finale ? 'the finale flag' : 'the gates the boss opens') + '; a loss is game over.';
+      if (!body.map) return;
+      if (!body.pages[1].cond) delete body.pages[1].cond;
+      add('boss', E.keys.boss(bs.chapter), 'Boss: ' + cn, bs.chapter, body);
+    });
+    var lastCh = chs.length ? chs[chs.length - 1] : null, lastQ = lastCh ? mainQuest(lastCh.id, b) : null;
+    var fin = [];
+    if (lastQ) fin.push(moveTo(lastQ, lastQ.stages[lastQ.stages.length - 1].key));
+    var ends = endingCmds(E.endingOrder(b));
+    if (!ends.length) fin.push(narrate(['The tale is told.']));
+    fin = fin.concat(ends);
+    var fb = { trigger: 'autorun', map: finaleBoss ? finaleBoss.map : ow ? ow.id : null, site: finaleBoss ? finaleBoss.node : null, pages: [{ cond: flagIs(finaleFlag, 'gte', 1), cmds: fin, once: true }],
+      notes: 'Runs once the finale boss falls: the last main quest completes and the ending is picked, the highest priority whose condition passes.' };
+    if (!fb.site) delete fb.site;
+    if (fb.map && chs.length) add('finale', E.keys.finale(), 'Finale', lastCh.id, fb);
+    if (out.some(function (w) { return w.kind === 'finale'; })) flags.push({ key: E.FINALE_FLAG_KEY, id: finaleFlag, name: 'Finale reached', body: { kind: 'story', 'default': 0, range: [0, 1], notes: 'Set when the finale boss falls; the finale event reads it.' } });
+    return { events: out, flags: flags };
+  };
+  function generated(w) { return stamp(STORY.envelope('evt_', w.key, w.name, w.body)); }
+
+  // ---------------------------------------------------------------- the scaffold
+  // Idempotent: a second run changes nothing and does not touch the bundle. Builds what is missing, refreshes unedited
+  // generated events whose inputs moved, keeps edited ones, and drops (or hands to the author, when edited) events nothing
+  // asks for. Syncs the flags afterward so every event with a once page gets its save slot. Returns a report.
+  E.scaffold = function (b) {
+    b = b || cur();
+    var rep = { created: [], refreshed: [], kept: [], removed: [], orphaned: [], flagsMade: [], flagsDropped: [], hints: [], changed: false, skipped: null, sync: null };
+    if (!b) { rep.skipped = 'No bundle is open.'; return rep; }
+    var ready = STORY.readiness(b);
+    if (ready !== true) { rep.skipped = ready; return rep; }
+    STORY.ensure(b);
+    F.sync(b);
+    var s = b.story, R = s.records.evt_, FL = s.records.flg_, scaf = s.scaffold, W = E.wanted(b), want = {}, wantFlag = {};
+    if (!STORY.chapters(b).some(function (c) { return mainQuest(c.id, b); })) rep.hints.push('Build quests first, so the events can move the main quests.');
+    W.flags.forEach(function (f) {
+      wantFlag[f.key] = 1;
+      if (!FL[f.id]) { FL[f.id] = STORY.envelope('flg_', f.key, f.name, f.body); rep.flagsMade.push(f.id); }
+      if (scaf[f.key] !== f.id) { scaf[f.key] = f.id; rep.changed = true; }
+    });
+    W.events.forEach(function (w) {
+      want[w.key] = w;
+      var have = R[w.id], fresh = generated(w);
+      if (!have) { R[w.id] = fresh; rep.created.push(w.id); }
+      else if (have.origin === 'generated' && fresh.gen !== have.gen) {
+        if (E.isEdited(have)) rep.kept.push(w.id); else { R[w.id] = fresh; rep.refreshed.push(w.id); }
+      }
+      if (scaf[w.key] !== w.id) { scaf[w.key] = w.id; rep.changed = true; }
+    });
+    Object.keys(scaf).sort().forEach(function (k) {
+      var id = scaf[k];
+      if (k.indexOf('evt|') === 0 && !want[k]) {
+        var r = R[id];
+        if (r && r.origin === 'generated') { if (E.isEdited(r)) { r.origin = 'user'; delete r.gen; rep.orphaned.push(id); } else { delete R[id]; rep.removed.push(id); } }
+        delete scaf[k]; rep.changed = true;
+      } else if (k === E.FINALE_FLAG_KEY && !wantFlag[k]) {
+        if (FL[id] && FL[id].origin === 'generated') { delete FL[id]; rep.flagsDropped.push(id); }
+        delete scaf[k]; rep.changed = true;
+      }
+    });
+    if (rep.created.length || rep.refreshed.length || rep.removed.length || rep.orphaned.length || rep.flagsMade.length || rep.flagsDropped.length || rep.changed) {
+      s.records.evt_ = sortedObj(R); s.records.flg_ = sortedObj(FL); s.scaffold = sortedObj(scaf);
+      rep.changed = true;
+      if (b === cur()) { Kit.index.invalidate(); Kit.bundle.touch('story-events'); }
+    }
+    rep.sync = F.sync(b);
+    if (rep.sync.changed) rep.changed = true;
+    return rep;
+  };
+  E.reportText = function (rep) {
+    if (rep.skipped) return rep.skipped;
+    var parts = [];
+    if (rep.created.length) parts.push(plural(rep.created.length, 'event') + ' built');
+    if (rep.refreshed.length) parts.push(plural(rep.refreshed.length, 'event') + ' updated');
+    if (rep.kept.length) parts.push(plural(rep.kept.length, 'edited event') + ' kept as you left ' + (rep.kept.length === 1 ? 'it' : 'them'));
+    if (rep.removed.length) parts.push(plural(rep.removed.length, 'event') + ' no longer needed');
+    if (rep.orphaned.length) parts.push(plural(rep.orphaned.length, 'edited event') + ' kept as yours');
+    var t = parts.length ? parts.join(', ') + '.' : 'Events are up to date.';
+    return rep.hints.length ? t + ' ' + rep.hints.join(' ') : t;
+  };
+  // What a scaffold run would build and what is there, by kind: {byKind {kind: {want, have}}, missing, stale}.
+  E.expected = function (b) {
+    b = b || cur();
+    var W = E.wanted(b).events, by = {}, s = b && b.story, missing = 0, stale = 0;
+    E.KINDS.forEach(function (k) { by[k] = { want: 0, have: 0 }; });
+    W.forEach(function (w) {
+      var r = s && s.records.evt_[w.id];
+      by[w.kind].want++;
+      if (r) { by[w.kind].have++; if (r.origin === 'generated' && !E.isEdited(r) && generated(w).gen !== r.gen) stale++; } else missing++;
+    });
+    return { byKind: by, missing: missing, stale: stale };
+  };
+  // Chooses the troop for an empty boss slot (null goes back to the default) and refreshes that boss event when it is
+  // unedited. Refuses a dungeon whose slot the world already fills.
+  E.setBossTroop = function (dgn, trp, b) {
+    b = b || cur();
+    STORY.ensure(b);
+    var t = E.bossTroop(dgn, b);
+    if (!t.slot) return { ok: false, message: 'The world already gives this boss its troop.' };
+    if (trp && !STORY.rules('trp_', b).some(function (x) { return x.id === trp; })) return { ok: false, message: trp + ' is not a troop in the Rules.' };
+    var set = b.story.settings.bossTroops = U.isObj(b.story.settings.bossTroops) ? b.story.settings.bossTroops : {};
+    if (trp) set[dgn] = trp; else delete set[dgn];
+    b.story.settings.bossTroops = sortedObj(set);
+    if (!Object.keys(set).length) delete b.story.settings.bossTroops;
+    var w = E.wanted(b).events.filter(function (x) { return x.kind === 'boss' && x.body.dgn === dgn; })[0], R = b.story.records.evt_, rec = w && R[w.id], out = { ok: true, refreshed: false, kept: false };
+    if (w && rec && rec.origin === 'generated') { if (E.isEdited(rec)) out.kept = true; else { R[w.id] = generated(w); out.refreshed = true; } }
+    if (b === cur()) { Kit.index.invalidate(); Kit.bundle.touch('story-events'); }
+    return out;
+  };
+
+  // ---------------------------------------------------------------- checks
+  // Everything ENGINE_STORY.pages.lint finds, plus cross field mistakes: [{level, code, path, message}]. idx must hold the
+  // record (STORY.engineIndex, or E.indexWith for a candidate).
+  E.check = function (rec, b, idx) {
+    b = b || cur();
+    var out = [];
+    function add(level, code, path, message) { out.push({ level: level, code: code, path: path, message: message }); }
+    if (!U.isObj(rec)) { add('error', 'not-object', '', 'An event is an object.'); return out; }
+    ES.pages.lint(rec, idx, 'event', rec.id).forEach(function (p) { add(p.level, p.code, String(p.path).replace(/^event\.?/, ''), p.message); });
+    if (rec.kind !== undefined && E.KINDS.indexOf(rec.kind) < 0) add('error', 'enum', 'kind', 'kind is one of ' + E.KINDS.join(', ') + '.');
+    if (rec.chapter !== undefined && rec.chapter !== null && !STORY.chapters(b).some(function (c) { return c.id === rec.chapter; })) add('error', 'ref', 'chapter', rec.chapter + ' is not a chapter of the Charter.');
+    if (rec.dgn !== undefined && rec.dgn !== null && !STORY.world.get(rec.dgn, b)) add('error', 'ref', 'dgn', rec.dgn + ' is not a dungeon of the world.');
+    if (rec.map && STORY.world.get(rec.map, b) && Array.isArray(rec.at) && rec.at.length === 2) {
+      var m = STORY.world.get(rec.map, b);
+      if (isInt(m.w) && isInt(m.h) && (rec.at[0] >= m.w || rec.at[1] >= m.h)) add('error', 'range', 'at', 'The cell ' + rec.at.join(', ') + ' is outside ' + (m.name || rec.map) + ' (' + m.w + ' by ' + m.h + ').');
+    }
+    if (rec.kind === 'boss') {
+      var hasTroop = false;
+      (Array.isArray(rec.pages) ? rec.pages : []).forEach(function (p) { if (U.isObj(p)) ES.cmd.walk(p.cmds, function (c) { if (U.isObj(c) && c.op === 'startBattle' && c.trp) hasTroop = true; }); });
+      if (!hasTroop) add('error', 'boss-troop', 'pages', 'This boss event starts no troop. Choose a troop for the empty boss slot.');
+    }
+    if (rec.kind === 'finale') {
+      var ends = false;
+      (Array.isArray(rec.pages) ? rec.pages : []).forEach(function (p) { if (U.isObj(p)) ES.cmd.walk(p.cmds, function (c) { if (U.isObj(c) && c.op === 'ending') ends = true; }); });
+      if (!ends) add('warning', 'no-ending', 'pages', 'The finale reaches no ending yet. Endings arrive in Phase 6; then update the events.');
+    }
+    return out;
+  };
+  function indexWith(rec, b) {
+    var recs = {};
+    Object.keys(b.story.records).forEach(function (p) { recs[p] = b.story.records[p]; });
+    recs.evt_ = {};
+    Object.keys(b.story.records.evt_).forEach(function (k) { recs.evt_[k] = b.story.records.evt_[k]; });
+    recs.evt_[rec.id] = rec;
+    return ES.index.build({ records: recs, bindings: b.story.bindings, npcDialogue: b.story.npcDialogue }, STORY.engineExt(b));
+  }
+  E.indexWith = indexWith;
+  Kit.validate.register('story.events', function (b, ctx) {
+    var s = b.story;
+    if (!s || !U.isObj(s.records) || !U.isObj(s.records.evt_)) return;
+    var ids = Object.keys(s.records.evt_).sort();
+    if (!ids.length) return;
+    var idx = STORY.engineIndex(b), bossFor = {};
+    ids.forEach(function (id) {
+      var rec = s.records.evt_[id];
+      E.check(rec, b, idx).forEach(function (p) { ctx.add({ recordId: id, fieldPath: p.path, message: p.message, level: p.level }); });
+      if (U.isObj(rec) && rec.kind === 'boss' && rec.dgn) (bossFor[rec.dgn] = bossFor[rec.dgn] || []).push(id);
+    });
+    Object.keys(bossFor).sort().forEach(function (d) { if (bossFor[d].length > 1) ctx.add({ recordId: bossFor[d][0], fieldPath: 'dgn', message: 'Events ' + bossFor[d].join(' and ') + ' both stand for the boss of ' + d + '; Day 150 takes the first.', level: 'warning' }); });
+  });
+
+  // ---------------------------------------------------------------- editing
+  function sameProblem(a, z) { return a.code === z.code && a.path === z.path && a.message === z.message; }
+  function touch(b) { if (b === cur()) { Kit.index.invalidate(); Kit.bundle.touch('story-events'); } }
+  // Applies fn to a copy of the event. A result with an error string refuses the edit, and so does an edit that would add
+  // an error the event did not already have. Nothing is written then. Returns {ok, record} or {ok: false, problems}.
+  E.edit = function (id, fn, b) {
+    b = b || cur();
+    var R = b && b.story && b.story.records.evt_, rec = R && R[id];
+    if (!rec) return { ok: false, problems: [{ level: 'error', code: 'missing', path: 'id', message: 'That event does not exist.' }] };
+    var before = E.check(rec, b, STORY.engineIndex(b)).filter(function (p) { return p.level === 'error'; });
+    var next = U.clone(rec), r = fn(next);
+    if (r && r.error) return { ok: false, problems: [{ level: 'error', code: 'edit', path: '', message: r.error }] };
+    var fresh = E.check(next, b, indexWith(next, b)).filter(function (p) { return p.level === 'error' && !before.some(function (x) { return sameProblem(x, p); }); });
+    if (fresh.length) return { ok: false, problems: fresh };
+    R[id] = next;
+    touch(b);
+    return { ok: true, record: next };
+  };
+  // Event level fields. null or '' removes an optional field. A trigger change drops the site fields it no longer needs.
+  var NEEDS = { mapEnter: ['map'], step: ['map', 'at'], autorun: ['map'], talk: ['npc'], battleEnd: ['trp'], chapterStart: [] };
+  E.update = function (id, patch, b) {
+    patch = patch || {};
+    return E.edit(id, function (rec) {
+      if (patch.name !== undefined) { var nm = trim(patch.name); if (!nm) return { error: 'An event needs a name.' }; rec.name = nm.slice(0, 120); }
+      if (patch.notes !== undefined) rec.notes = trim(patch.notes).slice(0, 1200);
+      ['chapter', 'map', 'npc', 'trp', 'trigger'].forEach(function (k) { if (patch[k] !== undefined) { if (patch[k] === null || patch[k] === '') delete rec[k]; else rec[k] = patch[k]; } });
+      if (patch.at !== undefined) { if (patch.at === null) delete rec.at; else if (Array.isArray(patch.at) && patch.at.length === 2 && patch.at.every(function (v) { return isInt(v) && v >= 0; })) rec.at = [patch.at[0], patch.at[1]]; else return { error: 'A cell is two whole numbers, x and y, from 0.' }; }
+      if (patch.priority !== undefined) { if (patch.priority === null || patch.priority === '') delete rec.priority; else if (isInt(patch.priority)) rec.priority = patch.priority; else return { error: 'Priority is a whole number.' }; }
+      if (patch.trigger !== undefined) ['map', 'at', 'npc', 'trp'].forEach(function (k) { if (NEEDS[rec.trigger] && NEEDS[rec.trigger].indexOf(k) < 0 && !(k === 'trp' && rec.trigger === 'battleEnd')) delete rec[k]; });
+    }, b);
+  };
+  function cleanPage(p) {
+    var o = {};
+    if (U.isObj(p) && p.cond !== undefined && p.cond !== null) o.cond = clone(p.cond);
+    o.cmds = U.isObj(p) && Array.isArray(p.cmds) ? clone(p.cmds) : [];
+    if (U.isObj(p) && p.once === true) o.once = true;
+    return o;
+  }
+  E.addPage = function (id, page, b) { return E.edit(id, function (rec) { rec.pages = Array.isArray(rec.pages) ? rec.pages : []; rec.pages.push(cleanPage(page || {})); }, b); };
+  // patch: any of cond (null for always), once, cmds.
+  E.updatePage = function (id, i, patch, b) {
+    patch = patch || {};
+    return E.edit(id, function (rec) {
+      var p = Array.isArray(rec.pages) ? rec.pages[i] : null;
+      if (!U.isObj(p)) return { error: 'That page does not exist.' };
+      if (patch.cond !== undefined) { if (patch.cond === null) delete p.cond; else p.cond = clone(patch.cond); }
+      if (patch.once !== undefined) { if (patch.once) p.once = true; else delete p.once; }
+      if (patch.cmds !== undefined) { if (!Array.isArray(patch.cmds)) return { error: 'Commands are a list.' }; p.cmds = clone(patch.cmds); }
+    }, b);
+  };
+  E.removePage = function (id, i, b) {
+    return E.edit(id, function (rec) {
+      if (!Array.isArray(rec.pages) || !rec.pages[i]) return { error: 'That page does not exist.' };
+      if (rec.pages.length < 2) return { error: 'An event keeps at least one page.' };
+      rec.pages.splice(i, 1);
+    }, b);
+  };
+  E.movePage = function (id, i, delta, b) {
+    return E.edit(id, function (rec) {
+      var j = i + delta;
+      if (!Array.isArray(rec.pages) || !rec.pages[i] || j < 0 || j >= rec.pages.length) return { error: 'That page cannot move there.' };
+      var t = rec.pages[i]; rec.pages[i] = rec.pages[j]; rec.pages[j] = t;
+    }, b);
+  };
+
+  // ---------------------------------------------------------------- the command tree
+  // A command is addressed the way the runner addresses one: a path of keys from a page's cmds, such as [2], [2, 'then', 0],
+  // or [0, 'options', 1, 'cmds', 3]. A list is addressed by the path that leads to it ([] for the page's own list). Every
+  // function returns a new list and never changes the one it was given; null means the path does not resolve.
+  function valueAt(root, path) {
+    var cur0 = root;
+    for (var i = 0; i < path.length; i++) { if (cur0 === null || typeof cur0 !== 'object') return null; cur0 = cur0[path[i]]; }
+    return cur0 === undefined ? null : cur0;
+  }
+  function listAt(root, path) { var v = valueAt(root, path); return Array.isArray(v) ? v : null; }
+  // The keys under which a command holds a child list (an option holds its list under cmds).
+  var CHILD_KEYS = { then: 1, 'else': 1, win: 1, lose: 1, escape: 1, cmds: 1 };
+  E.tree = {
+    get: function (list, path) { var l = listAt(list, path.slice(0, -1)), i = path[path.length - 1]; return l && U.isObj(l[i]) ? l[i] : null; },
+    list: function (list, path) { return listAt(list, path); },
+    // Puts cmd at path (replacing what is there).
+    put: function (list, path, cmd) { var n = clone(list), l = listAt(n, path.slice(0, -1)), i = path[path.length - 1]; if (!l || i < 0 || i >= l.length) return null; l[i] = clone(cmd); return n; },
+    // Inserts cmd into the list at listPath, at position at (the end when at is missing). Creates a missing child list of
+    // an if, a battle, or a choice option when its parent command exists.
+    insert: function (list, listPath, at, cmd) {
+      var n = clone(list), l = listAt(n, listPath), last = listPath[listPath.length - 1];
+      if (!l && listPath.length && CHILD_KEYS[last]) {
+        var owner = valueAt(n, listPath.slice(0, -1));
+        if (U.isObj(owner)) { owner[last] = []; l = owner[last]; }
+      }
+      if (!l) return null;
+      var k = at === undefined || at === null || at > l.length ? l.length : Math.max(0, at);
+      l.splice(k, 0, clone(cmd));
+      return n;
+    },
+    remove: function (list, path) { var n = clone(list), l = listAt(n, path.slice(0, -1)), i = path[path.length - 1]; if (!l || !l[i]) return null; l.splice(i, 1); return n; },
+    move: function (list, path, delta) {
+      var n = clone(list), l = listAt(n, path.slice(0, -1)), i = path[path.length - 1], j = i + delta;
+      if (!l || !l[i] || j < 0 || j >= l.length) return null;
+      var t = l[i]; l[i] = l[j]; l[j] = t;
+      return n;
+    },
+    // The child lists of a command as [{label, path (relative), list}] in a fixed order, including the empty ones a
+    // command may hold, so the editor can offer an add control on each.
+    children: function (c) {
+      var out = [];
+      if (!U.isObj(c)) return out;
+      if (c.op === 'if') { out.push({ label: 'Then', seg: ['then'], list: c.then || [] }); out.push({ label: 'Else', seg: ['else'], list: c['else'] || [] }); }
+      if (c.op === 'choice' && Array.isArray(c.options)) c.options.forEach(function (o, k) { out.push({ label: 'If chosen: ' + (U.isObj(o) && o.text ? o.text : 'option ' + (k + 1)), seg: ['options', k, 'cmds'], list: U.isObj(o) && Array.isArray(o.cmds) ? o.cmds : [] }); });
+      if (c.op === 'startBattle') { out.push({ label: 'On a win', seg: ['win'], list: c.win || [] }); if (Array.isArray(c.lose)) out.push({ label: 'On a loss', seg: ['lose'], list: c.lose }); if (Array.isArray(c.escape)) out.push({ label: 'On an escape', seg: ['escape'], list: c.escape }); }
+      return out;
+    },
+    count: function (list) { var n = 0; ES.cmd.walk(list, function () { n++; }); return n; }
+  };
+  E.setCmds = function (id, i, cmds, b) { return E.updatePage(id, i, { cmds: cmds }, b); };
+  // A fresh command of each kind, filled with what can be guessed; the editor opens it before it is saved.
+  E.blank = function (op) {
+    switch (op) {
+      case 'text': return { op: op, lines: ['...'] };
+      case 'choice': return { op: op, prompt: '', options: [{ text: 'Yes', cmds: [] }, { text: 'No', cmds: [] }] };
+      case 'if': return { op: op, cond: { op: 'true' }, then: [] };
+      case 'setFlag': return { op: op, flg: '', value: 1 };
+      case 'addFlag': return { op: op, flg: '', by: 1 };
+      case 'giveItem': case 'takeItem': return { op: op, itm: '', qty: 1 };
+      case 'gil': return { op: op, by: 100 };
+      case 'questStage': return { op: op, qst: '', stage: '' };
+      case 'party': return { op: op, chr: '', act: 'join' };
+      case 'startBattle': return { op: op, trp: '', win: [] };
+      case 'moveActor': return { op: op, who: 'player', path: ['down'] };
+      case 'face': return { op: op, who: 'player', dir: 'down' };
+      case 'wait': return { op: op, frames: 30 };
+      case 'fade': return { op: op, to: 'out', frames: 30 };
+      case 'music': return { op: op, role: 'town' };
+      case 'sfx': return { op: op, sfx: '' };
+      case 'changeMap': return { op: op, map: '', at: [0, 0], dir: 'down' };
+      case 'vehicle': return { op: op, kind: 'ship', act: 'board' };
+      case 'callEvent': return { op: op, evt: '' };
+      case 'ending': return { op: op, end: '' };
+    }
+    return null;
+  };
+  E.OP_LABEL = { text: 'Show text', choice: 'Offer a choice', 'if': 'If a condition passes', setFlag: 'Set a flag', addFlag: 'Add to a flag', giveItem: 'Give an item', takeItem: 'Take an item', gil: 'Give or take gil', questStage: 'Move a quest', party: 'Party member joins or leaves',
+    startBattle: 'Start a battle', moveActor: 'Move someone', face: 'Turn someone', wait: 'Wait', fade: 'Fade the screen', music: 'Play music', sfx: 'Play a sound', changeMap: 'Change map', vehicle: 'Board or leave a vehicle', callEvent: 'Run another event', ending: 'End the game' };
+  E.OP_GROUPS = [['Story', ['text', 'choice', 'if', 'questStage', 'callEvent', 'ending']], ['State', ['setFlag', 'addFlag', 'giveItem', 'takeItem', 'gil', 'party']], ['Battle', ['startBattle']], ['Staging', ['moveActor', 'face', 'wait', 'fade', 'music', 'sfx', 'changeMap', 'vehicle']]];
+  function who(v) { return v === 'player' ? 'the player' : nameOf(v, v || 'someone'); }
+  function stageLabel(qst, key) { var q = cur() && cur().story.records.qst_[qst], s = q && Array.isArray(q.stages) ? q.stages.filter(function (x) { return x.key === key; })[0] : null; return s ? (s.label || key) : key; }
+  // A command as one plain sentence, for the editor and the playtester.
+  E.cmdText = function (c) {
+    if (!U.isObj(c)) return 'Unreadable command';
+    switch (c.op) {
+      case 'text': return (c.speaker ? nameOf(c.speaker, c.speaker) + ': ' : 'Narration: ') + cut((Array.isArray(c.lines) ? c.lines : []).join(' '), 90);
+      case 'choice': return 'Choice' + (c.prompt ? ' (' + cut(c.prompt, 40) + ')' : '') + ': ' + (Array.isArray(c.options) ? c.options.map(function (o) { return U.isObj(o) ? o.text : '?'; }).join(' / ') : '');
+      case 'if': return 'If ' + (c.cond ? E.condText(c.cond) : 'always');
+      case 'setFlag': return 'Set ' + nameOf(c.flg, c.flg || '?') + ' to ' + (c.value === undefined ? 1 : c.value);
+      case 'addFlag': return 'Add ' + (c.by === undefined ? 1 : c.by) + ' to ' + nameOf(c.flg, c.flg || '?');
+      case 'giveItem': return 'Give ' + (c.qty || 1) + ' ' + nameOf(c.itm, c.itm || '?');
+      case 'takeItem': return 'Take ' + (c.qty || 1) + ' ' + nameOf(c.itm, c.itm || '?');
+      case 'gil': return (c.by < 0 ? 'Take ' + (-c.by) : 'Give ' + c.by) + ' gil';
+      case 'questStage': return c.fail ? 'Fail ' + nameOf(c.qst, c.qst || '?') : c.stage !== undefined ? nameOf(c.qst, c.qst || '?') + ' moves to ' + stageLabel(c.qst, c.stage) : nameOf(c.qst, c.qst || '?') + ' commits ' + c.branch + ' to ' + c.outcome;
+      case 'party': return nameOf(c.chr, c.chr || '?') + (c.act === 'leave' ? ' leaves the party' : ' joins the party');
+      case 'startBattle': return 'Battle: ' + (c.trp ? nameOf(c.trp, c.trp) : 'no troop chosen') + (Array.isArray(c.lose) ? '' : ' (a loss is game over)');
+      case 'moveActor': return 'Move ' + who(c.who) + ' ' + (Array.isArray(c.path) ? c.path.join(' ') : '');
+      case 'face': return 'Turn ' + who(c.who) + ' ' + (c.dir || '?');
+      case 'wait': return 'Wait ' + (c.frames || 0) + ' frames';
+      case 'fade': return 'Fade ' + (c.to || '?') + (c.frames ? ' over ' + c.frames + ' frames' : '');
+      case 'music': return c.stop ? 'Stop the music' : 'Music: ' + (c.mus ? nameOf(c.mus, c.mus) : c.role || '?');
+      case 'sfx': return 'Sound: ' + nameOf(c.sfx, c.sfx || '?');
+      case 'changeMap': return 'Go to ' + nameOf(c.map, c.map || '?') + (Array.isArray(c.at) ? ' at ' + c.at.join(', ') : '');
+      case 'vehicle': return (c.act === 'leave' ? 'Leave the ' : 'Board the ') + (c.kind || 'vehicle');
+      case 'callEvent': return 'Run ' + nameOf(c.evt, c.evt || '?');
+      case 'ending': return 'Ending: ' + nameOf(c.end, c.end || '?');
+    }
+    return 'Unknown command ' + String(c.op);
+  };
+  var CMPW = { gte: 'is at least', gt: 'is more than', eq: 'is', ne: 'is not', lte: 'is at most', lt: 'is less than' };
+  E.condText = function (t) {
+    if (!U.isObj(t)) return 'always';
+    switch (t.op) {
+      case 'true': return 'always';
+      case 'all': return (t.of || []).map(E.condText).join(' and ') || 'always';
+      case 'any': return (t.of || []).map(E.condText).join(' or ') || 'never';
+      case 'not': return 'not (' + E.condText(t.of) + ')';
+      case 'flag': return nameOf(t.flg, t.flg || '?') + ' ' + (CMPW[t.cmp || 'gte'] || t.cmp) + ' ' + (t.value === undefined ? 1 : t.value);
+      case 'item': return 'holding ' + nameOf(t.itm, t.itm || '?') + ' ' + (CMPW[t.cmp || 'gte'] || t.cmp) + ' ' + (t.value === undefined ? 1 : t.value);
+      case 'chapter': return 'the chapter ' + (CMPW[t.cmp || 'gte'] || t.cmp) + ' ' + nameOf(t.chp, t.chp || '?');
+      case 'quest': return nameOf(t.qst, t.qst || '?') + (t.is === 'at' ? ' is at ' + stageLabel(t.qst, t.stage) : t.is === 'reached' ? ' has reached ' + stageLabel(t.qst, t.stage) : ' is ' + (t.is || 'done'));
+    }
+    return 'unknown condition';
+  };
+
+  // ---------------------------------------------------------------- adding, removing, resetting
+  // An event an author makes by hand: spec {name, trigger, chapter, map, at, npc, trp}. One empty page, a minted ID.
+  E.add = function (spec, b) {
+    b = b || cur();
+    spec = spec || {};
+    var nm = trim(spec.name);
+    if (!nm) return { ok: false, problems: [{ level: 'error', code: 'name', path: 'name', message: 'An event needs a name.' }] };
+    var body = { kind: 'custom', trigger: spec.trigger || 'talk', priority: 0, pages: [{ cmds: [] }] };
+    ['chapter', 'map', 'npc', 'trp'].forEach(function (k) { if (spec[k]) body[k] = spec[k]; });
+    if (Array.isArray(spec.at)) body.at = [spec.at[0], spec.at[1]];
+    var rec = STORY.authored('evt_', nm.slice(0, 120), body);
+    var probs = E.check(rec, b, indexWith(rec, b)).filter(function (p) { return p.level === 'error'; });
+    if (probs.length) return { ok: false, problems: probs };
+    b.story.records.evt_[rec.id] = rec;
+    b.story.records.evt_ = sortedObj(b.story.records.evt_);
+    touch(b);
+    return { ok: true, record: rec };
+  };
+  // Who runs this event from another: [{evt, name}], sorted.
+  E.usedBy = function (id, b) {
+    b = b || cur();
+    var out = [];
+    STORY.records.list('evt_', b).forEach(function (r) {
+      var hit = false;
+      (Array.isArray(r.pages) ? r.pages : []).forEach(function (p) { if (U.isObj(p)) ES.cmd.walk(p.cmds, function (c) { if (U.isObj(c) && c.op === 'callEvent' && c.evt === id) hit = true; }); });
+      if (hit && r.id !== id) out.push({ evt: r.id, name: r.name });
+    });
+    return out;
+  };
+  // Removes an event. A generated one comes back with the next build. Events that ran it with callEvent keep a broken
+  // reference the validator reports.
+  E.remove = function (id, b) {
+    b = b || cur();
+    var R = b && b.story && b.story.records.evt_, rec = R && R[id];
+    if (!rec) return { ok: false, message: 'That event does not exist.' };
+    var users = E.usedBy(id, b), scaf = b.story.scaffold;
+    delete R[id];
+    Object.keys(scaf).forEach(function (k) { if (scaf[k] === id && k.indexOf('evt|') === 0) delete scaf[k]; });
+    touch(b);
+    return { ok: true, usedBy: users };
+  };
+  E.reset = function (id, b) {
+    b = b || cur();
+    var R = b && b.story && b.story.records.evt_, rec = R && R[id];
+    if (!rec) return { ok: false, message: 'That event does not exist.' };
+    if (rec.origin !== 'generated') return { ok: false, message: 'Only a generated event can be set back to what the world asks for.' };
+    var w = E.wanted(b).events.filter(function (x) { return x.id === id; })[0];
+    if (!w) return { ok: false, message: 'The world and the quests no longer ask for this event.' };
+    R[id] = generated(w);
+    touch(b);
+    return { ok: true, record: R[id] };
+  };
+
+  // ---------------------------------------------------------------- reading
+  E.list = function (b) {
+    b = b || cur();
+    var order = {}, kind = {};
+    STORY.chapters(b).forEach(function (c, i) { order[c.id] = i; });
+    E.KINDS.forEach(function (k, i) { kind[k] = i; });
+    return STORY.records.list('evt_', b).slice().sort(function (x, y) {
+      var ox = order[x.chapter] === undefined ? 99 : order[x.chapter], oy = order[y.chapter] === undefined ? 99 : order[y.chapter];
+      var kx = kind[x.kind] === undefined ? 99 : kind[x.kind], ky = kind[y.kind] === undefined ? 99 : kind[y.kind];
+      return ox - oy || kx - ky || ((x.name || '') < (y.name || '') ? -1 : (x.name || '') > (y.name || '') ? 1 : 0);
+    });
+  };
+  // Where an event stands, in words.
+  E.whereText = function (rec) {
+    if (!U.isObj(rec)) return '';
+    switch (rec.trigger) {
+      case 'talk': return 'Talking to ' + nameOf(rec.npc, rec.npc || 'someone');
+      case 'step': return 'Stepping on ' + (Array.isArray(rec.at) ? rec.at.join(', ') : '?') + ' in ' + nameOf(rec.map, rec.map || 'a map');
+      case 'mapEnter': return 'Entering ' + nameOf(rec.map, rec.map || 'a map');
+      case 'autorun': return 'At once in ' + nameOf(rec.map, rec.map || 'a map');
+      case 'battleEnd': return 'After ' + (rec.trp ? 'a battle with ' + nameOf(rec.trp, rec.trp) : 'any battle');
+      case 'chapterStart': return 'When the chapter starts';
+    }
+    return 'Unknown trigger';
+  };
+  E.summary = function (b) {
+    b = b || cur();
+    var recs = STORY.records.list('evt_', b), by = {}, pages = 0, cmds = 0, authored = 0, edited = 0, errors = 0, idx = recs.length ? STORY.engineIndex(b) : null;
+    E.KINDS.forEach(function (k) { by[k] = 0; });
+    recs.forEach(function (r) {
+      by[r.kind] = (by[r.kind] || 0) + 1;
+      (Array.isArray(r.pages) ? r.pages : []).forEach(function (p) { pages++; if (U.isObj(p)) cmds += E.tree.count(p.cmds); });
+      if (r.origin === 'user') authored++;
+      if (E.isEdited(r)) edited++;
+      if (idx && E.check(r, b, idx).some(function (p) { return p.level === 'error'; })) errors++;
+    });
+    var ex = E.expected(b), slots = E.bosses(b).filter(function (x) { return x.slot; });
+    return { total: recs.length, byKind: by, pages: pages, cmds: cmds, authored: authored, edited: edited, errors: errors, missing: ex.missing, stale: ex.stale, slots: slots };
+  };
+
+  // ---------------------------------------------------------------- the playtester
+  // A start state: a new game, then the chapter (its gate flag and every earlier one set), quest stages, and flags.
+  // opts {chapter, quests {qst: stage key, 'failed', or ''}, flags {flg: int}}.
+  E.playState = function (b, opts) {
+    b = b || cur();
+    opts = opts || {};
+    var idx = STORY.engineIndex(b), st = ES.state.create(idx, {});
+    var ci = opts.chapter ? idx.chapters.indexOf(opts.chapter) : -1;
+    for (var i = 0; i <= ci; i++) { var f = idx.chapterFlags[idx.chapters[i]]; if (f) st.flags[f] = 1; }
+    Object.keys(opts.flags || {}).sort().forEach(function (k) { if (idx.flags[k]) st.flags[k] = Math.round(Number(opts.flags[k]) || 0); });
+    Object.keys(opts.quests || {}).sort().forEach(function (q) {
+      var def = idx.quests[q], stage = opts.quests[q];
+      if (!def) return;
+      if (stage === 'failed') st.quests[q] = { stage: st.quests[q].stage, failed: true, closed: [] };
+      else if (stage && def.stageAt[stage] !== undefined) st.quests[q] = { stage: stage, failed: false, closed: [] };
+    });
+    st.chapter = ES.state.chapterOf(st, idx);
+    return ES.util.copy(st);
+  };
+  // Effects that need nobody: the playtester logs them and carries on. Text, choices, battles, and the end stop it.
+  var PASS = { music: 1, sfx: 1, fade: 1, wait: 1, moveActor: 1, face: 1, changeMap: 1, vehicle: 1, giveItem: 1, takeItem: 1, gil: 1, party: 1, questStage: 1, error: 1 };
+  E.effectLine = function (e) {
+    if (!U.isObj(e)) return null;
+    switch (e.kind) {
+      case 'text': return { cls: 'say', who: e.speaker ? nameOf(e.speaker, e.speaker) : '', text: (e.lines || []).join(' ') };
+      case 'choice': return { cls: 'fx', text: e.prompt ? e.prompt : 'A choice.' };
+      case 'startBattle': return { cls: 'fx', text: 'Battle against ' + nameOf(e.trp, e.trp || 'an unnamed troop') + '.' };
+      case 'questStage': return { cls: 'fx', text: e.fail ? 'Quest failed: ' + nameOf(e.qst, e.qst) : 'Quest ' + nameOf(e.qst, e.qst) + (e.stage ? ' now at ' + stageLabel(e.qst, e.stage) : '') };
+      case 'gil': return { cls: 'fx', text: 'Gil ' + (e.by >= 0 ? '+' : '') + e.by };
+      case 'party': return { cls: 'fx', text: nameOf(e.chr, e.chr) + (e.act === 'leave' ? ' left the party' : ' joined the party') };
+      case 'giveItem': case 'takeItem': return { cls: 'fx', text: (e.kind === 'takeItem' ? 'Lost ' : 'Got ') + (e.qty || 1) + ' ' + nameOf(e.itm, e.itm || 'an item') };
+      case 'music': return { cls: 'stage', text: e.stop ? 'Music stops.' : 'Music: ' + (e.mus ? nameOf(e.mus, e.mus) : e.role) };
+      case 'sfx': return { cls: 'stage', text: 'Sound: ' + nameOf(e.sfx, e.sfx) };
+      case 'fade': return { cls: 'stage', text: 'Fade ' + e.to + '.' };
+      case 'wait': return { cls: 'stage', text: 'Wait ' + e.frames + ' frames.' };
+      case 'moveActor': return { cls: 'stage', text: who(e.who) + ' moves ' + (e.path || []).join(' ') + '.' };
+      case 'face': return { cls: 'stage', text: who(e.who) + ' turns ' + e.dir + '.' };
+      case 'changeMap': return { cls: 'stage', text: 'To ' + nameOf(e.map, e.map) + (Array.isArray(e.at) ? ' at ' + e.at.join(', ') : '') + '.' };
+      case 'vehicle': return { cls: 'stage', text: (e.act === 'leave' ? 'Leave the ' : 'Board the ') + e.kind + '.' };
+      case 'ending': return { cls: 'end', text: 'Ending: ' + nameOf(e.end, e.end) + '. The game is over.' };
+      case 'gameover': return { cls: 'end', text: 'Game over: the battle was lost.' };
+      case 'error': return { cls: 'err', text: 'Error: ' + (e.message || e.code) };
+      case 'end': return { cls: 'fx', text: 'The event ends.' + (Array.isArray(e.quests) && e.quests.length ? ' ' + plural(e.quests.length, 'quest') + ' settled.' : '') };
+      case 'none': return { cls: 'fx', text: 'Nothing happens: no page passes right now.' };
+      case 'idle': return null;
+    }
+    return { cls: 'fx', text: 'Effect: ' + e.kind };
+  };
+  // A session is plain data: {evt, idx, frames [{r, log}]}. Every stop (text, choice, battle, the end) is a frame, so
+  // Back returns to the state before the last one exactly. The engine owns every state; nothing here edits one.
+  function stopHere(r) { return !U.isObj(r.effect) || r.done || r.waiting || !PASS[r.effect.kind]; }
+  function run(sess, r, log) {
+    log = log || [];
+    for (var n = 0; n < 500; n++) {
+      var ln = E.effectLine(r.effect); if (ln) log.push(ln);
+      if (stopHere(r)) break;
+      r = ES.run.step(r.state, sess.idx);
+    }
+    sess.frames.push({ r: r, log: log });
+    return sess;
+  }
+  E.session = {
+    begin: function (b, evt, state, opts) {
+      b = b || cur();
+      var idx = STORY.engineIndex(b), sess = { evt: evt, idx: idx, frames: [] };
+      var page = opts && opts.page !== undefined && opts.page !== null ? opts.page : undefined;
+      var pick = page !== undefined ? page : ES.pages.pick(evt, state, idx);
+      var head = [{ cls: 'fx', text: pick >= 0 ? 'Page ' + (pick + 1) + ' runs.' : 'No page passes.' }];
+      return run(sess, ES.run.start(state, evt, idx, page !== undefined ? { page: page } : null), head);
+    },
+    current: function (sess) { var f = sess && sess.frames[sess.frames.length - 1]; return f ? f.r : null; },
+    next: function (sess) { var r = E.session.current(sess); if (!r || r.done || r.waiting) return sess; return run(sess, ES.run.step(r.state, sess.idx)); },
+    choose: function (sess, option) { var r = E.session.current(sess), opt = r && r.effect && Array.isArray(r.effect.options) ? r.effect.options.filter(function (o) { return o.index === option; })[0] : null; return run(sess, ES.run.choose(r.state, option, sess.idx), [{ cls: 'pick', text: '> ' + (opt ? opt.text : 'option ' + (option + 1)) }]); },
+    resolve: function (sess, outcome) { var r = E.session.current(sess); return run(sess, ES.run.resolve(r.state, outcome, sess.idx), [{ cls: 'pick', text: outcome === 'win' ? '> Won the battle' : outcome === 'lose' ? '> Lost the battle' : '> Escaped' }]); },
+    back: function (sess) { if (sess && sess.frames.length > 1) sess.frames.pop(); return sess; },
+    log: function (sess) { var out = []; (sess ? sess.frames : []).forEach(function (f) { out = out.concat(f.log); }); return out; }
+  };
+  // Runs one event to its end headlessly, answering each choice with its first visible option and each battle with a win.
+  // Returns {state, effects, done}.
+  E.runThrough = function (state, evt, idx, max) {
+    var r = ES.run.start(state, evt, idx), effects = [];
+    for (var n = 0; n < (max || 5000); n++) {
+      effects.push(r.effect);
+      if (r.done) break;
+      if (r.waiting === 'choice') { var o = r.effect && Array.isArray(r.effect.options) && r.effect.options[0]; r = o ? ES.run.choose(r.state, o.index, idx) : ES.run.step(r.state, idx); continue; }
+      if (r.waiting === 'battle') { r = ES.run.resolve(r.state, 'win', idx); continue; }
+      r = ES.run.step(r.state, idx);
+    }
+    return { state: r.state, effects: effects, done: !!r.done };
+  };
+  // The golden path as a player who does what the story asks: from a new game, fire the first event in story order whose
+  // active page has a condition (a page that waits for something, not an idle one), never the same event twice from the
+  // same state, until the game ends or nothing is left to do. Returns {steps [{evt, name, page, effects [kinds]}], state,
+  // ended, stuck}. A preview of the Phase 7 proof, not the proof itself: it follows one path.
+  E.golden = function (b, opts) {
+    b = b || cur();
+    opts = opts || {};
+    var idx = STORY.engineIndex(b), list = E.list(b).filter(function (e) { return idx.events[e.id]; }), st = ES.state.create(idx, {}), steps = [], tried = {};
+    for (var n = 0; n < (opts.max || 400) && !st.ending; n++) {
+      var h = ES.state.hash(st), pick = null;
+      for (var i = 0; i < list.length && !pick; i++) {
+        var e = list[i], p = ES.pages.pick(e.id, st, idx);
+        if (p >= 0 && U.isObj(e.pages[p]) && e.pages[p].cond !== undefined && !tried[e.id + '@' + h]) pick = { e: e, p: p };
+      }
+      if (!pick) break;
+      tried[pick.e.id + '@' + h] = 1;
+      var r = E.runThrough(st, pick.e.id, idx);
+      steps.push({ evt: pick.e.id, name: pick.e.name, page: pick.p, effects: r.effects.map(function (x) { return x && x.kind; }).filter(function (k) { return k && k !== 'end'; }) });
+      st = r.state;
+      if (!r.done) break;
+    }
+    return { steps: steps, state: st, ended: st.ending || null, stuck: !st.ending };
+  };
+  // What the inspector shows: {chapter, gil, party, items, flags [{flg, name, value, def, changed}], quests [{qst, name,
+  // stage, label, failed, done, closed}], ending, running}.
+  E.inspect = function (state, idx, b) {
+    b = b || cur();
+    var flags = [], quests = [], items = [];
+    Object.keys(idx.flags).sort().forEach(function (f) { var v = ES.state.flag(state, idx, f), d = idx.flags[f]['default']; flags.push({ flg: f, name: nameOf(f, f), value: v, def: d, changed: v !== d }); });
+    Object.keys(idx.quests).sort().forEach(function (q) {
+      var s0 = state.quests[q] || { stage: null, failed: false, closed: [] }, def = idx.quests[q], last = def.stages.length ? def.stages[def.stages.length - 1].key : null;
+      quests.push({ qst: q, name: nameOf(q, q), stage: s0.stage, label: s0.stage ? stageLabel(q, s0.stage) : 'Not started', failed: !!s0.failed, done: !s0.failed && s0.stage !== null && s0.stage === last, closed: (s0.closed || []).slice() });
+    });
+    Object.keys(state.items || {}).sort().forEach(function (k) { items.push({ itm: k, name: nameOf(k, k), qty: state.items[k] }); });
+    return { chapter: state.chapter, chapterName: nameOf(state.chapter, state.chapter || ''), gil: state.gil, party: (state.party || []).slice(), items: items, flags: flags, quests: quests, ending: state.ending, running: !!state.run };
+  };
+})();
+// === STORY:EVENTS END ===
 // === WS:FLAGS BEGIN ===
 (function () {
   'use strict';
@@ -7658,7 +8670,7 @@ var ENGINE_STORY = (function () {
     if (last) box.appendChild(el('p', 'muted', 'The last stage ends the quest, and the engine sets the completion flag when it is entered.'));
     else {
       var cond = el('div', 'qs-cond');
-      STORY.condUI.mount(cond, draft.exitWhen === undefined ? null : draft.exitWhen, function (t) { if (t === null) delete draft.exitWhen; else draft.exitWhen = t; }, { nullable: true, emptyText: 'No condition: a person talking or an event moves the quest on (Events arrive in Phase 5).', addLabel: 'Move on when a condition passes' });
+      STORY.condUI.mount(cond, draft.exitWhen === undefined ? null : draft.exitWhen, function (t) { if (t === null) delete draft.exitWhen; else draft.exitWhen = t; }, { nullable: true, emptyText: 'No condition: a person talking or an event moves the quest on (see Events).', addLabel: 'Move on when a condition passes' });
       box.appendChild(field('Moves on', cond, 'The engine checks this after every event. Stages only move forward.'));
     }
     var sets = el('div', 'qs-sets');
@@ -8084,7 +9096,7 @@ var ENGINE_STORY = (function () {
       case 'gil': return (c.by < 0 ? 'Take ' + (-c.by) : 'Give ' + c.by) + ' gil';
       case 'questStage': return c.fail ? 'Fail ' + nameOf(c.qst, c.qst || '?') : c.stage !== undefined ? nameOf(c.qst, c.qst || '?') + ' moves to stage ' + c.stage : nameOf(c.qst, c.qst || '?') + ' branch ' + c.branch;
       case 'party': return nameOf(c.chr, c.chr || '?') + (c.act === 'leave' ? ' leaves the party' : ' joins the party');
-      default: return 'Command ' + c.op + ' (edit it in Events, Phase 5)';
+      default: return STORY.events ? STORY.events.cmdText(c) + ' (edit it in Events)' : 'Command ' + c.op;
     }
   }
   function newCmd(op, pick) {
@@ -8531,6 +9543,605 @@ var ENGINE_STORY = (function () {
   Kit.jump.register({ test: function (rid) { return Kit.ids.prefixOf(rid) === 'dlg_'; }, name: function (rid) { return nameOf(rid, rid); }, go: function (rid) { if (!Kit.go('dialogue')) return false; focus(rid); return true; } });
 })();
 // === WS:DIALOGUE END ===
+// === WS:EVENTS BEGIN ===
+(function () {
+  'use strict';
+  // The Events tab: every evt_ record with its pages (a condition, once, and a nested command list), the empty boss slot
+  // troops, a golden path preview, and a text playtester that drives the real engine one stop at a time, with a live flag
+  // and quest inspector, Win, Lose, and Escape for battles, and Back through every recorded state.
+  // Logic lives in STORY.events (src/story-events.js) and ENGINE_STORY; conditions use STORY.condUI (src/ws-cond.js).
+  var U = Kit.util, el = U.el, esc = U.esc, E = STORY.events, ES = ENGINE_STORY;
+  function cur() { return Kit.bundle.current(); }
+  function UI() { return STORY.ui; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  function nameOf(id, fb) { return STORY.nameOf ? STORY.nameOf(id, fb) : (fb || id || ''); }
+  function chName(id) { var c = STORY.chapters().filter(function (x) { return x.id === id; })[0]; return c ? c.name || id : id; }
+  function clone(v) { return v === undefined ? v : JSON.parse(JSON.stringify(v)); }
+  var st = STORY.eventsUi = { filter: 'all', open: {}, page: {}, focus: null, golden: null, pt: { evt: '', page: '', chapter: '', quests: {}, carry: false, all: false, sess: null } };
+  var FILTERS = [['all', 'All'], ['open', 'Openers'], ['talk', 'Talk'], ['prize', 'Seals'], ['boss', 'Bosses'], ['exit', 'Exits'], ['finale', 'Finale'], ['custom', 'Yours']];
+
+  function redraw() {
+    var host = document.getElementById('ws'), top = host ? host.scrollTop : 0, win = window.pageYOffset || 0;
+    Kit.rerender();
+    var h2 = document.getElementById('ws');
+    if (h2) h2.scrollTop = top;
+    if (win > 0) window.scrollTo(0, win);
+  }
+  function problemText(res) { return (res.problems || []).map(function (p) { return p.message; }).join(' ') || res.message || 'That change was not saved.'; }
+  function done(res, ok) { if (!res.ok) { Kit.ui.toast(problemText(res), 'warn', 5000); return false; } if (ok) Kit.ui.toast(ok, 'ok'); return true; }
+  function field(label, input, help) {
+    var f = el('div', 'field'), l = el('label', 'field-label', esc(label));
+    f.appendChild(l); f.appendChild(input);
+    if (help) f.appendChild(el('div', 'field-help', esc(help)));
+    return f;
+  }
+  function textInput(value, label, max) { var i = el('input', 'inp'); i.type = 'text'; i.value = value || ''; i.maxLength = max || 160; i.setAttribute('aria-label', label); return i; }
+  function numInput(value, label) { var i = el('input', 'inp ev-num'); i.type = 'number'; i.step = '1'; i.inputMode = 'numeric'; i.value = value === undefined || value === null ? '' : String(value); i.setAttribute('aria-label', label); return i; }
+  function intOf(inp, d) { var v = Math.round(Number(inp.value)); return inp.value.trim() === '' || !isFinite(v) ? d : v; }
+  function selectOf(options, value, label) {
+    var s = el('select', 'inp'); s.setAttribute('aria-label', label);
+    options.forEach(function (o) { var op = el('option', null, esc(o[1])); op.value = o[0]; s.appendChild(op); });
+    s.value = value;
+    return s;
+  }
+  // A button that opens the record picker; holder.v keeps the choice. Optional choices get a Clear button.
+  function pickField(label, holder, key, prefix, empty, opts) {
+    opts = opts || {};
+    var row = el('div', 'ev-pickrow'), b = el('button', 'btn ev-pick' + (holder[key] ? '' : ' ev-empty')); b.type = 'button';
+    function paint() { b.textContent = holder[key] ? nameOf(holder[key], holder[key]) : empty; b.classList.toggle('ev-empty', !holder[key]); b.setAttribute('aria-label', label + ': ' + (holder[key] ? nameOf(holder[key], holder[key]) : 'none chosen')); }
+    b.addEventListener('click', function () { Kit.ui.pickRef({ prefix: prefix, title: label, current: holder[key] }).then(function (v) { if (v) { holder[key] = v; paint(); if (opts.onPick) opts.onPick(v); } }); });
+    row.appendChild(b);
+    if (opts.clear) { var c = el('button', 'btn btn-ghost', 'Clear'); c.type = 'button'; c.setAttribute('aria-label', 'Clear ' + label); c.addEventListener('click', function () { holder[key] = ''; paint(); if (opts.onPick) opts.onPick(''); }); row.appendChild(c); }
+    paint();
+    return field(label, row, opts.help);
+  }
+  function chapterOptions(blank) { return [['', blank || 'No chapter']].concat(STORY.chapters().map(function (c) { return [c.id, c.name || c.id]; })); }
+
+  // ---------------------------------------------------------------- one command, in a dialog
+  var DIRS = [['up', 'Up'], ['down', 'Down'], ['left', 'Left'], ['right', 'Right']];
+  function whoField(holder) {
+    var box = el('div'), mode = selectOf([['player', 'The player'], ['npc', 'A person']], holder.who && holder.who !== 'player' ? 'npc' : 'player', 'Who');
+    var pick = el('div');
+    function paint() { U.clear(pick); if (mode.value === 'npc') { if (holder.who === 'player') holder.who = ''; pick.appendChild(pickField('Person', holder, 'who', 'npc_', 'Choose a person')); } else holder.who = 'player'; }
+    mode.addEventListener('change', paint);
+    box.appendChild(field('Who', mode)); box.appendChild(pick); paint();
+    return box;
+  }
+  // Fills body with the fields of command c (a working copy) and returns a function that reads them back into c.
+  function cmdFields(body, c) {
+    var reads = [];
+    function add(f, read) { body.appendChild(f); if (read) reads.push(read); }
+    switch (c.op) {
+      case 'text': {
+        var sp = { v: /^(chr|npc)_/.test(c.speaker || '') ? c.speaker : '' }, nm = textInput(sp.v ? '' : c.speaker || '', 'Speaker name', 60);
+        add(pickField('Speaker (a character or person)', sp, 'v', ['chr_', 'npc_'], 'Narration, or the name below', { clear: true }));
+        add(field('Or a plain speaker name', nm, 'Leave both empty for narration.'));
+        var por = { v: c.por || '' }; add(pickField('Portrait', por, 'v', 'por_', 'No portrait', { clear: true }));
+        var ta = el('textarea', 'inp ev-lines'); ta.value = (c.lines || []).join('\n'); ta.setAttribute('aria-label', 'Lines, one per line');
+        add(field('Lines', ta, 'One line of text per line.'), function () {
+          var sv = sp.v || nm.value.trim(); if (sv) c.speaker = sv; else delete c.speaker;
+          if (por.v) c.por = por.v; else delete c.por;
+          c.lines = ta.value.split('\n').map(function (l) { return l.trim(); }).filter(function (l) { return !!l; });
+        });
+        break;
+      }
+      case 'choice': {
+        var pr = textInput(c.prompt || '', 'Prompt', 160);
+        add(field('Prompt', pr, 'Optional words shown above the options.'));
+        var opts = (c.options || []).map(function (o) { return { text: o.text || '', cond: o.cond === undefined ? null : clone(o.cond), cmds: Array.isArray(o.cmds) ? o.cmds : [] }; });
+        var box = el('div', 'ev-opts');
+        var cancel = { v: c.cancel === undefined ? '' : String(c.cancel) };
+        function paint() {
+          U.clear(box);
+          opts.forEach(function (o, i) {
+            var row = el('div', 'ev-opt'), t = textInput(o.text, 'Option ' + (i + 1), 120);
+            t.addEventListener('input', function () { o.text = t.value; });
+            row.appendChild(field('Option ' + (i + 1), t));
+            var cb = el('div', 'ev-cond'); STORY.condUI.mount(cb, o.cond, function (tr) { o.cond = tr; }, { nullable: true, emptyText: 'Always shown.', addLabel: 'Show only when' });
+            row.appendChild(cb);
+            var bar = el('div', 'btn-row');
+            [['Up', -1], ['Down', 1]].forEach(function (m) { var bb = el('button', 'btn btn-ghost', esc(m[0])); bb.type = 'button'; bb.disabled = i + m[1] < 0 || i + m[1] >= opts.length; bb.setAttribute('aria-label', 'Move option ' + (i + 1) + ' ' + m[0].toLowerCase()); bb.addEventListener('click', function () { var x = opts[i]; opts[i] = opts[i + m[1]]; opts[i + m[1]] = x; paint(); }); bar.appendChild(bb); });
+            var rm = el('button', 'btn btn-ghost', 'Remove'); rm.type = 'button'; rm.disabled = opts.length < 2; rm.setAttribute('aria-label', 'Remove option ' + (i + 1));
+            rm.addEventListener('click', function () { opts.splice(i, 1); paint(); }); bar.appendChild(rm);
+            row.appendChild(bar);
+            box.appendChild(row);
+          });
+          var ad = el('button', 'btn', '+ Option'); ad.type = 'button'; ad.setAttribute('aria-label', 'Add an option');
+          ad.addEventListener('click', function () { opts.push({ text: 'Option ' + (opts.length + 1), cond: null, cmds: [] }); paint(); });
+          box.appendChild(ad);
+        }
+        paint();
+        add(field('Options', box, 'Each option runs its own commands, edited in the block under the choice. An option whose condition fails is hidden.'));
+        var cs = selectOf([['', 'Cannot be cancelled']].concat(opts.map(function (o, i) { return [String(i), 'Cancel picks option ' + (i + 1)]; })), cancel.v, 'Cancel');
+        add(field('Cancel', cs), function () {
+          c.prompt = pr.value.trim(); if (!c.prompt) delete c.prompt;
+          c.options = opts.map(function (o) { var x = { text: o.text.trim() || 'Option', cmds: o.cmds }; if (o.cond) x.cond = o.cond; return x; });
+          if (cs.value !== '' && Number(cs.value) < c.options.length) c.cancel = Number(cs.value); else delete c.cancel;
+        });
+        break;
+      }
+      case 'if': {
+        var holder = { t: c.cond === undefined ? null : clone(c.cond) }, cb = el('div', 'ev-cond');
+        STORY.condUI.mount(cb, holder.t, function (tr) { holder.t = tr; }, { nullable: true, emptyText: 'No condition: then always runs.', addLabel: 'Add a condition' });
+        add(field('Condition', cb, 'Then runs when it passes, Else when it does not. Both are edited in the blocks under the if.'), function () { if (holder.t) c.cond = holder.t; else delete c.cond; });
+        break;
+      }
+      case 'setFlag': case 'addFlag': {
+        var f = { v: c.flg || '' }, n = numInput(c.op === 'setFlag' ? (c.value === undefined ? 1 : c.value) : (c.by === undefined ? 1 : c.by), c.op === 'setFlag' ? 'Value' : 'Add');
+        add(pickField('Flag', f, 'v', 'flg_', 'Choose a flag'));
+        add(field(c.op === 'setFlag' ? 'Value' : 'Add (negative to subtract)', n), function () { c.flg = f.v; if (c.op === 'setFlag') c.value = intOf(n, 1); else c.by = intOf(n, 1); });
+        break;
+      }
+      case 'giveItem': case 'takeItem': {
+        var it = { v: c.itm || '' }, q = numInput(c.qty || 1, 'Quantity');
+        add(pickField('Item or equipment', it, 'v', ['itm_', 'eqp_'], 'Choose an item'));
+        add(field('Quantity', q), function () { c.itm = it.v; c.qty = Math.max(1, intOf(q, 1)); });
+        break;
+      }
+      case 'gil': { var g = numInput(c.by || 0, 'Gil'); add(field('Gil (negative to take)', g), function () { c.by = intOf(g, 0); }); break; }
+      case 'questStage': {
+        var qs = { v: c.qst || '' }, mode = c.fail ? 'fail' : c.branch !== undefined ? 'branch' : 'stage', part = el('div');
+        var mSel = selectOf([['stage', 'Move to a stage'], ['branch', 'Commit a branch'], ['fail', 'Fail the quest']], mode, 'What happens');
+        var pick = { stage: c.stage || '', branch: c.branch || '', outcome: c.outcome || '' };
+        function paintQ() {
+          U.clear(part);
+          var q0 = qs.v && cur().story.records.qst_[qs.v];
+          if (!q0 || mSel.value === 'fail') return;
+          if (mSel.value === 'stage') {
+            var s1 = selectOf((q0.stages || []).map(function (s) { return [s.key, s.label || s.key]; }), pick.stage || ((q0.stages || [])[0] || {}).key || '', 'Stage');
+            pick.stage = s1.value; s1.addEventListener('change', function () { pick.stage = s1.value; });
+            part.appendChild(field('Stage', s1, 'Stages only move forward; skipped stages apply what they set.'));
+          } else {
+            var opts2 = []; (q0.branches || []).forEach(function (g0) { (g0.outcomes || []).forEach(function (o) { opts2.push([g0.key + '|' + o.key, (g0.label || g0.key) + ': ' + (o.label || o.key)]); }); });
+            if (!opts2.length) { part.appendChild(el('p', 'muted', 'This quest has no branch groups. Add one in Quests.')); return; }
+            var cur0 = pick.branch ? pick.branch + '|' + pick.outcome : opts2[0][0], s2 = selectOf(opts2, cur0, 'Outcome');
+            var setB = function () { var p = s2.value.split('|'); pick.branch = p[0]; pick.outcome = p[1]; };
+            setB(); s2.addEventListener('change', setB);
+            part.appendChild(field('Outcome', s2, 'Committing one outcome closes the rest of its group for good.'));
+          }
+        }
+        add(pickField('Quest', qs, 'v', 'qst_', 'Choose a quest', { onPick: function () { pick.stage = ''; pick.branch = ''; paintQ(); } }));
+        mSel.addEventListener('change', paintQ);
+        add(field('What happens', mSel)); add(part); paintQ();
+        reads.push(function () {
+          var o = { op: 'questStage', qst: qs.v };
+          if (mSel.value === 'fail') o.fail = true; else if (mSel.value === 'branch') { o.branch = pick.branch; o.outcome = pick.outcome; } else o.stage = pick.stage;
+          Object.keys(c).forEach(function (k) { delete c[k]; }); Object.keys(o).forEach(function (k) { c[k] = o[k]; });
+        });
+        break;
+      }
+      case 'party': {
+        var ch = { v: c.chr || '' }, act = selectOf([['join', 'Joins the party'], ['leave', 'Leaves the party']], c.act || 'join', 'Joins or leaves');
+        add(pickField('Character', ch, 'v', 'chr_', 'Choose a character'));
+        add(field('Joins or leaves', act), function () { c.chr = ch.v; c.act = act.value; });
+        break;
+      }
+      case 'startBattle': {
+        var tp = { v: c.trp || '' }, lose = el('input'), esc0 = el('input');
+        lose.type = 'checkbox'; lose.checked = Array.isArray(c.lose); esc0.type = 'checkbox'; esc0.checked = Array.isArray(c.escape);
+        add(pickField('Troop', tp, 'v', 'trp_', 'Choose a troop'));
+        var l1 = el('label', 'ev-check'); l1.appendChild(lose); l1.appendChild(el('span', null, 'A loss runs its own commands (otherwise a loss is game over)'));
+        var l2 = el('label', 'ev-check'); l2.appendChild(esc0); l2.appendChild(el('span', null, 'The party may escape (and escaping runs its own commands)'));
+        add(l1); add(l2, function () {
+          c.trp = tp.v; if (!Array.isArray(c.win)) c.win = [];
+          if (lose.checked) { if (!Array.isArray(c.lose)) c.lose = []; } else delete c.lose;
+          if (esc0.checked) { if (!Array.isArray(c.escape)) c.escape = []; } else delete c.escape;
+        });
+        break;
+      }
+      case 'moveActor': case 'face': {
+        var w = { who: c.who || 'player' }; add(whoField(w));
+        if (c.op === 'face') { var d = selectOf(DIRS, c.dir || 'down', 'Direction'); add(field('Direction', d), function () { c.who = w.who; c.dir = d.value; }); }
+        else { var pth = textInput((c.path || []).join(' '), 'Path', 200); add(field('Path', pth, 'Steps separated by spaces: up, down, left, right.'), function () { c.who = w.who; c.path = pth.value.toLowerCase().split(/[\s,]+/).filter(function (x) { return !!x; }); }); }
+        break;
+      }
+      case 'wait': { var fr = numInput(c.frames || 30, 'Frames'); add(field('Frames (60 is about one second)', fr), function () { c.frames = intOf(fr, 30); }); break; }
+      case 'fade': {
+        var to = selectOf([['out', 'Fade out'], ['in', 'Fade in']], c.to || 'out', 'Fade'), ff = numInput(c.frames || 30, 'Frames');
+        add(field('Fade', to)); add(field('Frames', ff), function () { c.to = to.value; c.frames = intOf(ff, 30); });
+        break;
+      }
+      case 'music': {
+        var md = selectOf([['role', 'A music role'], ['mus', 'A specific track'], ['stop', 'Stop the music']], c.stop ? 'stop' : c.mus ? 'mus' : 'role', 'Music'), mp = el('div');
+        var mh = { mus: c.mus || '' }, roles = E.musicRoles(), rs = selectOf(roles.map(function (r) { return [r, r]; }).concat(c.role && roles.indexOf(c.role) < 0 ? [[c.role, c.role + ' (not a Day 147 role)']] : []), c.role || roles[0], 'Role');
+        function paintM() { U.clear(mp); if (md.value === 'role') mp.appendChild(field('Role', rs, 'Day 147 scores music by role: town, dungeon, battle, boss, victory, field:<continent>, ending:<n>.')); else if (md.value === 'mus') mp.appendChild(pickField('Track', mh, 'mus', 'mus_', 'Choose a track')); }
+        md.addEventListener('change', paintM);
+        add(field('Music', md)); add(mp); paintM();
+        reads.push(function () { delete c.role; delete c.mus; delete c.stop; if (md.value === 'stop') c.stop = true; else if (md.value === 'mus') c.mus = mh.mus; else c.role = rs.value; });
+        break;
+      }
+      case 'sfx': { var sx = { v: c.sfx || '' }; add(pickField('Sound', sx, 'v', 'sfx_', 'Choose a sound'), function () { c.sfx = sx.v; }); break; }
+      case 'changeMap': {
+        var mm = { v: c.map || '' }, x = numInput((c.at || [0, 0])[0], 'X'), y = numInput((c.at || [0, 0])[1], 'Y'), dr = selectOf(DIRS, c.dir || 'down', 'Facing');
+        add(pickField('Map', mm, 'v', 'map_', 'Choose a map'));
+        var xy = el('div', 'ev-xy'); xy.appendChild(field('X', x)); xy.appendChild(field('Y', y)); xy.appendChild(field('Facing', dr));
+        add(xy, function () { c.map = mm.v; c.at = [Math.max(0, intOf(x, 0)), Math.max(0, intOf(y, 0))]; c.dir = dr.value; });
+        break;
+      }
+      case 'vehicle': {
+        var vk = selectOf([['ship', 'Ship'], ['airship', 'Airship']], c.kind || 'ship', 'Vehicle'), va = selectOf([['board', 'Board'], ['leave', 'Leave']], c.act || 'board', 'Board or leave');
+        add(field('Vehicle', vk)); add(field('Board or leave', va), function () { c.kind = vk.value; c.act = va.value; });
+        break;
+      }
+      case 'callEvent': { var ev = { v: c.evt || '' }; add(pickField('Event to run', ev, 'v', 'evt_', 'Choose an event', { help: 'Runs that event\'s active page, then carries on here.' }), function () { c.evt = ev.v; }); break; }
+      case 'ending': { var en = { v: c.end || '' }; add(pickField('Ending', en, 'v', 'end_', 'Choose an ending', { help: 'Endings arrive in Phase 6.' }), function () { c.end = en.v; }); break; }
+      default: body.appendChild(el('p', 'muted', 'This command cannot be edited here.'));
+    }
+    return function () { reads.forEach(function (r) { r(); }); return c; };
+  }
+  // Opens the editor for command c; save(cmd) commits and returns a result {ok, problems}. The dialog stays open on a refusal.
+  function cmdDialog(title, c, save) {
+    var work = clone(c), body = el('div', 'ev-dlg'), read = cmdFields(body, work), msg = el('div', 'field-msg');
+    body.appendChild(msg);
+    Kit.ui.dialog({ title: title, body: body, actions: [
+      { label: 'Cancel', kind: 'ghost', value: null },
+      { label: 'Save', kind: 'primary', onClick: function () {
+        var r = save(read());
+        if (!r.ok) { msg.innerHTML = '<span class="msg msg-error">' + esc(problemText(r)) + '</span>'; return false; }
+        redraw();
+      } }] });
+  }
+
+  // ---------------------------------------------------------------- the command tree
+  function opSelect() {
+    var s = el('select', 'inp ev-opsel'); s.setAttribute('aria-label', 'Kind of command');
+    E.OP_GROUPS.forEach(function (g) { var og = el('optgroup'); og.label = g[0]; g[1].forEach(function (op) { var o = el('option', null, esc(E.OP_LABEL[op])); o.value = op; og.appendChild(o); }); s.appendChild(og); });
+    s.value = 'text';
+    return s;
+  }
+  function adder(listPath, list, commit) {
+    var row = el('div', 'ev-adder'), s = opSelect();
+    row.appendChild(s);
+    row.appendChild(UI().button('Add', 'plus', '', function () {
+      cmdDialog('New: ' + E.OP_LABEL[s.value], E.blank(s.value), function (c) {
+        var n = E.tree.insert(list, listPath, null, c);
+        return n ? commit(n) : { ok: false, message: 'That list no longer exists.' };
+      });
+    }));
+    return row;
+  }
+  // Draws list (the page's whole cmds is root) at listPath, recursively.
+  function cmdList(root, listPath, commit, depth) {
+    var list = E.tree.list(root, listPath) || [], wrap = el('div', 'ev-list' + (depth ? ' ev-nest' : ''));
+    if (!list.length) wrap.appendChild(el('p', 'muted ev-none', depth ? 'Nothing here yet.' : 'No commands yet.'));
+    list.forEach(function (c, i) {
+      var path = listPath.concat([i]), blk = el('div', 'ev-cmd ev-op-' + (U.isObj(c) ? c.op : 'bad'));
+      blk.dataset.path = JSON.stringify(path);
+      var head = el('div', 'ev-cmd-h');
+      head.appendChild(el('span', 'ev-cmd-t', '<b>' + esc(U.isObj(c) && E.OP_LABEL[c.op] ? E.OP_LABEL[c.op] : 'Command') + '</b> ' + esc(E.cmdText(c))));
+      var bar = el('span', 'ev-cmd-b');
+      var ed = el('button', 'btn btn-ghost ev-mini', 'Edit'); ed.type = 'button'; ed.setAttribute('aria-label', 'Edit command');
+      ed.addEventListener('click', function () { cmdDialog('Edit: ' + (E.OP_LABEL[c.op] || c.op), c, function (nc) { var n = E.tree.put(root, path, nc); return n ? commit(n) : { ok: false, message: 'That command no longer exists.' }; }); });
+      bar.appendChild(ed);
+      [['Up', -1], ['Down', 1]].forEach(function (m) {
+        var b = el('button', 'btn btn-ghost ev-mini', esc(m[0])); b.type = 'button'; b.disabled = i + m[1] < 0 || i + m[1] >= list.length;
+        b.setAttribute('aria-label', 'Move command ' + m[0].toLowerCase());
+        b.addEventListener('click', function () { var n = E.tree.move(root, path, m[1]); if (n) { if (done(commit(n))) redraw(); } });
+        bar.appendChild(b);
+      });
+      var rm = el('button', 'btn btn-ghost ev-mini', 'Remove'); rm.type = 'button'; rm.setAttribute('aria-label', 'Remove command');
+      rm.addEventListener('click', function () {
+        var kids = E.tree.children(c).reduce(function (a, k) { return a + E.tree.count(k.list); }, 0);
+        var go = function () { var n = E.tree.remove(root, path); if (n && done(commit(n))) redraw(); };
+        if (!kids) { go(); return; }
+        Kit.ui.confirm({ title: 'Remove this command?', okLabel: 'Remove', message: 'It holds ' + plural(kids, 'command') + ' that go with it.' }).then(function (ok) { if (ok) go(); });
+      });
+      bar.appendChild(rm);
+      head.appendChild(bar);
+      blk.appendChild(head);
+      E.tree.children(c).forEach(function (k) {
+        var kid = el('div', 'ev-kid');
+        kid.appendChild(el('div', 'ev-kid-h', esc(k.label)));
+        kid.appendChild(cmdList(root, path.concat(k.seg), commit, (depth || 0) + 1));
+        blk.appendChild(kid);
+      });
+      wrap.appendChild(blk);
+    });
+    wrap.appendChild(adder(listPath, root, commit));
+    return wrap;
+  }
+
+  // ---------------------------------------------------------------- one event
+  var NEEDS = { mapEnter: ['map'], step: ['map', 'at'], autorun: ['map'], talk: ['npc'], battleEnd: ['trp'], chapterStart: [] };
+  function siteFields(body, h) {
+    var trig = selectOf(E.TRIGGERS.map(function (t) { return [t, E.TRIGGER_LABEL[t] || t]; }), h.trigger, 'Trigger'), box = el('div');
+    var x = numInput(h.at ? h.at[0] : 0, 'X'), y = numInput(h.at ? h.at[1] : 0, 'Y');
+    function paint() {
+      U.clear(box); h.trigger = trig.value;
+      var need = NEEDS[h.trigger] || [];
+      if (need.indexOf('map') >= 0) box.appendChild(pickField('Map', h, 'map', 'map_', 'Choose a map'));
+      if (need.indexOf('at') >= 0) { var xy = el('div', 'ev-xy'); xy.appendChild(field('X', x)); xy.appendChild(field('Y', y)); box.appendChild(xy); }
+      if (need.indexOf('npc') >= 0) box.appendChild(pickField('Person', h, 'npc', 'npc_', 'Choose a person'));
+      if (h.trigger === 'battleEnd') box.appendChild(pickField('Troop', h, 'trp', 'trp_', 'Any battle', { clear: true }));
+    }
+    trig.addEventListener('change', paint);
+    body.appendChild(field('Trigger', trig)); body.appendChild(box); paint();
+    return function () { var need = NEEDS[h.trigger] || []; h.at = need.indexOf('at') >= 0 ? [Math.max(0, intOf(x, 0)), Math.max(0, intOf(y, 0))] : null; };
+  }
+  function eventSettings(rec) {
+    var body = el('div', 'ev-dlg'), nm = textInput(rec.name, 'Name', 120);
+    var h = { trigger: rec.trigger || 'talk', map: rec.map || '', npc: rec.npc || '', trp: rec.trp || '', at: Array.isArray(rec.at) ? rec.at.slice() : null };
+    body.appendChild(field('Name', nm));
+    var readSite = siteFields(body, h);
+    var chs = selectOf(chapterOptions(), rec.chapter || '', 'Chapter'), pr = numInput(rec.priority === undefined ? 0 : rec.priority, 'Priority');
+    var notes = el('textarea', 'inp ev-lines'); notes.value = rec.notes || ''; notes.setAttribute('aria-label', 'Note');
+    body.appendChild(field('Chapter', chs)); body.appendChild(field('Priority', pr, 'When two events fire on the same spot, the higher one runs first.')); body.appendChild(field('Note', notes));
+    var msg = el('div', 'field-msg'); body.appendChild(msg);
+    Kit.ui.dialog({ title: 'Event settings', body: body, actions: [
+      { label: 'Cancel', kind: 'ghost', value: null },
+      { label: 'Save', kind: 'primary', onClick: function () {
+        readSite();
+        var r = E.update(rec.id, { name: nm.value, trigger: h.trigger, map: h.map || null, npc: h.npc || null, trp: h.trp || null, at: h.at, chapter: chs.value || null, priority: intOf(pr, 0), notes: notes.value });
+        if (!r.ok) { msg.innerHTML = '<span class="msg msg-error">' + esc(problemText(r)) + '</span>'; return false; }
+        Kit.ui.toast('Event saved.', 'ok'); redraw();
+      } }] });
+  }
+  function addEvent() {
+    var body = el('div', 'ev-dlg'), nm = textInput('', 'Name', 120), h = { trigger: 'talk', map: '', npc: '', trp: '', at: null };
+    body.appendChild(field('Name', nm));
+    var readSite = siteFields(body, h), chs = selectOf(chapterOptions(), '', 'Chapter');
+    body.appendChild(field('Chapter', chs));
+    var msg = el('div', 'field-msg'); body.appendChild(msg);
+    Kit.ui.dialog({ title: 'New event', body: body, actions: [
+      { label: 'Cancel', kind: 'ghost', value: null },
+      { label: 'Add', kind: 'primary', onClick: function () {
+        readSite();
+        var r = E.add({ name: nm.value, trigger: h.trigger, map: h.map, npc: h.npc, trp: h.trp, at: h.at, chapter: chs.value });
+        if (!r.ok) { msg.innerHTML = '<span class="msg msg-error">' + esc(problemText(r)) + '</span>'; return false; }
+        st.open[r.record.id] = true; st.filter = 'all'; st.focus = r.record.id;
+        Kit.ui.toast('Event added.', 'ok'); redraw();
+      } }] });
+  }
+  function pageEditor(rec, i) {
+    var p = rec.pages[i], box = el('div', 'ev-page');
+    box.appendChild(el('h4', 'ev-sub', 'Page ' + (i + 1) + (i === rec.pages.length - 1 && rec.pages.length > 1 ? ', checked first' : '')));
+    var cb = el('div', 'ev-cond');
+    STORY.condUI.mount(cb, U.isObj(p) && p.cond !== undefined ? p.cond : null, function (t) { if (done(E.updatePage(rec.id, i, { cond: t }))) redraw(); }, { nullable: true, emptyText: 'Always runs (when no later page passes).', addLabel: 'Run only when' });
+    box.appendChild(field('Runs when', cb));
+    box.appendChild(UI().toggle('Once: runs one time, then steps aside', U.isObj(p) && p.once === true, function (on) { if (done(E.updatePage(rec.id, i, { once: on }))) redraw(); }));
+    box.appendChild(el('h4', 'ev-sub', 'Commands'));
+    var root = U.isObj(p) && Array.isArray(p.cmds) ? p.cmds : [];
+    box.appendChild(cmdList(root, [], function (n) { return E.setCmds(rec.id, i, n); }, 0));
+    var bar = el('div', 'btn-row ev-pagebar');
+    bar.appendChild(UI().button('Move left', null, 'btn-ghost', function () { if (done(E.movePage(rec.id, i, -1))) { st.page[rec.id] = i - 1; redraw(); } }));
+    bar.appendChild(UI().button('Move right', null, 'btn-ghost', function () { if (done(E.movePage(rec.id, i, 1))) { st.page[rec.id] = i + 1; redraw(); } }));
+    bar.appendChild(UI().button('Remove page', 'trash', 'btn-ghost', function () { if (done(E.removePage(rec.id, i))) { st.page[rec.id] = Math.max(0, i - 1); redraw(); } }));
+    if (i === 0) bar.firstChild.disabled = true;
+    if (i === rec.pages.length - 1) bar.children[1].disabled = true;
+    if (rec.pages.length < 2) bar.children[2].disabled = true;
+    box.appendChild(bar);
+    return box;
+  }
+  function fillEvent(body, rec, b) {
+    var idx = STORY.engineIndex(b), probs = E.check(rec, b, idx).filter(function (p) { return p.level === 'error' || p.level === 'warning'; });
+    var kvp = [['ID', '<code class="id">' + esc(rec.id) + '</code>'], ['Fires', esc(E.whereText(rec))]];
+    if (rec.chapter) kvp.push(['Chapter', esc(chName(rec.chapter))]);
+    kvp.push(['Priority', esc(rec.priority === undefined ? 0 : rec.priority)]);
+    if (rec.dgn) kvp.push(['Boss of', esc(nameOf(rec.dgn, rec.dgn)) + (rec.slot ? ' ' + UI().chip('chip-warning', 'empty slot filled by the story') : '')]);
+    var users = E.usedBy(rec.id, b);
+    if (users.length) kvp.push(['Run by', esc(users.map(function (u) { return u.name; }).join(', '))]);
+    body.appendChild(el('div', null, UI().kv(kvp)));
+    if (rec.notes) body.appendChild(el('p', 'muted ev-notes', esc(rec.notes)));
+    if (probs.length) { var pl = el('ul', 'ev-probs'); probs.slice(0, 8).forEach(function (p) { pl.appendChild(el('li', p.level === 'error' ? 'ev-err' : 'ev-warn', esc(p.message))); }); body.appendChild(pl); }
+    var pages = Array.isArray(rec.pages) ? rec.pages : [], sel = Math.min(st.page[rec.id] === undefined ? pages.length - 1 : st.page[rec.id], Math.max(0, pages.length - 1));
+    var tabs = el('div', 'fg-filter ev-pages');
+    pages.forEach(function (p, i) {
+      var bt = el('button', 'btn', esc('Page ' + (i + 1) + (U.isObj(p) && p.once ? ' (once)' : ''))); bt.type = 'button'; bt.setAttribute('aria-pressed', i === sel ? 'true' : 'false');
+      bt.addEventListener('click', function () { st.page[rec.id] = i; redraw(); });
+      tabs.appendChild(bt);
+    });
+    var ap = el('button', 'btn btn-ghost', '+ Page'); ap.type = 'button'; ap.setAttribute('aria-label', 'Add a page');
+    ap.addEventListener('click', function () { if (done(E.addPage(rec.id, { cmds: [] }))) { st.page[rec.id] = pages.length; redraw(); } });
+    tabs.appendChild(ap);
+    body.appendChild(tabs);
+    if (pages.length) body.appendChild(pageEditor(rec, sel));
+    var acts = el('div', 'btn-row fg-bacts');
+    acts.appendChild(UI().button('Play', 'play', 'btn-primary', function () { st.pt.evt = rec.id; st.pt.page = ''; startPlay(); redraw(); var pv = document.getElementById('evPlay'); if (pv && typeof pv.scrollIntoView === 'function') pv.scrollIntoView({ block: 'start' }); }));
+    acts.appendChild(UI().button('Settings', 'edit', '', function () { eventSettings(rec); }));
+    if (rec.origin === 'generated' && E.isEdited(rec)) acts.appendChild(UI().button('Reset to generated', null, 'btn-ghost', function () {
+      Kit.ui.confirm({ title: 'Reset this event?', okLabel: 'Reset event', message: 'Your edits to "' + rec.name + '" are replaced by what the world asks for.' }).then(function (ok) { if (!ok) return; var r = E.reset(rec.id); if (r.ok) { Kit.ui.toast('Event reset.', 'ok'); redraw(); } else Kit.ui.toast(r.message, 'warn'); });
+    }));
+    acts.appendChild(UI().button('Delete', 'trash', 'btn-danger', function () {
+      Kit.ui.confirm({ title: 'Delete ' + rec.name + '?', okLabel: 'Delete event', message: users.length ? plural(users.length, 'event') + ' run it and will point at nothing.' : rec.origin === 'generated' ? 'The next build makes it again.' : 'Nothing runs it.' }).then(function (ok) { if (!ok) return; if (E.remove(rec.id).ok) { Kit.ui.toast('Event deleted.', 'ok'); redraw(); } });
+    }));
+    body.appendChild(acts);
+  }
+  function eventItem(rec, b, idx) {
+    var wrap = el('div', 'fg-item ev-item'), open = !!st.open[rec.id], err = E.check(rec, b, idx).some(function (p) { return p.level === 'error'; });
+    wrap.dataset.evt = rec.id;
+    var meta = UI().chip('chip-accent', E.KIND_LABEL[rec.kind] || 'Event') + ' ' + UI().chip('chip-muted', E.TRIGGER_LABEL[rec.trigger] || String(rec.trigger)) + (rec.chapter ? ' ' + UI().chip('chip-muted', chName(rec.chapter)) : '') + ' ' + UI().chip('chip-muted', plural((rec.pages || []).length, 'page')) +
+      (rec.origin === 'user' ? ' ' + UI().chip('chip-muted', 'yours') : E.isEdited(rec) ? ' ' + UI().chip('chip-muted', 'edited') : '') + (err ? ' ' + UI().chip('chip-error', 'error') : '');
+    var head = el('button', 'btn fg-head', '<span class="fg-name">' + esc(rec.name) + '</span><span class="fg-meta">' + meta + '</span>');
+    head.type = 'button'; head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    var body = el('div', 'fg-body'); body.hidden = !open;
+    if (open) fillEvent(body, rec, b);
+    head.addEventListener('click', function () {
+      st.open[rec.id] = body.hidden;
+      if (body.hidden && !body.firstChild) fillEvent(body, rec, b);
+      body.hidden = !body.hidden; head.setAttribute('aria-expanded', body.hidden ? 'false' : 'true');
+    });
+    wrap.appendChild(head); wrap.appendChild(body);
+    return wrap;
+  }
+
+  // ---------------------------------------------------------------- the playtester
+  function startState() {
+    var pt = st.pt, last = pt.sess && E.session.current(pt.sess);
+    if (pt.carry && last && last.state && !last.state.run && !last.state.ending) return last.state;
+    return E.playState(cur(), { chapter: pt.chapter || null, quests: pt.quests });
+  }
+  function startPlay() {
+    var pt = st.pt;
+    if (!pt.evt || !cur().story.records.evt_[pt.evt]) { Kit.ui.toast('Choose an event to play.', 'warn'); return; }
+    pt.sess = E.session.begin(cur(), pt.evt, startState(), pt.page === '' ? null : { page: Number(pt.page) });
+  }
+  function inspector(state, idx) {
+    var info = E.inspect(state, idx), box = el('div', 'ev-insp');
+    box.appendChild(el('h4', 'ev-sub', 'Inspector'));
+    box.appendChild(el('div', null, UI().kv([['Chapter', esc(info.chapterName || 'none')], ['Gil', esc(info.gil)], ['Party', esc(info.party.map(function (p) { return nameOf(p, p); }).join(', ') || 'nobody')],
+      ['Items', esc(info.items.map(function (i) { return i.qty + ' ' + i.name; }).join(', ') || 'none')], ['Ending', esc(info.ending ? nameOf(info.ending, info.ending) : 'not yet')]])));
+    var qs = info.quests.filter(function (q) { return st.pt.all || q.stage !== null || q.failed; });
+    var qt = el('div', 'ev-insp-list');
+    qt.appendChild(el('div', 'ev-insp-h', 'Quests' + (st.pt.all ? '' : ' (started)')));
+    if (!qs.length) qt.appendChild(el('p', 'muted ev-none', 'No quest has started.'));
+    qs.forEach(function (q) { qt.appendChild(el('div', 'ev-insp-row' + (q.done ? ' ev-ok' : q.failed ? ' ev-err' : ''), '<span>' + esc(q.name) + '</span><span>' + esc(q.failed ? 'failed' : q.label) + (q.closed.length ? esc(' (closed ' + q.closed.join(', ') + ')') : '') + '</span>')); });
+    box.appendChild(qt);
+    var fs = info.flags.filter(function (f) { return st.pt.all || f.changed; });
+    var ft = el('div', 'ev-insp-list');
+    ft.appendChild(el('div', 'ev-insp-h', 'Flags' + (st.pt.all ? '' : ' (not at their default)')));
+    if (!fs.length) ft.appendChild(el('p', 'muted ev-none', 'Every flag is at its default.'));
+    fs.forEach(function (f) { ft.appendChild(el('div', 'ev-insp-row' + (f.changed ? ' ev-chg' : ''), '<span>' + esc(f.name) + '</span><span>' + esc(f.value) + '</span>')); });
+    box.appendChild(ft);
+    box.appendChild(UI().toggle('Show every quest and flag', st.pt.all, function (on) { st.pt.all = on; redraw(); }));
+    return box;
+  }
+  function playPanel(host, b) {
+    var pt = st.pt, box = el('section', 'panel fg-card ev-play'); box.id = 'evPlay';
+    box.appendChild(el('h3', 'section-h', 'Playtester'));
+    box.appendChild(el('p', 'muted', 'Plays an event through the real engine, one stop at a time. Battles wait for you to say how they went; Back returns to the state before the last stop.'));
+    var evs = E.list(b), row = el('div', 'ev-pvrow');
+    var es = selectOf([['', 'Choose an event']].concat(evs.map(function (e) { return [e.id, e.name]; })), pt.evt, 'Event to play');
+    es.addEventListener('change', function () { pt.evt = es.value; pt.page = ''; redraw(); });
+    row.appendChild(field('Event', es));
+    var rec = pt.evt && b.story.records.evt_[pt.evt];
+    var ps = selectOf([['', 'The page the story picks']].concat((rec && rec.pages || []).map(function (p, i) { return [String(i), 'Force page ' + (i + 1)]; })), pt.page, 'Page');
+    ps.addEventListener('change', function () { pt.page = ps.value; });
+    row.appendChild(field('Page', ps));
+    var cs = selectOf(chapterOptions('Start of the game'), pt.chapter, 'Chapter to start in');
+    cs.addEventListener('change', function () { pt.chapter = cs.value; });
+    row.appendChild(field('Start in chapter', cs));
+    box.appendChild(row);
+    var qd = el('details', 'ev-qd'); qd.appendChild(el('summary', null, 'Quest stages to start from'));
+    var qrow = el('div', 'ev-pvrow');
+    STORY.records.list('qst_', b).filter(function (q) { return Array.isArray(q.stages) && q.stages.length; }).forEach(function (q) {
+      var s = selectOf([['', 'Not started']].concat(q.stages.map(function (x) { return [x.key, x.label || x.key]; })).concat([['failed', 'Failed']]), pt.quests[q.id] || '', 'Stage of ' + q.name);
+      s.addEventListener('change', function () { pt.quests[q.id] = s.value; });
+      qrow.appendChild(field(q.name, s));
+    });
+    qd.appendChild(qrow); box.appendChild(qd);
+    box.appendChild(UI().toggle('Carry on from where the last run ended', pt.carry, function (on) { pt.carry = on; }));
+    var bar = el('div', 'btn-row');
+    bar.appendChild(UI().button('Play', 'play', 'btn-primary', function () { startPlay(); redraw(); }));
+    if (pt.sess) bar.appendChild(UI().button('Clear', null, 'btn-ghost', function () { pt.sess = null; redraw(); }));
+    box.appendChild(bar);
+    if (pt.sess) {
+      var r = E.session.current(pt.sess), log = el('div', 'ev-log'); log.setAttribute('role', 'log'); log.setAttribute('aria-live', 'polite');
+      E.session.log(pt.sess).forEach(function (l) { log.appendChild(el('p', 'ev-l ev-l-' + l.cls, (l.who ? '<strong>' + esc(l.who) + ':</strong> ' : '') + esc(l.text))); });
+      var ctl = el('div', 'ev-ctl');
+      if (r.waiting === 'choice' && r.effect && Array.isArray(r.effect.options)) {
+        r.effect.options.forEach(function (o) { var b2 = el('button', 'btn ev-opt', esc(o.text)); b2.type = 'button'; b2.addEventListener('click', function () { E.session.choose(pt.sess, o.index); redraw(); }); ctl.appendChild(b2); });
+      } else if (r.waiting === 'battle') {
+        ctl.appendChild(UI().button('Win', null, 'btn-primary', function () { E.session.resolve(pt.sess, 'win'); redraw(); }));
+        ctl.appendChild(UI().button('Lose', null, '', function () { E.session.resolve(pt.sess, 'lose'); redraw(); }));
+        if (r.effect && Array.isArray(r.effect.escape)) ctl.appendChild(UI().button('Escape', null, '', function () { E.session.resolve(pt.sess, 'escape'); redraw(); }));
+      } else if (!r.done) ctl.appendChild(UI().button('Continue', 'play', 'btn-primary', function () { E.session.next(pt.sess); redraw(); }));
+      if (pt.sess.frames.length > 1) ctl.appendChild(UI().button('Back', null, 'btn-ghost', function () { E.session.back(pt.sess); redraw(); }));
+      if (r.done) ctl.appendChild(el('span', 'muted ev-donemsg', 'The run is over. Turn on carry on and play the next event to keep going.'));
+      var split = el('div', 'ev-split'), left = el('div', 'ev-left');
+      left.appendChild(log); left.appendChild(ctl);
+      split.appendChild(left); split.appendChild(inspector(r.state, pt.sess.idx));
+      box.appendChild(split);
+    }
+    host.appendChild(box);
+  }
+
+  // ---------------------------------------------------------------- bosses and the golden path
+  function bossPanel(host, b) {
+    var slots = E.bosses(b).filter(function (x) { return x.slot; });
+    if (!slots.length) return;
+    var p = el('section', 'panel fg-card');
+    p.appendChild(el('h3', 'section-h', 'Empty boss slots'));
+    p.appendChild(el('p', 'muted', 'Day 148 left these boss dungeons without a troop. The story fills each one from its own side: choose the troop its boss event starts. The world is never edited.'));
+    var trs = STORY.rules('trp_', b);
+    slots.forEach(function (s) {
+      var row = el('div', 'ev-slot');
+      row.appendChild(el('div', 'ev-slot-n', '<strong>' + esc(chName(s.chapter)) + '</strong><span class="muted"> ' + esc(s.name) + (s.chosen ? '' : ' (default pick)') + '</span>'));
+      var sel = selectOf(trs.map(function (t) { return [t.id, t.name || t.id]; }), s.troop || '', 'Troop for ' + s.name);
+      sel.addEventListener('change', function () {
+        var r = E.setBossTroop(s.dgn, sel.value);
+        if (!r.ok) { Kit.ui.toast(r.message, 'warn'); return; }
+        Kit.ui.toast(r.kept ? 'Troop chosen. The boss event was edited by you, so it was not changed; reset it to use the new troop.' : r.refreshed ? 'Troop chosen and the boss event updated.' : 'Troop chosen. Build events to make the boss event.', r.kept ? 'warn' : 'ok', 5000);
+        redraw();
+      });
+      row.appendChild(sel);
+      p.appendChild(row);
+    });
+    host.appendChild(p);
+  }
+  function goldenPanel(host) {
+    var g = st.golden;
+    if (!g) return;
+    var p = el('section', 'panel fg-card ev-golden');
+    p.appendChild(el('h3', 'section-h', 'Golden path'));
+    p.appendChild(el('p', g.ended ? 'msg s9-ok' : 'msg msg-warning', esc(g.ended ? 'The story reaches ' + nameOf(g.ended, g.ended) + ' in ' + plural(g.steps.length, 'event') + '.' : 'The path stops after ' + plural(g.steps.length, 'event') + ' without an ending' + (g.mainDone !== undefined ? ' (' + g.mainDone + ' of ' + g.mains + ' main quests complete)' : '') + '.')));
+    var ol = el('ol', 'ev-gsteps');
+    g.steps.forEach(function (s) { var li = el('li'); var a = el('button', 'btn btn-ghost ev-glink', esc(s.name)); a.type = 'button'; a.addEventListener('click', function () { focus(s.evt); }); li.appendChild(a); li.appendChild(el('span', 'muted', ' ' + esc(s.effects.join(', ')))); ol.appendChild(li); });
+    p.appendChild(ol);
+    p.appendChild(el('p', 'muted', 'One path, by a player who does what the story asks: every choice takes its first option and every battle is won. Phase 7 proves every path.'));
+    host.appendChild(p);
+  }
+
+  // ---------------------------------------------------------------- the tab
+  function render(host) {
+    var b = cur(), sum = E.summary(b), idx = STORY.engineIndex(b);
+    var head = el('section', 'panel');
+    head.innerHTML = '<h2 class="panel-title">Events</h2><p class="muted fg-lead">An event fires on a trigger: entering a map, stepping on a cell, talking to a person, at once, after a battle, or when a chapter starts. It holds pages, and the rightmost page whose condition passes runs its commands. Build the events the world asks for (chapter openers, seal chests, bosses, exits, the givers, and the finale), then edit any of them and play them here.</p>';
+    head.appendChild(el('div', 'fg-stats', UI().chip('chip-accent', plural(sum.total, 'event')) + ' ' + UI().chip('chip-muted', plural(sum.pages, 'page')) + ' ' + UI().chip('chip-muted', plural(sum.cmds, 'command')) +
+      (sum.authored ? ' ' + UI().chip('chip-muted', sum.authored + ' made by hand') : '') + (sum.edited ? ' ' + UI().chip('chip-muted', sum.edited + ' edited') : '') + (sum.errors ? ' ' + UI().chip('chip-error', plural(sum.errors, 'event') + ' with errors') : '') +
+      (sum.missing || sum.stale ? ' ' + UI().chip('chip-warning', sum.missing ? 'not built yet' : 'out of date', 'The world, the quests, or the endings ask for events that are missing or have changed.') : sum.total ? ' ' + UI().chip('chip-ok', 'up to date') : '')));
+    var row = el('div', 'btn-row');
+    row.appendChild(UI().button(sum.total ? 'Update events' : 'Build events from the world', 'check', sum.missing || sum.stale || !sum.total ? 'btn-primary' : '', function () {
+      var rep = E.scaffold();
+      Kit.ui.toast(E.reportText(rep), rep.skipped ? 'warn' : 'ok', 6000);
+      redraw();
+    }));
+    row.appendChild(UI().button('Add event', 'plus', '', addEvent));
+    row.appendChild(UI().button('Play the golden path', 'play', '', function () {
+      var g = E.golden(cur()), mains = STORY.records.list('qst_').filter(function (q) { return q.kind === 'main' && Array.isArray(q.stages) && q.stages.length; });
+      g.mains = mains.length; g.mainDone = mains.filter(function (q) { var s0 = g.state.quests[q.id]; return s0 && !s0.failed && s0.stage === q.stages[q.stages.length - 1].key; }).length;
+      st.golden = g; redraw();
+    }));
+    head.appendChild(row);
+    host.appendChild(head);
+    goldenPanel(host);
+    bossPanel(host, b);
+    playPanel(host, b);
+    var list = el('section', 'panel fg-card'), recs = E.list(b);
+    list.appendChild(el('h3', 'section-h', 'All events'));
+    var bar = el('div', 'fg-filter');
+    FILTERS.forEach(function (f) {
+      var bt = el('button', 'btn', esc(f[1])); bt.type = 'button'; bt.setAttribute('aria-pressed', st.filter === f[0] ? 'true' : 'false');
+      bt.addEventListener('click', function () { st.filter = f[0]; Array.prototype.forEach.call(bar.children, function (c, i) { c.setAttribute('aria-pressed', FILTERS[i][0] === st.filter ? 'true' : 'false'); }); paint(); });
+      bar.appendChild(bt);
+    });
+    list.appendChild(bar);
+    var items = el('div', 'fg-list'), count = el('p', 'muted fg-count');
+    list.appendChild(count); list.appendChild(items);
+    var paint = function () {
+      U.clear(items);
+      var shown = recs.filter(function (r) { return st.filter === 'all' ? true : st.filter === 'talk' ? (r.kind === 'talk' || r.kind === 'arrive') : st.filter === 'custom' ? (r.origin === 'user' || r.kind === 'custom') : r.kind === st.filter; });
+      count.textContent = shown.length === recs.length ? plural(recs.length, 'event') : shown.length + ' of ' + plural(recs.length, 'event');
+      if (!shown.length) items.appendChild(el('div', 'empty-line', recs.length ? 'No event matches.' : 'No events yet. Build events from the world to open chapters, hand out seals, start bosses, and close each chapter.'));
+      shown.forEach(function (r) { items.appendChild(eventItem(r, b, idx)); });
+    };
+    paint();
+    host.appendChild(list);
+    if (st.focus) {
+      var id = st.focus, node = host.querySelector('[data-evt="' + id + '"]');
+      st.focus = null;
+      if (node) { if (typeof node.scrollIntoView === 'function') node.scrollIntoView({ block: 'center' }); var hb = node.querySelector('.fg-head'); if (hb) try { hb.focus({ preventScroll: true }); } catch (e) { /* no focus */ } }
+    }
+  }
+  function focus(rid) {
+    if (!rid) return;
+    st.open[rid] = true; st.filter = 'all'; st.focus = rid;
+    Kit.rerender();
+  }
+  STORY.WS = STORY.WS || {};
+  STORY.WS.events = { render: render, focus: focus };
+  Kit.jump.register({ test: function (rid) { return Kit.ids.prefixOf(rid) === 'evt_'; }, name: function (rid) { return nameOf(rid, rid); }, go: function (rid) { if (!Kit.go('events')) return false; focus(rid); return true; } });
+})();
+// === WS:EVENTS END ===
 // === WS:STORY149 BEGIN ===
 (function () {
   'use strict';
@@ -8811,7 +10422,8 @@ var ENGINE_STORY = (function () {
       var reg = regs.filter(function (r) { return r.chapter === c.id; })[0];
       var sites = dgn.concat(twn).filter(function (s) { return s.chapter === c.id; });
       var boss = dgn.filter(function (d) { return d.chapter === c.id && d.role === 'boss'; })[0];
-      var bossCell = !boss ? chip('chip-muted', 'no boss dungeon') : boss.troop ? esc(nameOf(boss.troop)) + (boss.finale ? ' ' + chip('chip-accent', 'finale') : '') : chip('chip-warning', 'empty slot', 'Day 148 left this boss slot empty; the story fills it with a boss event (Phase 5).');
+      var slotT = boss && !boss.troop && STORY.events ? STORY.events.bossTroop(boss.id, b).trp : null;
+      var bossCell = !boss ? chip('chip-muted', 'no boss dungeon') : boss.troop ? esc(nameOf(boss.troop)) + (boss.finale ? ' ' + chip('chip-accent', 'finale') : '') : (slotT ? esc(nameOf(slotT)) + ' ' : '') + chip('chip-warning', 'empty slot', 'Day 148 left this boss slot empty; the story fills it with its boss event (Events tab).');
       return '<tr><th scope="row">' + esc(c.name || c.id) + (reg ? '<small class="s9-sub">' + esc(reg.name) + '</small>' : '') + '</th><td>' + esc(c.continentLabel || 'Default') + '</td><td class="num">' + esc(c.targetMinutes || 0) + '</td><td class="num">' + sites.length + '</td><td>' + bossCell + '</td></tr>';
     })));
     var okFloor = total >= floor;

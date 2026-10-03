@@ -129,7 +129,7 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
     !/not filled yet/.test(ws) && /Completion flag/.test(ws) && /The lost ring/.test(ws) && /Delivered/.test(ws));
   check('later tabs unlock once a ready bundle is loaded', !d.querySelectorAll('#tabs .tab.locked').length);
   for (const t of ['flags', 'quests', 'dialogue', 'events']) { Kit.go(t); await wait(5); }
-  check('Flags, Quests, Dialogue, Events are stubs naming their phase', Kit.active() === 'events' && /Arrives in Phase 5/.test(d.getElementById('ws').textContent));
+  check('Flags, Quests, Dialogue, Events all mount their real tabs (no phase stubs remain)', Kit.active() === 'events' && !/Arrives in Phase/.test(d.getElementById('ws').textContent) && /Build events from the world/.test(d.getElementById('ws').textContent));
 
   // ---------------------------------------------------------------- 3. Records, validation, the envelope.
   Kit.bundle.importText(demoText); await wait(10); b = Kit.bundle.current();

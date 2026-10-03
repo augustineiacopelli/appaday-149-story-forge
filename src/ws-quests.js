@@ -163,7 +163,7 @@
     if (last) box.appendChild(el('p', 'muted', 'The last stage ends the quest, and the engine sets the completion flag when it is entered.'));
     else {
       var cond = el('div', 'qs-cond');
-      STORY.condUI.mount(cond, draft.exitWhen === undefined ? null : draft.exitWhen, function (t) { if (t === null) delete draft.exitWhen; else draft.exitWhen = t; }, { nullable: true, emptyText: 'No condition: a person talking or an event moves the quest on (Events arrive in Phase 5).', addLabel: 'Move on when a condition passes' });
+      STORY.condUI.mount(cond, draft.exitWhen === undefined ? null : draft.exitWhen, function (t) { if (t === null) delete draft.exitWhen; else draft.exitWhen = t; }, { nullable: true, emptyText: 'No condition: a person talking or an event moves the quest on (see Events).', addLabel: 'Move on when a condition passes' });
       box.appendChild(field('Moves on', cond, 'The engine checks this after every event. Stages only move forward.'));
     }
     var sets = el('div', 'qs-sets');

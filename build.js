@@ -59,7 +59,7 @@ if (engineBase.split(FREEZE).length !== 2) throw new Error('ENGINE:STORY freeze 
 const engineStory = engineBase.replace(FREEZE, () => ENGINE_SECTIONS.map((f) => R(f).replace(/\s+$/, '') + '\n\n').join('') + FREEZE).trim();
 // Workspace fences arrive with later phases; each is optional until its phase.
 const CSS_FENCES = ['src/story-flags.css', 'src/story-quests.css', 'src/story-dialogue.css', 'src/story-events.css', 'src/story-validation.css'].filter(exists);
-const JS_FENCES = ['src/story-scaffold.js', 'src/story-quests.js', 'src/story-dialogue.js', 'src/story-checks.js', 'src/ws-flags.js', 'src/ws-cond.js', 'src/ws-quests.js', 'src/ws-dialogue.js', 'src/ws-events.js', 'src/ws-validation.js'].filter(exists);
+const JS_FENCES = ['src/story-scaffold.js', 'src/story-quests.js', 'src/story-dialogue.js', 'src/story-events.js', 'src/story-checks.js', 'src/ws-flags.js', 'src/ws-cond.js', 'src/ws-quests.js', 'src/ws-dialogue.js', 'src/ws-events.js', 'src/ws-validation.js'].filter(exists);
 
 const html = `<!--
 ${buildLog.trim()}

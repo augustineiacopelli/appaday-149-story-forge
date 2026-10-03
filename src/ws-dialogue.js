@@ -125,7 +125,7 @@
       case 'gil': return (c.by < 0 ? 'Take ' + (-c.by) : 'Give ' + c.by) + ' gil';
       case 'questStage': return c.fail ? 'Fail ' + nameOf(c.qst, c.qst || '?') : c.stage !== undefined ? nameOf(c.qst, c.qst || '?') + ' moves to stage ' + c.stage : nameOf(c.qst, c.qst || '?') + ' branch ' + c.branch;
       case 'party': return nameOf(c.chr, c.chr || '?') + (c.act === 'leave' ? ' leaves the party' : ' joins the party');
-      default: return 'Command ' + c.op + ' (edit it in Events, Phase 5)';
+      default: return STORY.events ? STORY.events.cmdText(c) + ' (edit it in Events)' : 'Command ' + c.op;
     }
   }
   function newCmd(op, pick) {

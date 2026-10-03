@@ -525,7 +525,7 @@
   {
    "name": "twenty syncs of a settled bundle take under a second",
    "ok": true,
-   "detail": 55
+   "detail": 47
   },
   {
    "name": "the Draft carries the flags, the bindings, and the slot flag of the hand made quest",
