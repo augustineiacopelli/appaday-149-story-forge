@@ -184,6 +184,8 @@
     if (!list.length) return [];
     var e = list[0], then = [];
     if (typeof e.music === 'string' && e.music) then.push(/^mus_/.test(e.music) ? { op: 'music', mus: e.music } : { op: 'music', role: e.music });
+    var lines = (Array.isArray(e.epilogue) ? e.epilogue : []).filter(function (l) { return typeof l === 'string' && trim(l); });
+    if (lines.length) then.push({ op: 'text', lines: lines.map(trim) });
     then.push({ op: 'ending', end: e.id });
     if (alwaysTrue(e.cond)) return then;
     var rest = endingCmds(list.slice(1)), c = { op: 'if', cond: clone(e.cond), then: then };
@@ -296,11 +298,17 @@
     var lastCh = chs.length ? chs[chs.length - 1] : null, lastQ = lastCh ? mainQuest(lastCh.id, b) : null;
     var fin = [];
     if (lastQ) fin.push(moveTo(lastQ, lastQ.stages[lastQ.stages.length - 1].key));
-    var ends = endingCmds(E.endingOrder(b));
+    var ends = endingCmds(E.endingOrder(b)), fc = STORY.ends && STORY.ends.flagChoices ? STORY.ends.flagChoices(b) : null;
     if (!ends.length) fin.push(narrate(['The tale is told.']));
+    // An earned ending with no quests to read waits on a managed flag; the finale asks the player which ending they choose, and
+    // the answer sets that flag. The first option is the fallback, so a player who just continues gets the fallback.
+    if (fc && ends.length) {
+      fin.push(narrate(['The tale is nearly told. How does it end?']));
+      fin.push({ op: 'choice', options: [{ text: fc.fallback.name || fc.fallback.id, cmds: [] }].concat(fc.options.map(function (o) { return { text: o.text, cmds: [{ op: 'setFlag', flg: o.flg, value: 1 }] }; })) });
+    }
     fin = fin.concat(ends);
     var fb = { trigger: 'autorun', map: finaleBoss ? finaleBoss.map : ow ? ow.id : null, site: finaleBoss ? finaleBoss.node : null, pages: [{ cond: flagIs(finaleFlag, 'gte', 1), cmds: fin, once: true }],
-      notes: 'Runs once the finale boss falls: the last main quest completes and the ending is picked, the highest priority whose condition passes.' };
+      notes: 'Runs once the finale boss falls: the last main quest completes' + (fc && ends.length ? ', the player chooses among the endings no quest earns,' : '') + ' and the ending is picked, the highest priority whose condition passes.' };
     if (!fb.site) delete fb.site;
     if (fb.map && chs.length) add('finale', E.keys.finale(), 'Finale', lastCh.id, fb);
     if (out.some(function (w) { return w.kind === 'finale'; })) flags.push({ key: E.FINALE_FLAG_KEY, id: finaleFlag, name: 'Finale reached', body: { kind: 'story', 'default': 0, range: [0, 1], notes: 'Set when the finale boss falls; the finale event reads it.' } });
@@ -396,6 +404,20 @@
     if (b === cur()) { Kit.index.invalidate(); Kit.bundle.touch('story-events'); }
     return out;
   };
+  // Refreshes the generated finale event so it reaches the endings that exist now. Returns 'refreshed', 'kept' (an author
+  // has edited it), 'current' (nothing to change), or 'missing' (the events are not built, or the finale is not asked for).
+  E.refreshFinale = function (b) {
+    b = b || cur();
+    var w = E.wanted(b).events.filter(function (x) { return x.kind === 'finale'; })[0], R = b.story.records.evt_, rec = w && R[w.id];
+    if (!w || !rec) return 'missing';
+    if (rec.origin !== 'generated') return 'kept';
+    if (E.isEdited(rec)) return 'kept';
+    var fresh = generated(w);
+    if (fresh.gen === rec.gen) return 'current';
+    R[w.id] = fresh;
+    if (b === cur()) { Kit.index.invalidate(); Kit.bundle.touch('story-events'); }
+    return 'refreshed';
+  };
 
   // ---------------------------------------------------------------- checks
   // Everything ENGINE_STORY.pages.lint finds, plus cross field mistakes: [{level, code, path, message}]. idx must hold the
@@ -421,7 +443,7 @@
     if (rec.kind === 'finale') {
       var ends = false;
       (Array.isArray(rec.pages) ? rec.pages : []).forEach(function (p) { if (U.isObj(p)) ES.cmd.walk(p.cmds, function (c) { if (U.isObj(c) && c.op === 'ending') ends = true; }); });
-      if (!ends) add('warning', 'no-ending', 'pages', 'The finale reaches no ending yet. Endings arrive in Phase 6; then update the events.');
+      if (!ends) add('warning', 'no-ending', 'pages', 'The finale reaches no ending yet. Build the endings on the Start tab, then update the events.');
     }
     return out;
   };

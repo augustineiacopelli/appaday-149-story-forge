@@ -329,4 +329,27 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
     them up; 720 minute floor as an error. Phase 7's walk can use evt site, trigger, and pages as built here, and
     STORY.events.golden as a smoke path.
 === END SESSION 5 ===
+=== SESSION 6 / PHASE 6 (Sonnet): endings and the playtime floor ===
+  Engine unchanged (ENGINE_STORY 88549 chars). New: src/story-endings.js (STORY.ends), src/ws-endings.js, src/story-endings.css.
+  Decisions: one end_ per Charter ending in list order, structural ID from index and name (key end|n|slug). The first Charter
+    ending is the fallback (cond true, priority 0, music ending:1). Later endings are earned: priority 10 x index, music
+    ending:n. Earned conditions use the optional quests (side and bstory, in list order) dealt round robin into n-1 groups,
+    each ending an all of quest done. An ending with no group reads a managed flag flg|ending|n (kind story, default 0,
+    range 0 to 1) and the generated finale offers a choice that sets it, so no ending is unreachable by default. Exactly one
+    fallback; Make fallback moves it. Epilogue lines (from the Charter concept) show as a text command before ending.
+    Finale refreshes through E.refreshFinale (refreshed, kept, current, missing) after every scaffold, add and remove, so
+    a generated unedited finale never keeps an ending alive: usedBy marks it auto and Remove ignores it. Rebuild uses the
+    Phase 5 gen digest rule: refresh unedited, keep edited, orphan edited ones the Charter no longer asks for, remove
+    unedited ones; managed flags are dropped only when nothing reads them.
+    Playtime: summed chapter targetMinutes must reach 720 as the error story.playtime (Day 146's warning stays a warning).
+    Optional quest minutes live in story.settings.questMinutes {qst: 0 to 600}, defaulting to side 15 and bstory 10, and are
+    reported apart; they never count toward the floor. The validator uses the cheap hasWorld, never the heavy readiness.
+  Tab: Start gets an Endings card (Build or Update, Add ending, Open the finale; each ending with name, priority, concept,
+    credits music, epilogue, condition editor, Make fallback, Reset to generated, Delete) and a Playtime card.
+  Tests: test/phase6.js 129 of 129. phase0 89, phase1 85, phase2 77, phase3 95, phase4 70, phase5 99 still pass.
+    test/layout.js 64 of 64 views at 390 and 1280, eight of them new Endings and Playtime views. Playwright: install
+    playwright@1.56.0 and set PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers.
+  Next: Phase 7 (Opus), validation and the reachability proof: references, smells, the walk, the proofs, no softlock, and
+    the 12 hour floor, using evt sites, triggers and pages, end_ conds and priorities, and STORY.events.golden as a smoke path.
+=== END SESSION 6 ===
 === END BUILD LOG ===

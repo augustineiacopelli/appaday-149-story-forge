@@ -1,0 +1,13 @@
+/* === STORY:ENDINGS CSS BEGIN === */
+.en-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; min-width: 0; }
+.en-row .field { min-width: 0; flex: 1 1 12em; }
+.en-num { width: 7em; max-width: 100%; }
+.en-lines { width: 100%; min-height: 4em; resize: vertical; }
+.en-acts { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; min-width: 0; }
+.en-list { margin-top: 8px; min-width: 0; }
+.en-qlist { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.en-qrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; min-width: 0; }
+.en-qname { flex: 1 1 12em; min-width: 0; overflow-wrap: anywhere; }
+.en-card .btn { min-height: 44px; }
+.en-card select.inp { max-width: 100%; }
+/* === STORY:ENDINGS CSS END === */

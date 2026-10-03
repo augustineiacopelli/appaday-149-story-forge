@@ -18,8 +18,8 @@
         139593,
         227987,
         256493,
-        1243637,
-        1274109
+        1294376,
+        1325032
       ]
     },
     {
@@ -277,7 +277,7 @@
       "ok": true,
       "detail": [
         "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
-        "qst_a_hand_made_quest_h6x0"
+        "qst_a_hand_made_quest_pall"
       ]
     },
     {
@@ -334,7 +334,7 @@
         },
         "149": {
           "status": "draft",
-          "exportedAt": "2026-10-03T17:19:15.329Z",
+          "exportedAt": "2026-10-03T17:48:29.238Z",
           "storyVersion": "1.0.0",
           "engineVersion": "1.0.0",
           "charterVersion": 1,
@@ -357,7 +357,7 @@
       "ok": true,
       "detail": {
         "forge": 149,
-        "bundleHash": "058cfb8d5f54a5ac0a6052989c87968986f8f234f4860227e850fb93015a2ae1",
+        "bundleHash": "28ba4b8047a46ea4d30fd996fde6bc1b21f146d18de9a5d9ce8c7de64e8a8cf0",
         "storyVersion": "1.0.0",
         "generator": {
           "name": "appaday-149-story",
@@ -370,15 +370,15 @@
           "generatorVersion": "1.0.0",
           "seed": 42
         },
-        "exportedAt": "2026-10-03T17:19:15.353Z",
+        "exportedAt": "2026-10-03T17:48:29.265Z",
         "created": [
           "flg_flg_gate_chapter_chp_the_far_shore_izf4_qdn1",
           "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
           "flg_flg_gate_item_seal_chp_the_far_shore_izf_tz57",
           "flg_flg_gate_item_seal_chp_the_lowlands_auem_0r61",
           "flg_flg_gate_vehicle_ship_iqdm",
-          "flg_flg_quest_qst_a_hand_made_quest_h6x0_17gc",
-          "qst_a_hand_made_quest_h6x0"
+          "flg_flg_quest_qst_a_hand_made_quest_pall_u3xv",
+          "qst_a_hand_made_quest_pall"
         ],
         "referenced": [
           "chp_the_far_shore_izf4",

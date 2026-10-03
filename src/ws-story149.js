@@ -266,8 +266,11 @@
     var g2 = el('div', 'grid-cards s9-grid');
     g2.appendChild(gatesCard(b));
     g2.appendChild(sideQuestsCard(b));
-    g2.appendChild(endingsCard(b));
     host.appendChild(g2);
+    var g3 = el('div', 'grid-cards s9-grid');
+    g3.appendChild(STORY.endingsUi ? STORY.endingsUi.card(b) : endingsCard(b));
+    if (STORY.endingsUi) g3.appendChild(STORY.endingsUi.playtimeCard(b));
+    host.appendChild(g3);
   }
 
   function chaptersCard(b) {
@@ -285,7 +288,7 @@
     var okFloor = total >= floor;
     card.appendChild(el('p', null, chip(okFloor ? 'chip-ok' : 'chip-warning', (total / 60).toFixed(1) + ' hours of main story') + ' <span class="muted">' + esc(okFloor
       ? 'The chapters reach the ' + (floor / 60) + ' hour floor. Side and B story quests are counted separately and never toward it.'
-      : 'Short of the ' + (floor / 60) + ' hour floor by ' + (floor - total) + ' minutes. Raise chapter target minutes in Saga Forge (Day 146); Phase 6 makes this an error that blocks a Final.') + '</span>'));
+      : 'Short of the ' + (floor / 60) + ' hour floor by ' + (floor - total) + ' minutes. Raise chapter target minutes in Saga Forge (Day 146). This is an error, and a Final export waits for it.') + '</span>'));
     return card;
   }
   var GATE_LABEL = { chapter: 'Chapter keys', seal: 'Seals', ship: 'Ship', airship: 'Airship', other: 'Other' };
@@ -319,9 +322,9 @@
   function endingsCard(b) {
     var card = el('section', 'card'), es = STORY.endings(b);
     card.appendChild(el('h3', 'section-h', 'Endings'));
-    if (!es.length) { card.appendChild(el('p', 'msg msg-warning', 'The Charter lists no endings. Phase 6 needs at least one, with exactly one fallback.')); return card; }
+    if (!es.length) { card.appendChild(el('p', 'msg msg-warning', 'The Charter lists no endings. The game needs at least one, with exactly one fallback.')); return card; }
     card.appendChild(el('ol', 's9-endings', es.map(function (e) { return '<li><strong>' + esc(e.name || 'Untitled') + '</strong> <span class="muted">' + esc(e.concept || '') + '</span></li>'; }).join('')));
-    card.appendChild(el('p', 'muted', esc('Phase 6 gives each Charter ending an end_ record in list order, a condition, and a priority; exactly one is the fallback.')));
+    card.appendChild(el('p', 'muted', esc('Each Charter ending gets an end_ record in list order, a condition, and a priority; exactly one is the fallback.')));
     return card;
   }
 

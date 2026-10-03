@@ -1,0 +1,907 @@
+{
+ "passed": 129,
+ "total": 129,
+ "results": [
+  {
+   "name": "the three new sources exist and are pure ASCII",
+   "ok": true
+  },
+  {
+   "name": "no forbidden APIs in the new JavaScript (and no randomness or storage of its own)",
+   "ok": true
+  },
+  {
+   "name": "no dashes used as punctuation in the new prose",
+   "ok": true
+  },
+  {
+   "name": "index.html carries STORY:ENDINGS after STORY:EVENTS, WS:ENDINGS after WS:EVENTS, and the endings CSS fence",
+   "ok": true
+  },
+  {
+   "name": "Phase 6 changes no engine code: every src/engine-*.js equals the last commit",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "the standalone engine-story.js is byte for byte what Phase 5 shipped",
+   "ok": true
+  },
+  {
+   "name": "build.js picks up the three new files",
+   "ok": true
+  },
+  {
+   "name": "demo: before the scaffold there are no end_ records and the summary says so",
+   "ok": true
+  },
+  {
+   "name": "demo: the scaffold builds one end_ per Charter ending (2), in list order",
+   "ok": true,
+   "detail": {
+    "created": [
+     "end_end_1_delivered_vlh4",
+     "end_end_2_kept_6lzb"
+    ],
+    "refreshed": [],
+    "kept": [],
+    "removed": [],
+    "orphaned": [],
+    "flagsMade": [
+     "flg_flg_ending_2_614w"
+    ],
+    "flagsDropped": [],
+    "flagsKept": [],
+    "hints": [
+     "There are no side or B story quests yet, so the finale asks the player to choose the earned endings. Build the quests, then update the endings to earn them instead."
+    ],
+    "changed": true,
+    "skipped": null,
+    "sync": {
+     "created": [],
+     "removed": [],
+     "bound": [
+      "chapter:chp_the_far_shore_izf4",
+      "chapter:chp_the_lowlands_auem",
+      "item:seal:chp_the_far_shore_izf4",
+      "item:seal:chp_the_lowlands_auem",
+      "vehicle:ship"
+     ],
+     "rebound": [],
+     "dropped": [],
+     "sdq": {
+      "filled": [],
+      "kept": []
+     },
+     "changed": false,
+     "skipped": null
+    },
+    "finale": "refreshed"
+   }
+  },
+  {
+   "name": "demo: each ID is structural, from the position and the name, and valid",
+   "ok": true
+  },
+  {
+   "name": "demo: each carries its generated digest, credits music ending:n, and the concept as its epilogue",
+   "ok": true
+  },
+  {
+   "name": "demo: exactly one fallback, the first Charter ending, always true, priority 0",
+   "ok": true
+  },
+  {
+   "name": "demo: later endings are earned and tested first (priority 10 times the index)",
+   "ok": true
+  },
+  {
+   "name": "demo: the finale test order is the highest priority first and the fallback last",
+   "ok": true
+  },
+  {
+   "name": "demo: with no optional quests the second ending reads a managed flag at 1 or more",
+   "ok": true,
+   "detail": {
+    "op": "flag",
+    "flg": "flg_flg_ending_2_614w",
+    "cmp": "gte",
+    "value": 1
+   }
+  },
+  {
+   "name": "demo: the managed flag is tracked in the scaffold map and its note says the finale asks the player",
+   "ok": true
+  },
+  {
+   "name": "demo: the report says why, in prose",
+   "ok": true
+  },
+  {
+   "name": "demo: a second run changes nothing and says endings are up to date",
+   "ok": true
+  },
+  {
+   "name": "demo: the scaffold writes only the story namespace: charter, world, art, and codex are untouched",
+   "ok": true
+  },
+  {
+   "name": "demo: validation has 0 errors and 0 broken references; the problems list is empty",
+   "ok": true,
+   "detail": {
+    "sum": {
+     "errors": 0,
+     "broken": 0,
+     "forward": 4,
+     "warnings": 0
+    },
+    "p": []
+   }
+  },
+  {
+   "name": "demo: the unedited finale was refreshed to reach the endings (no no-ending warning, an ending command for each)",
+   "ok": true
+  },
+  {
+   "name": "demo: every end_ is reached by the finale and X.usedBy says so",
+   "ok": true
+  },
+  {
+   "name": "demo: the golden path ends the game on the fallback ending",
+   "ok": true,
+   "detail": "end_end_1_delivered_vlh4"
+  },
+  {
+   "name": "demo: the codex type is registered with the ending fields",
+   "ok": true
+  },
+  {
+   "name": "four: before the scaffold there are no end_ records and the summary says so",
+   "ok": true
+  },
+  {
+   "name": "four: the scaffold builds one end_ per Charter ending (1), in list order",
+   "ok": true,
+   "detail": {
+    "created": [
+     "end_end_1_delivered_vlh4"
+    ],
+    "refreshed": [],
+    "kept": [],
+    "removed": [],
+    "orphaned": [],
+    "flagsMade": [],
+    "flagsDropped": [],
+    "flagsKept": [],
+    "hints": [],
+    "changed": true,
+    "skipped": null,
+    "sync": {
+     "created": [],
+     "removed": [],
+     "bound": [
+      "chapter:chp_the_far_shore_izf4",
+      "chapter:chp_the_frost_reach_f7k1",
+      "chapter:chp_the_last_light_l9t3",
+      "chapter:chp_the_lowlands_auem",
+      "chapter:chp_the_marches_m4r2",
+      "chapter:chp_the_sunken_coast_s2c9",
+      "item:seal:chp_the_far_shore_izf4",
+      "item:seal:chp_the_frost_reach_f7k1",
+      "item:seal:chp_the_last_light_l9t3",
+      "item:seal:chp_the_lowlands_auem",
+      "item:seal:chp_the_marches_m4r2",
+      "item:seal:chp_the_sunken_coast_s2c9",
+      "vehicle:airship",
+      "vehicle:ship"
+     ],
+     "rebound": [],
+     "dropped": [],
+     "sdq": {
+      "filled": [],
+      "kept": []
+     },
+     "changed": false,
+     "skipped": null
+    },
+    "finale": "refreshed"
+   }
+  },
+  {
+   "name": "four: each ID is structural, from the position and the name, and valid",
+   "ok": true
+  },
+  {
+   "name": "four: each carries its generated digest, credits music ending:n, and the concept as its epilogue",
+   "ok": true
+  },
+  {
+   "name": "four: exactly one fallback, the first Charter ending, always true, priority 0",
+   "ok": true
+  },
+  {
+   "name": "four: later endings are earned and tested first (priority 10 times the index)",
+   "ok": true
+  },
+  {
+   "name": "four: the finale test order is the highest priority first and the fallback last",
+   "ok": true
+  },
+  {
+   "name": "four: a single ending needs no managed flag and no hint",
+   "ok": true
+  },
+  {
+   "name": "four: the report reads in prose",
+   "ok": true
+  },
+  {
+   "name": "four: a second run changes nothing and says endings are up to date",
+   "ok": true
+  },
+  {
+   "name": "four: the scaffold writes only the story namespace: charter, world, art, and codex are untouched",
+   "ok": true
+  },
+  {
+   "name": "four: validation has 0 errors and 0 broken references; the problems list is empty",
+   "ok": true,
+   "detail": {
+    "sum": {
+     "errors": 0,
+     "broken": 0,
+     "forward": 18,
+     "warnings": 0
+    },
+    "p": []
+   }
+  },
+  {
+   "name": "four: the unedited finale was refreshed to reach the endings (no no-ending warning, an ending command for each)",
+   "ok": true
+  },
+  {
+   "name": "four: every end_ is reached by the finale and X.usedBy says so",
+   "ok": true
+  },
+  {
+   "name": "four: the golden path ends the game on the fallback ending",
+   "ok": true,
+   "detail": "end_end_1_delivered_vlh4"
+  },
+  {
+   "name": "four: the codex type is registered with the ending fields",
+   "ok": true
+  },
+  {
+   "name": "three endings and two optional quests: each earned ending reads its own quest, none needs a flag",
+   "ok": true,
+   "detail": [
+    {
+     "op": "true"
+    },
+    {
+     "op": "quest",
+     "qst": "qst_qst_side_sdq_lost_ring_r3q1_vesk",
+     "is": "done"
+    },
+    {
+     "op": "quest",
+     "qst": "qst_qst_side_sdq_frozen_lantern_l6q4_f89z",
+     "is": "done"
+    }
+   ]
+  },
+  {
+   "name": "the earned endings note which quest earns them",
+   "ok": true
+  },
+  {
+   "name": "with every earned ending read from quests the finale asks nothing: no choice command",
+   "ok": true
+  },
+  {
+   "name": "X.pick: nothing done gives the fallback; the first quest gives Kept; the second gives Lost; both give the higher priority (Lost)",
+   "ok": true
+  },
+  {
+   "name": "the finale event, run by the engine, plays the same ending X.pick names for each of the four states",
+   "ok": true,
+   "detail": [
+    "end_end_1_delivered_vlh4",
+    "end_end_2_kept_6lzb",
+    "end_end_3_lost_60op",
+    "end_end_3_lost_60op"
+   ]
+  },
+  {
+   "name": "the epilogue is shown before the end, and the credits music is the ending role",
+   "ok": true,
+   "detail": {
+    "texts": "The Courier keeps the message sealed.",
+    "musics": [
+     "ending:2"
+    ],
+    "kinds": [
+     "questStage",
+     "music",
+     "text",
+     "ending"
+    ],
+    "sample": [
+     {
+      "kind": "questStage",
+      "qst": "qst_qst_main_chp_the_last_light_l9t3_9l36",
+      "stage": "done",
+      "label": "The finale is won",
+      "done": true,
+      "changed": true
+     },
+     {
+      "role": "ending:2",
+      "kind": "music"
+     },
+     {
+      "kind": "text",
+      "speaker": null,
+      "por": null,
+      "lines": [
+       "The Courier keeps the message sealed."
+      ]
+     },
+     {
+      "kind": "ending",
+      "end": "end_end_2_kept_6lzb"
+     }
+    ]
+   }
+  },
+  {
+   "name": "three endings: the validator has no errors, with the earned quests resolving; the only findings are unscored credits music",
+   "ok": true,
+   "detail": {
+    "sum": {
+     "errors": 0,
+     "broken": 0,
+     "forward": 18,
+     "warnings": 4
+    },
+    "p": [
+     {
+      "level": "warning",
+      "code": "unscored",
+      "recordId": "end_end_3_lost_60op",
+      "message": "No music is scored for role ending:3 in Day 147, so the credits play silence."
+     },
+     {
+      "level": "warning",
+      "code": "unscored",
+      "recordId": "end_end_2_kept_6lzb",
+      "message": "No music is scored for role ending:2 in Day 147, so the credits play silence."
+     }
+    ]
+   }
+  },
+  {
+   "name": "four endings and two optional quests: the third earned ending has no quest left, so it reads a managed flag",
+   "ok": true,
+   "detail": [
+    {
+     "op": "true"
+    },
+    {
+     "op": "quest",
+     "qst": "qst_qst_side_sdq_lost_ring_r3q1_vesk",
+     "is": "done"
+    },
+    {
+     "op": "quest",
+     "qst": "qst_qst_side_sdq_frozen_lantern_l6q4_f89z",
+     "is": "done"
+    },
+    {
+     "op": "flag",
+     "flg": "flg_flg_ending_4_wddl",
+     "cmp": "gte",
+     "value": 1
+    }
+   ]
+  },
+  {
+   "name": "the finale offers a choice: the fallback first, then the flag earned ending, which sets its flag",
+   "ok": true
+  },
+  {
+   "name": "choosing the flag ending at the finale plays it; continuing plays the fallback",
+   "ok": true
+  },
+  {
+   "name": "four: the main story is the chapters' sum (780) and meets the 720 floor; the table lists the six chapters",
+   "ok": true
+  },
+  {
+   "name": "four: the two side quests are counted on their own as estimates and never in the main story",
+   "ok": true
+  },
+  {
+   "name": "setting a quest's minutes replaces the estimate and is saved in the settings",
+   "ok": true
+  },
+  {
+   "name": "clearing it returns to the estimate and removes the setting",
+   "ok": true
+  },
+  {
+   "name": "minutes are refused for a main quest, a fraction, a negative, and more than 600",
+   "ok": true
+  },
+  {
+   "name": "a large side quest cannot rescue the floor: the floor reads only the chapters",
+   "ok": true
+  },
+  {
+   "name": "short of the floor is an error (not a warning): 680 of 720, naming the shortfall and that optional minutes never count",
+   "ok": true,
+   "detail": [
+    "The chapters add up to 680 minutes, short of the 720 minute floor (12 hours) by 40. Raise chapter target minutes in Saga Forge (Day 146). Side and B story minutes never count toward the floor."
+   ]
+  },
+  {
+   "name": "the problems list carries it as floor, and the summary says the floor is missed",
+   "ok": true
+  },
+  {
+   "name": "a Final export is refused while the floor is missed (and says there are errors)",
+   "ok": true,
+   "detail": "Final export is blocked by 1 error or broken reference."
+  },
+  {
+   "name": "restoring the minutes clears the error",
+   "ok": true
+  },
+  {
+   "name": "the floor setting is honoured: 780 of 900 is short by 120",
+   "ok": true
+  },
+  {
+   "name": "the demo meets the floor exactly (720 of 720)",
+   "ok": true
+  },
+  {
+   "name": "demo: the finale asks how the tale ends, with Delivered (the fallback) first and Kept second",
+   "ok": true
+  },
+  {
+   "name": "demo: after the choice the ending chain tests Kept first, then falls through to Delivered",
+   "ok": true
+  },
+  {
+   "name": "demo: the first option plays Delivered and the second plays Kept",
+   "ok": true
+  },
+  {
+   "name": "demo: X.pick agrees with the engine for both states",
+   "ok": true
+  },
+  {
+   "name": "demo: each ending plays its credits music and shows its epilogue before it ends",
+   "ok": true,
+   "detail": {
+    "m0": "ending:1",
+    "m1": "ending:2",
+    "kinds": [
+     "questStage",
+     "text",
+     "choice",
+     "music",
+     "text",
+     "ending"
+    ]
+   }
+  },
+  {
+   "name": "demo: two bare vm contexts holding only engine-story.js and the Draft play both endings to the page's exact state",
+   "ok": true,
+   "detail": {
+    "ra": {
+     "out": [
+      {
+       "hash": "57256893:1",
+       "ending": "end_end_1_delivered_vlh4"
+      },
+      {
+       "hash": "92035ff3:1",
+       "ending": "end_end_2_kept_6lzb"
+      }
+     ],
+     "digest": "9520dad2:1"
+    },
+    "rb": {
+     "out": [
+      {
+       "hash": "57256893:1",
+       "ending": "end_end_1_delivered_vlh4"
+      },
+      {
+       "hash": "92035ff3:1",
+       "ending": "end_end_2_kept_6lzb"
+      }
+     ],
+     "digest": "9520dad2:1"
+    }
+   }
+  },
+  {
+   "name": "demo: the golden path (first option each time) still ends the game, on the fallback",
+   "ok": true
+  },
+  {
+   "name": "demo: the golden path still completes every main quest",
+   "ok": true
+  },
+  {
+   "name": "update changes the name, concept, priority, music, epilogue (blank lines dropped), and note, and keeps the ID and key",
+   "ok": true
+  },
+  {
+   "name": "an edited generated ending is marked edited and keeps its origin",
+   "ok": true
+  },
+  {
+   "name": "music may be cleared with an empty string",
+   "ok": true
+  },
+  {
+   "name": "a priority that is not a whole number is refused and nothing is written",
+   "ok": true
+  },
+  {
+   "name": "an unknown mus_ is refused (an error); an unscored role is allowed (a warning)",
+   "ok": true
+  },
+  {
+   "name": "an epilogue of 13 lines is refused, and so is a line over 300 characters; a blank name is refused",
+   "ok": true
+  },
+  {
+   "name": "setCond refuses a condition that reads a flag that does not exist, and a malformed tree",
+   "ok": true
+  },
+  {
+   "name": "a refused edit changes nothing at all",
+   "ok": true
+  },
+  {
+   "name": "editing a missing ending is refused with a reason",
+   "ok": true
+  },
+  {
+   "name": "a null condition means always true, which makes two fallbacks: an error naming both, and validation fails",
+   "ok": true
+  },
+  {
+   "name": "restoring the condition returns validation to clean",
+   "ok": true
+  },
+  {
+   "name": "an earned ending below the fallback's priority can never win: an error, \"shadowed\"",
+   "ok": true
+  },
+  {
+   "name": "at the fallback's priority it is only a warning, \"tie-fallback\"",
+   "ok": true
+  },
+  {
+   "name": "back above it, both are gone",
+   "ok": true
+  },
+  {
+   "name": "makeFallback makes Kept always true at the lowest priority and gives Delivered a flag of its own to read",
+   "ok": true,
+   "detail": {
+    "ok": true,
+    "changed": [
+     "end_end_2_kept_6lzb",
+     "end_end_1_delivered_vlh4"
+    ]
+   }
+  },
+  {
+   "name": "afterward exactly one ending is the fallback, validation is clean, and the managed flag is tracked",
+   "ok": true
+  },
+  {
+   "name": "a rebuild leaves the edited endings exactly as the author left them and refreshes the unedited finale to the new order",
+   "ok": true,
+   "detail": {
+    "created": [],
+    "refreshed": [],
+    "kept": [],
+    "removed": [],
+    "orphaned": [],
+    "flagsMade": [],
+    "flagsDropped": [],
+    "flagsKept": [],
+    "hints": [
+     "There are no side or B story quests yet, so the finale asks the player to choose the earned endings. Build the quests, then update the endings to earn them instead."
+    ],
+    "changed": true,
+    "skipped": null,
+    "sync": {
+     "created": [],
+     "removed": [],
+     "bound": [
+      "chapter:chp_the_far_shore_izf4",
+      "chapter:chp_the_lowlands_auem",
+      "item:seal:chp_the_far_shore_izf4",
+      "item:seal:chp_the_lowlands_auem",
+      "vehicle:ship"
+     ],
+     "rebound": [],
+     "dropped": [],
+     "sdq": {
+      "filled": [],
+      "kept": []
+     },
+     "changed": false,
+     "skipped": null
+    },
+    "finale": "refreshed"
+   }
+  },
+  {
+   "name": "the finale now offers Delivered as the choice and the golden path ends on the new fallback",
+   "ok": true,
+   "detail": "end_end_2_kept_6lzb"
+  },
+  {
+   "name": "reset puts an ending back to what the scaffold makes (and Delivered is still edited)",
+   "ok": true
+  },
+  {
+   "name": "after both resets the set is as first built, with one fallback and one earned ending",
+   "ok": true
+  },
+  {
+   "name": "Add makes a hand made ending: minted ID, origin user, earned by a flag of its own, tested before every other ending",
+   "ok": true
+  },
+  {
+   "name": "it is valid, never a second fallback, and validation stays at 0 errors",
+   "ok": true
+  },
+  {
+   "name": "a rebuild keeps it and leaves its flag alone",
+   "ok": true
+  },
+  {
+   "name": "usedBy names the events that reach it (the finale, marked auto, and the author's), and Remove is refused while the author's does",
+   "ok": true,
+   "detail": {
+    "used": [
+     {
+      "id": "evt_evt_finale_pfp1",
+      "name": "Finale",
+      "auto": true
+     },
+     {
+      "id": "evt_uses_it_gfv3",
+      "name": "Uses it",
+      "auto": false
+     }
+    ],
+    "rm": {
+     "ok": false,
+     "message": "Used by Uses it. Change those events first."
+    }
+   }
+  },
+  {
+   "name": "Remove is refused for a generated ending (the Charter asks for it) and works for a hand made one",
+   "ok": true
+  },
+  {
+   "name": "renaming a Charter ending makes a new ending; the old edited one becomes the author's (origin user), nothing is deleted",
+   "ok": true,
+   "detail": {
+    "created": [
+     "end_end_2_sealed_a6kv"
+    ],
+    "refreshed": [],
+    "kept": [],
+    "removed": [],
+    "orphaned": [
+     "end_end_2_kept_6lzb"
+    ],
+    "flagsMade": [],
+    "flagsDropped": [],
+    "flagsKept": [],
+    "hints": [
+     "There are no side or B story quests yet, so the finale asks the player to choose the earned endings. Build the quests, then update the endings to earn them instead."
+    ],
+    "changed": true,
+    "skipped": null,
+    "sync": {
+     "created": [],
+     "removed": [],
+     "bound": [
+      "chapter:chp_the_far_shore_izf4",
+      "chapter:chp_the_lowlands_auem",
+      "item:seal:chp_the_far_shore_izf4",
+      "item:seal:chp_the_lowlands_auem",
+      "vehicle:ship"
+     ],
+     "rebound": [],
+     "dropped": [],
+     "sdq": {
+      "filled": [],
+      "kept": []
+     },
+     "changed": false,
+     "skipped": null
+    },
+    "finale": "refreshed"
+   }
+  },
+  {
+   "name": "the orphan now claims the same Charter position as the new one: a warning, not an error",
+   "ok": true
+  },
+  {
+   "name": "with one Charter ending left, the unedited earned ending and its managed flag are gone and the finale no longer asks",
+   "ok": true,
+   "detail": {
+    "n": 1,
+    "fin": "refreshed",
+    "fc": null,
+    "keys": []
+   }
+  },
+  {
+   "name": "with no Charter endings the problems list says so and names the way out",
+   "ok": true
+  },
+  {
+   "name": "the Start tab mounts an Endings card with a Build endings button and the Charter's three endings listed",
+   "ok": true
+  },
+  {
+   "name": "the Playtime card shows 13.0 of 12 hours as ok, the six chapters and the main story, and the optional quests apart",
+   "ok": true
+  },
+  {
+   "name": "Build endings makes three endings in finale order, says so, and the button becomes Update endings",
+   "ok": true
+  },
+  {
+   "name": "the list runs highest priority first; the fallback is last and says so",
+   "ok": true
+  },
+  {
+   "name": "the finale was not built, so the card offers no Open the finale button yet, and the report says to build the events",
+   "ok": true
+  },
+  {
+   "name": "once the events exist the card offers Open the finale",
+   "ok": true
+  },
+  {
+   "name": "opening an ending shows its fields, its condition in words, who reaches it, and the condition editor",
+   "ok": true
+  },
+  {
+   "name": "changing the priority saves it and the card shows it as edited",
+   "ok": true
+  },
+  {
+   "name": "the open ending stays open after the redraw",
+   "ok": true
+  },
+  {
+   "name": "a blank name is refused with a toast and nothing changes",
+   "ok": true
+  },
+  {
+   "name": "editing the epilogue saves one line per line",
+   "ok": true
+  },
+  {
+   "name": "the music picker lists the Day 147 roles including ending:1 to ending:3",
+   "ok": true
+  },
+  {
+   "name": "Make this the fallback asks first and explains the swap",
+   "ok": true
+  },
+  {
+   "name": "confirming swaps the fallback: Kept is the only fallback and the list shows it last",
+   "ok": true
+  },
+  {
+   "name": "Add ending adds a hand made ending, opened, with a Delete button",
+   "ok": true
+  },
+  {
+   "name": "Delete asks, then removes it",
+   "ok": true
+  },
+  {
+   "name": "Reset to generated restores a generated ending",
+   "ok": true
+  },
+  {
+   "name": "setting a quest's minutes in the Playtime card saves it, drops the estimate chip on that row, and updates the totals",
+   "ok": true
+  },
+  {
+   "name": "a minutes value over 600 is refused and the saved value stays",
+   "ok": true
+  },
+  {
+   "name": "when the chapters fall short the Playtime card turns to an error chip and says a Final waits",
+   "ok": true
+  },
+  {
+   "name": "the Validation tab shows no ending or floor problems for the restored story",
+   "ok": true
+  },
+  {
+   "name": "Open the finale goes to the Events tab with the finale open and chosen for play",
+   "ok": true
+  },
+  {
+   "name": "no script errors on the page through all of it",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "two fresh pages build byte for byte the same story with its endings",
+   "ok": true
+  },
+  {
+   "name": "the Draft carries the two endings, the managed flag, and the refreshed finale",
+   "ok": true
+  },
+  {
+   "name": "Day 146 opens the Draft with the endings: hash verified, prior namespaces identical, no errors, no broken references",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "e": [],
+    "br": [],
+    "err": null,
+    "same": []
+   }
+  },
+  {
+   "name": "Day 147 opens the Draft with the endings: hash verified, prior namespaces identical, no errors, no broken references",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "e": [],
+    "br": [],
+    "err": null,
+    "same": []
+   }
+  },
+  {
+   "name": "Day 148 opens the Draft with the endings: hash verified, prior namespaces identical, no errors, no broken references",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "e": [],
+    "br": [],
+    "err": null,
+    "same": []
+   }
+  },
+  {
+   "name": "the Draft reopens here with the same story",
+   "ok": true
+  },
+  {
+   "name": "a reopened Draft needs no rebuild of the endings or the events",
+   "ok": true
+  }
+ ]
+}
