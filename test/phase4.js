@@ -157,7 +157,7 @@ const isSorted = (o) => J(Object.keys(o)) === J(Object.keys(o).sort());
   const rmd = D.remove(mine, b);
   check('removing a dialogue removes the pages that opened it', rmd.ok && !b.story.records.dlg_[mine] && !D.pagesOf(who, b).some((p) => p.dlg === mine));
   const gone = recs.find((x) => x.kind === 'quest');
-  check('a generated dialogue comes back with the next build, and reset restores its words', D.remove(gone.id, b).ok && (D.scaffold(b), !!b.story.records.dlg_[gone.id]) && (D.updateNode(gone.id, 'offer', { lines: ['Changed.'] }, b), D.reset(gone.id, b).ok && b.story.records.dlg_[gone.id].nodes.offer.lines[0] !== 'Changed.'));
+  check('a generated dialogue comes back with the next build, and reset restores its words', D.remove(gone.id, b).ok && (D.scaffold(b), !!b.story.records.dlg_[gone.id]) && (D.updateNode(gone.id, b.story.records.dlg_[gone.id].start, { lines: ['Changed.'] }, b), D.reset(gone.id, b).ok && b.story.records.dlg_[gone.id].nodes[b.story.records.dlg_[gone.id].start].lines[0] !== 'Changed.'));
   const qd = recs.find((x) => x.kind === 'quest');
   const stale = Object.keys(b.story.records.dlg_).length;
   b.story.records.qst_[quests[0].id].giver = undefined; delete b.story.records.qst_[quests[0].id].giver;

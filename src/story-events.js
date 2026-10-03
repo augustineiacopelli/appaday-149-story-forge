@@ -240,6 +240,12 @@
         if (seals.length) {
           var spot = featureOn(dk, function (f) { return f.kind === 'chest' && f.prize && seals.indexOf(f.item) >= 0; }, b) || featureOn(dk, function (f) { return f.kind === 'chest' && f.prize; }, b);
           var give = [narrate(['Inside the chest lies the seal of ' + cn + '.'])];
+          // DECISION (Phase 7): a pass has two gate cells, an airship lands anywhere, and a seawall needs no crossing, so the
+          // exit cell alone cannot be trusted to close the previous chapter. Every playthrough opens this chest, so it closes
+          // the previous chapter first when that is still unfinished (the previous exit runs, and with it this chapter's opener).
+          var prevQ0 = i > 0 ? mainQuest(chs[i - 1].id, b) : null, prevExit = i > 0 ? (g.nodes.filter(function (x) { return x.chapter === chs[i - 1].id && x.golden && x.kind === 'gate' && x.role === 'exit'; })[0]) : null;
+          var prevExitStage = prevQ0 && prevExit ? stageBy(prevQ0, function (st0) { return st0.site === prevExit.key; }) || stageBy(prevQ0, function (st0) { return st0.key === 'exit'; }) : null;
+          if (prevQ0 && prevExit && prevExitStage && ow) give.unshift({ op: 'if', cond: { op: 'not', of: { op: 'quest', qst: prevQ0.id, is: 'done' } }, then: [{ op: 'callEvent', evt: E.idFor(E.keys.exit(chs[i - 1].id)) }] });
           seals.forEach(function (k) { var it = gateItem(b, k); if (it) give.push({ op: 'giveItem', itm: it, qty: 1 }); give.push({ op: 'setFlag', flg: gateFlag(b, k), value: 1 }); });
           var notHave = anyOf(seals.map(function (k) { return flagIs(gateFlag(b, k), 'lt', 1); }));
           var pb = { site: keyN.key, pages: [{ cmds: [narrate(['The chest is empty.'])] }, { cond: notHave, cmds: give }] };
@@ -258,7 +264,10 @@
         var xc = [narrate([words])], nextCh = chs[i + 1];
         if (after) xc.push(moveTo(q, after.key));
         if (after && nextCh && after.key === q.stages[q.stages.length - 1].key) xc.push({ op: 'callEvent', evt: E.idFor(E.keys.open(nextCh.id)) });
-        var xb = { site: exitN.key, pages: [{ cond: atStage(q, exitStage.key), cmds: xc }] };
+        // DECISION (Phase 7): the exit closes the chapter from any unfinished stage once the gates it needs are set (the boss
+        // has fallen), jumping the quest to done, so a player who never spoke to the giver still finishes the chapter.
+        var exitGates = (exitN.requires || []).map(function (k) { return flagIs(gateFlag(b, k), 'gte', 1); });
+        var xb = { site: exitN.key, pages: [{ cond: { op: 'all', of: [{ op: 'quest', qst: q.id, is: 'started' }, { op: 'not', of: { op: 'quest', qst: q.id, is: 'done' } }].concat(exitGates) }, cmds: xc }] };
         if (cell && ow) { xb.trigger = 'step'; xb.map = ow.id; xb.at = [cell[0], cell[1]]; } else if (ow) { xb.trigger = 'autorun'; xb.map = ow.id; xb.pages[0].once = true; }
         xb.notes = cell ? 'The overworld cell where ' + cn + ' gives way to the next region. Crossing it completes the chapter.' : 'Day 148 placed no gate cell, so the chapter completes on the overworld at once.';
         if (ow) add('exit', E.keys.exit(c.id), 'Exit: ' + cn, c.id, xb);

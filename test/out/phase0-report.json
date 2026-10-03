@@ -18,8 +18,8 @@
         139593,
         253966,
         282484,
-        1360543,
-        1392067
+        1363727,
+        1395251
       ]
     },
     {
@@ -277,7 +277,7 @@
       "ok": true,
       "detail": [
         "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
-        "qst_a_hand_made_quest_jk15"
+        "qst_a_hand_made_quest_a11j"
       ]
     },
     {
@@ -334,7 +334,7 @@
         },
         "149": {
           "status": "draft",
-          "exportedAt": "2026-10-03T18:26:58.613Z",
+          "exportedAt": "2026-10-03T19:26:29.267Z",
           "storyVersion": "1.0.0",
           "engineVersion": "1.0.0",
           "charterVersion": 1,
@@ -357,7 +357,7 @@
       "ok": true,
       "detail": {
         "forge": 149,
-        "bundleHash": "03e5b26f118eb8c0e6cbcec02dfbd07a006d4e02fe1ee98b6eea4ba7283fc3a3",
+        "bundleHash": "5eeb22ae8804989db8973ab49c9101aab55492b28575616afe25232e0ade98d1",
         "storyVersion": "1.0.0",
         "generator": {
           "name": "appaday-149-story",
@@ -370,15 +370,15 @@
           "generatorVersion": "1.0.0",
           "seed": 42
         },
-        "exportedAt": "2026-10-03T18:26:58.645Z",
+        "exportedAt": "2026-10-03T19:26:29.310Z",
         "created": [
           "flg_flg_gate_chapter_chp_the_far_shore_izf4_qdn1",
           "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
           "flg_flg_gate_item_seal_chp_the_far_shore_izf_tz57",
           "flg_flg_gate_item_seal_chp_the_lowlands_auem_0r61",
           "flg_flg_gate_vehicle_ship_iqdm",
-          "flg_flg_quest_qst_a_hand_made_quest_jk15_kvsn",
-          "qst_a_hand_made_quest_jk15"
+          "flg_flg_quest_qst_a_hand_made_quest_a11j_0id1",
+          "qst_a_hand_made_quest_a11j"
         ],
         "referenced": [
           "chp_the_far_shore_izf4",
@@ -411,7 +411,7 @@
           "warnings": 1,
           "worldHash": "50a3539b63a6addf",
           "worldStamp": null,
-          "storyDigest": "8de04c21:1",
+          "storyDigest": "864dd099:1",
           "cards": [
             {
               "key": "references",
@@ -487,7 +487,7 @@
           "endings": [],
           "golden": null,
           "softlocks": 1,
-          "digest": "8de04c21:1"
+          "digest": "864dd099:1"
         },
         "day150": null,
         "engines": [

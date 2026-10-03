@@ -433,5 +433,23 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
   Next: Phase 8 (Opus), export, the Day 150 contract, ship: the manifest's day150 block (load order, new game state, the
     opening event, save flag mapping, boss rule; walk.golden.path is a ready replay script), test/phase8.js replaying the
     golden path headlessly from only the four engines and the Final, README, the push, and the six item checklist.
+  ADDENDUM (same session, after review): fixes to the scaffolds for three findings the walk surfaced.
+    Skipped main quests (Phases 3 and 5 scaffolds): the exit event now fires from any unfinished stage once the gates its
+      site needs are set (cond all [quest started, not done, every exit gate flag]) and jumps the quest to done. A pass has
+      two gate cells, an airship lands anywhere, and a seawall needs no crossing, so the exit cell alone cannot close a
+      chapter: the next chapter's seal chest, which every playthrough opens, first runs the previous exit when that chapter
+      is unfinished (if not done then callEvent exit), which also plays the next opener. Result: no ending is reachable
+      with a main quest unfinished (the skippable warning is gone), and the golden path is the shortest path to an ending.
+    Shadowed offer node (Phase 4 scaffold): a main quest's dialogue no longer builds its first stage's offer node when the
+      giver's talk event covers that stage, nor the last chapter's turn in node (the finale ends the game).
+    One person, two quests (Phase 4 scaffold): a giver's pages are ranked (rightmost wins): greetings, main quest turn in,
+      side quest thanks, main quest stage hints, side quest offer, side quest progress. The player can always act on a side
+      quest, main hints show once it is settled, and the main quest's thanks yields to the side quest's.
+    Kept by design (warnings): a giver's greeting yields to their quest dialogue; the last boss's quiet page never runs;
+      a giver of both a main and a side quest never says the main quest's turn in line.
+    Walk after the fixes: demo 13 states, 20 moves, golden path 8 steps; four continents 214 states, 610 moves, golden path
+      16 steps, about 0.4 s in the page. Both proven with no proof warnings.
+    Test changes: phase4 edits a quest dialogue's start node instead of offer; phase7 pins the new counts, expects the
+      proofs to pass with no warnings, and seeds unused dialogues and a softlock trap in the tab test.
 === END SESSION 7 ===
 === END BUILD LOG ===

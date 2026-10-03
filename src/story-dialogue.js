@@ -120,15 +120,28 @@
       pages.push({ node: 'after', cond: { op: 'quest', qst: q.id, is: 'done' } });
       return { nodes: nodes, start: 'offer', pages: pages };
     }
+    // A main quest's first stage belongs to the giver's talk event (Phase 5) whenever the stage has no exit condition, so
+    // its offer node would never be seen; and the last chapter's quest completes in the finale, which ends the game, so its
+    // turn in node would never be seen either. Neither is built (Phase 7 found both through the walk).
+    var chs = STORY.chapters(b), lastChapter = chs.length ? chs[chs.length - 1].id : null;
+    var skipFirst = q.kind === 'main' && n > 2 && !st[0].exitWhen && !!q.giver, skipLast = q.kind === 'main' && n > 2 && q.chapter === lastChapter;
+    var firstKey = null;
     for (var i = 0; i < n; i++) {
+      if ((i === 0 && skipFirst) || (i === n - 1 && skipLast)) continue;
       var s = st[i], key = i === 0 ? 'offer' : (i === n - 1 ? 'turnin' : uniqueNodeKey('progress_' + s.key.slice(0, 23), used));
+      if (!firstKey) firstKey = key;
       if (i === 0) used.offer = 1;
       if (i === n - 1 && n > 1) used.turnin = 1;
       var last0 = i === n - 1 && n > 1, finale = last0 && /finale|won/i.test(lab(s));
       nodes[key] = { lines: last0 ? [finale ? 'It is done. The land will remember what you did.' : 'Well done, traveler. Your work here is finished, and the road onward is open.'] : (i === 0 ? ['Welcome, traveler. Your next task: ' + lab(s) + '.'] : ['Remember your purpose. Your next task: ' + lab(s) + '.']) };
       pages.push({ node: key, cond: at(s.key) });
     }
-    return { nodes: nodes, start: 'offer', pages: pages };
+    return { nodes: nodes, start: firstKey || 'offer', pages: pages };
+  }
+  // Where a quest page sits in its giver's list (higher wins): see D.wanted.
+  function pageRank(q, node) {
+    if (q.kind === 'side') return node === 'after' ? 2 : node === 'offer' ? 4 : 5;
+    return node === 'turnin' ? 1 : 3;
   }
   function questBody(q, b) {
     var p = questParts(q, b), body = { kind: 'quest', qst: q.id, speaker: q.giver, start: p.start || 'offer', nodes: p.nodes, notes: 'What ' + nameOf(q.giver, 'the giver') + ' says as ' + (q.name || 'the quest') + ' moves. ' + (q.kind === 'side' ? 'The turn in choice does not check that the task is done; give it a condition, for example an item the task hands over.' : 'Each page opens the node for the stage the quest is at.') };
@@ -166,7 +179,15 @@
       if (!q.giver || !known[q.giver] || (q.kind !== 'main' && q.kind !== 'side') || !Array.isArray(q.stages) || !q.stages.length) return;
       var key = D.questKey(q.id), id = D.idFor(key), parts = questParts(q, b);
       addDlg({ key: key, id: id, name: 'Quest: ' + (q.name || q.id), kind: 'quest', body: questBody(q, b) });
-      parts.pages.forEach(function (p) { out.pages[q.giver].push({ key: D.pageKey.quest(q.id, p.node), origin: 'generated', cond: p.cond, dlg: id, node: p.node }); });
+      parts.pages.forEach(function (p) { out.pages[q.giver].push({ key: D.pageKey.quest(q.id, p.node), origin: 'generated', cond: p.cond, dlg: id, node: p.node, rank: pageRank(q, p.node) }); });
+    });
+    // DECISION (Phase 7), one person giving several quests: the rightmost passing page wins, so the order decides who speaks.
+    // Greetings, then a main quest's turn in (it lasts forever once done), then a side quest's thanks (also forever), then
+    // the main quest's stage hints, then the side quest's offer and progress, which the player must be able to act on.
+    Object.keys(out.pages).forEach(function (npc) {
+      var list = out.pages[npc].map(function (p, i) { return { p: p, i: i }; });
+      list.sort(function (x, y) { return (x.p.rank || 0) - (y.p.rank || 0) || x.i - y.i; });
+      out.pages[npc] = list.map(function (x) { delete x.p.rank; return x.p; });
     });
     return out;
   };

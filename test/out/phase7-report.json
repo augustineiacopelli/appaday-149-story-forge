@@ -177,22 +177,21 @@
     "references pass ",
     "smells warn ",
     "walk pass ",
-    "proofs warn ",
+    "proofs pass ",
     "softlock pass ",
     "floor pass "
    ]
   },
   {
-   "name": "demo: the smells are real and named: shadowed giver pages and unseen offer nodes, the last boss's quiet page",
+   "name": "demo: the only smells left are the ones kept by design",
    "ok": true,
    "detail": [
-    "warning:unseen-node",
-    "warning:page-never-wins",
-    "warning:npc-page-never-wins"
+    "warning:npc-page-never-wins",
+    "warning:page-never-wins"
    ]
   },
   {
-   "name": "demo: the proofs warn that an ending can be reached while an earlier main quest is unfinished, with the path",
+   "name": "demo: the proofs pass with no warnings: no main quest can be skipped on the way to an ending",
    "ok": true
   },
   {
@@ -215,7 +214,7 @@
   {
    "name": "demo: the page walks the story in reasonable time under jsdom",
    "ok": true,
-   "detail": 30
+   "detail": 36
   },
   {
    "name": "four: every chapter entered, every main and side quest completed, every ending reached",
@@ -254,22 +253,22 @@
     "references pass ",
     "smells warn ",
     "walk pass ",
-    "proofs warn ",
+    "proofs pass ",
     "softlock pass ",
     "floor pass "
    ]
   },
   {
-   "name": "four: the smells are real and named: shadowed giver pages and unseen offer nodes, the last boss's quiet page",
+   "name": "four: the only smells left are the ones kept by design",
    "ok": true,
    "detail": [
-    "warning:unseen-node",
+    "warning:npc-page-never-wins",
     "warning:page-never-wins",
-    "warning:npc-page-never-wins"
+    "warning:unseen-node"
    ]
   },
   {
-   "name": "four: the proofs warn that an ending can be reached while an earlier main quest is unfinished, with the path",
+   "name": "four: the proofs pass with no warnings: no main quest can be skipped on the way to an ending",
    "ok": true
   },
   {
@@ -292,21 +291,21 @@
   {
    "name": "four: the page walks the story in reasonable time under jsdom",
    "ok": true,
-   "detail": 1049
+   "detail": 356
   },
   {
-   "name": "four: 862 states and 2141 moves, six chapters, eight quests (two side), one ending",
+   "name": "four: 214 states and 610 moves, six chapters, eight quests (two side), one ending",
    "ok": true,
    "detail": {
-    "states": 862,
-    "edges": 2141,
-    "expanded": 862,
+    "states": 214,
+    "edges": 610,
+    "expanded": 214,
     "frontier": 0,
     "capped": false,
     "cap": 50000,
-    "maxDepth": 27,
-    "runs": 2279,
-    "selfLoops": 59232,
+    "maxDepth": 17,
+    "runs": 628,
+    "selfLoops": 14959,
     "gameovers": 0,
     "forkCaps": 0,
     "chainCaps": 0,
@@ -335,18 +334,18 @@
    }
   },
   {
-   "name": "without the cap the demo story walks to 19 states and 25 moves, every ending reached, nothing stuck",
+   "name": "without the cap the demo story walks to 13 states and 20 moves, every ending reached, nothing stuck",
    "ok": true,
    "detail": {
-    "states": 19,
-    "edges": 25,
-    "expanded": 19,
+    "states": 13,
+    "edges": 20,
+    "expanded": 13,
     "frontier": 0,
     "capped": false,
     "cap": 50000,
-    "maxDepth": 7,
-    "runs": 25,
-    "selfLoops": 384,
+    "maxDepth": 5,
+    "runs": 20,
+    "selfLoops": 309,
     "gameovers": 0,
     "forkCaps": 0,
     "chainCaps": 0,
@@ -355,10 +354,10 @@
    }
   },
   {
-   "name": "the golden path with the main quests as its goal finishes them all; without a goal it is the shortest path to any ending",
+   "name": "no ending can be reached with a main quest unfinished, so the golden path is the shortest path to any ending",
    "ok": true,
    "detail": {
-    "full": 10,
+    "full": 8,
     "any": 8
    }
   },
@@ -395,7 +394,6 @@
    "ok": true,
    "detail": [
     "warning:inert-choice",
-    "warning:unseen-node",
     "warning:unused-dialogue",
     "warning:page-never-wins",
     "warning:npc-page-never-wins",
@@ -409,7 +407,6 @@
    "ok": true,
    "detail": [
     "warning:inert-choice",
-    "warning:unseen-node",
     "warning:unused-dialogue",
     "warning:page-never-wins",
     "warning:npc-page-never-wins",
@@ -423,7 +420,6 @@
    "ok": true,
    "detail": [
     "warning:inert-choice",
-    "warning:unseen-node",
     "warning:unused-dialogue",
     "warning:page-never-wins",
     "warning:npc-page-never-wins",
@@ -437,7 +433,6 @@
    "ok": true,
    "detail": [
     "warning:inert-choice",
-    "warning:unseen-node",
     "warning:unused-dialogue",
     "warning:page-never-wins",
     "warning:npc-page-never-wins",
@@ -451,7 +446,6 @@
    "ok": true,
    "detail": [
     "warning:inert-choice",
-    "warning:unseen-node",
     "warning:unused-dialogue",
     "warning:page-never-wins",
     "warning:npc-page-never-wins",
@@ -465,7 +459,6 @@
    "ok": true,
    "detail": [
     "warning:inert-choice",
-    "warning:unseen-node",
     "warning:unused-dialogue",
     "warning:page-never-wins",
     "warning:npc-page-never-wins",
@@ -534,8 +527,7 @@
    "ok": true,
    "detail": [
     "error:ending",
-    "error:side-quest",
-    "warning:skippable"
+    "error:side-quest"
    ]
   },
   {
@@ -628,9 +620,9 @@
    "ok": true,
    "detail": [
     "smells",
-    "proofs",
     "references",
     "walk",
+    "proofs",
     "softlock",
     "floor"
    ]
@@ -656,10 +648,6 @@
    "ok": true
   },
   {
-   "name": "a skippable main quest shows its path as a numbered list",
-   "ok": true
-  },
-  {
    "name": "Jump on an event page opens the Events tab",
    "ok": true
   },
@@ -682,6 +670,21 @@
   {
    "name": "Jump on an unreached chapter opens the Quests tab at its main quest",
    "ok": true
+  },
+  {
+   "name": "a softlock trap: the No softlock card comes first and its path opens as a numbered list ending with the fatal choice",
+   "ok": true,
+   "detail": {
+    "cards": [
+     "softlock",
+     "smells",
+     "references",
+     "walk",
+     "proofs",
+     "floor"
+    ],
+    "trap": "Fails No softlock 1 errorFrom every state a player can reach, an ending is still reachable.Stuck states4Ways in1Dead ends1error A trap: play goes on, but no ending can be reached any more after this path.The path (2 moves)Opener: The Lowlands playsEnter Crossroads, choosing \"Doom\"Quests at that pointMain: The Lowlands: arrive"
+   }
   },
   {
    "name": "an unstamped story offers Confirm this world on the References card, which fails",

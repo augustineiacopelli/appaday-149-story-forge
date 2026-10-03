@@ -94,8 +94,12 @@ const status = (res, key) => (res.cards.find((c) => c.key === key) || {}).status
     check(fx + ': the golden path finishes every main quest before its ending, and it is longer than the shortest path to an ending', R.goldenFull && !!R.golden.ending && mains.every((q) => !R.endedWithout[q.id] || R.golden.path.length >= R.endedWithout[q.id].path.length));
     check(fx + ': every gate a new game does not open is set, by a seal chest or a boss, no later on the golden path than where it is first needed', (res.cards.find((c) => c.key === 'proofs').gates || []).every((g) => g.setter && g.setter.evt && /evt_evt_(prize|boss)_/.test(g.setter.evt) && g.site) && (res.cards.find((c) => c.key === 'proofs').gates || []).length === PES.gates.keys(b.world.progression).length - b.world.progression.start.length);
     check(fx + ': all six checks pass (warnings only), proven, and Final is not blocked', res.errors === 0 && res.cards.length === 6 && res.cards.every((c) => c.status !== 'fail') && C.finalBlock(b) === '', res.cards.map((c) => c.key + ' ' + c.status + ' ' + c.items.filter((x) => x.level === 'error').map((x) => x.message).join('; ')));
-    check(fx + ': the smells are real and named: shadowed giver pages and unseen offer nodes, the last boss\'s quiet page', has(res, 'smells', 'warning:npc-page-never-wins') && has(res, 'smells', 'warning:unseen-node') && has(res, 'smells', 'warning:page-never-wins') && !has(res, 'smells', 'warning:unreachable-node'), codes(res, 'smells').filter((x, i, a) => a.indexOf(x) === i));
-    check(fx + ': the proofs warn that an ending can be reached while an earlier main quest is unfinished, with the path', has(res, 'proofs', 'warning:skippable') && res.cards.find((c) => c.key === 'proofs').items.find((x) => x.code === 'skippable').path.length > 2);
+    // What is left by design: a giver's greeting yields to their quest dialogue, the last boss's quiet page never runs (the
+    // finale ends the game), and on four the Lowlands elder's main quest turn in yields to her side quest.
+    const leftover = codes(res, 'smells').filter((x, i, a) => a.indexOf(x) === i).sort();
+    check(fx + ': the only smells left are the ones kept by design', J(leftover) === J(fx === 'demo' ? ['warning:npc-page-never-wins', 'warning:page-never-wins'] : ['warning:npc-page-never-wins', 'warning:page-never-wins', 'warning:unseen-node']) &&
+      res.cards.find((c) => c.key === 'smells').items.filter((x) => x.code === 'npc-page-never-wins').every((x) => /dlg_dlg_role_|turnin/.test(x.recordId + ' ' + (x.fieldPath || '')) || /dlg_dlg_quest_/.test(x.recordId)), leftover);
+    check(fx + ': the proofs pass with no warnings: no main quest can be skipped on the way to an ending', status(res, 'proofs') === 'pass' && mains.every((q) => !R.endedWithout[q.id]));
     check(fx + ': every event and person the story uses has a site the walk can place', !W.unknown.length, W.unknown);
     check(fx + ': the results are memoized until the bundle changes', C.run(b) === res && C.ready(b) && (() => { Kit.bundle.touch('test'); return !C.ready(b); })());
     // The walk again in bare vm contexts, from the Draft export and the page's world picture.
@@ -107,7 +111,7 @@ const status = (res, key) => (res.cards.find((c) => c.key === key) || {}).status
     check(fx + ': the manifest carries the six checks and the walk statistics', JSON.parse(draft.files[1].text).checks.proven === true && JSON.parse(draft.files[1].text).walk.states === R.stats.states && JSON.parse(draft.files[1].text).walk.golden.full === true);
     if (fx === 'demo') fs.writeFileSync(path.join(OUT, 'phase7-demo-walk.json'), J({ story: { records: db.story.records, bindings: db.story.bindings, npcDialogue: db.story.npcDialogue }, ext: STORY.engineExt(Kit.bundle.current()), world, goal: mains.map((q) => q.id) }));
     check(fx + ': the page walks the story in reasonable time under jsdom', ms < 20000, ms);
-    if (fx === 'four') check('four: 862 states and 2141 moves, six chapters, eight quests (two side), one ending', R.stats.states === 862 && R.stats.edges === 2141 && Object.keys(R.chapters).length === 6 && Object.keys(R.questsDone).length === 8 && sides.length === 2, R.stats);
+    if (fx === 'four') check('four: 214 states and 610 moves, six chapters, eight quests (two side), one ending', R.stats.states === 214 && R.stats.edges === 610 && Object.keys(R.chapters).length === 6 && Object.keys(R.questsDone).length === 8 && sides.length === 2, R.stats);
   }
 
   // The walk alone again, over the demo story the page just built (saved by section 3 as plain data).
@@ -118,9 +122,9 @@ const status = (res, key) => (res.cards.find((c) => c.key === key) || {}).status
     const capped = ES.walk.run(idxD, demoWalk.world, { cap: 5, goal: demoWalk.goal });
     check('the cap stops the walk, says so, and leaves the unexplored states out of the softlock proof', capped.stats.capped && capped.stats.states === 5 && capped.stats.frontier > 0 && capped.softlock.count === 0, capped.stats);
     const full = ES.walk.run(idxD, demoWalk.world, { goal: demoWalk.goal });
-    check('without the cap the demo story walks to 19 states and 25 moves, every ending reached, nothing stuck', !full.stats.capped && full.stats.states === 19 && full.stats.edges === 25 && Object.keys(full.endings).length === 2 && full.softlock.count === 0 && !full.errors.length, full.stats);
+    check('without the cap the demo story walks to 13 states and 20 moves, every ending reached, nothing stuck', !full.stats.capped && full.stats.states === 13 && full.stats.edges === 20 && Object.keys(full.endings).length === 2 && full.softlock.count === 0 && !full.errors.length, full.stats);
     const noGoal = ES.walk.run(idxD, demoWalk.world, {});
-    check('the golden path with the main quests as its goal finishes them all; without a goal it is the shortest path to any ending', full.goldenFull && full.golden.path.length > noGoal.golden.path.length && Object.keys(full.endedWithout).length > 0, { full: full.golden.path.length, any: noGoal.golden.path.length });
+    check('no ending can be reached with a main quest unfinished, so the golden path is the shortest path to any ending', full.goldenFull && full.golden.path.length === noGoal.golden.path.length && demoWalk.goal.every((q) => !full.endedWithout[q]), { full: full.golden.path.length, any: noGoal.golden.path.length });
     // An event the world cannot place stays open; a site whose flags are unset closes it.
     const onX = (list) => list.reduce((o, k) => { o[k] = { site: 'twn|x' }; return o; }, {});
     const closed = ES.walk.run(idxD, { sites: { 'twn|x': { requires: ['flg_never_zz99'] } }, events: onX(Object.keys(idxD.events)), npcs: onX(Object.keys(idxD.known.npc_)) }, {});
@@ -231,7 +235,7 @@ const status = (res, key) => (res.cards.find((c) => c.key === key) || {}).status
     b0.story.settings.walkCap = 50000; Kit.bundle.load(JSON.parse(J(b0))); await wait(10);
     const fin = Kit.buildExport('final');
     const fb = JSON.parse(fin.files[0].text), fman = JSON.parse(fin.files[1].text);
-    check('a proven story exports Final: story opened, forge 149 final, the manifest proven with its walk', fb.kit.opened.indexOf('story') >= 0 && fb.kit.forges['149'].status === 'final' && fman.checks.proven === true && fman.checks.cards.length === 6 && fman.walk.states === 19 && fman.walk.softlocks === 0 && !fman.unresolved.length, { opened: fb.kit.opened, checks: fman.checks && fman.checks.errors });
+    check('a proven story exports Final: story opened, forge 149 final, the manifest proven with its walk', fb.kit.opened.indexOf('story') >= 0 && fb.kit.forges['149'].status === 'final' && fman.checks.proven === true && fman.checks.cards.length === 6 && fman.walk.states === 13 && fman.walk.softlocks === 0 && !fman.unresolved.length, { opened: fb.kit.opened, checks: fman.checks && fman.checks.errors });
     check('the Final carries the world stamp, equal to the hash of its world', fb.story.settings.worldHash === fman.checks.worldHash && fman.checks.worldHash === fman.checks.worldStamp);
     for (const [k, fn] of [['146', in146], ['147', in147], ['148', in148]]) {
       const r = await fn(fin.files[0].text);
@@ -244,11 +248,14 @@ const status = (res, key) => (res.cards.find((c) => c.key === key) || {}).status
     const r6 = await prepared(demoText), { win, errors } = r6, { Kit, STORY } = win, d = win.document, C = STORY.checks;
     const ws = () => d.getElementById('ws');
     const btn = (re, root) => Array.from((root || d).querySelectorAll('button')).find((x) => re.test(x.textContent));
+    // Five dialogues nobody opens, so the smells card has more than six findings to show.
+    for (let k = 0; k < 5; k++) { const r0 = STORY.authored('dlg_', 'Unsaid ' + k, { kind: 'custom', start: 'a', nodes: { a: { lines: ['Nobody hears this.'] } } }); Kit.bundle.current().story.records.dlg_[r0.id] = r0; }
+    Kit.index.invalidate(); Kit.bundle.touch('test'); C.invalidate();
     Kit.go('export');
     check('the tab first draws a waiting card and never walks while drawing', !!ws().querySelector('.vc-card[data-check="waiting"]') && !C.ready() && /waits for the story checks/.test(ws().textContent));
     await wait(400);
     const cards = () => Array.from(ws().querySelectorAll('.vc-card')).map((c) => c.getAttribute('data-check'));
-    check('then six cards, warnings before passes, and a Proven chip', cards().length === 6 && cards()[0] === 'smells' && /Proven/.test(ws().textContent), cards());
+    check('then six cards, warnings before passes, and a Proven chip', cards().length === 6 && cards()[0] === 'smells' && cards().slice(1).every((k) => ws().querySelector('.vc-card[data-check="' + k + '"]').classList.contains('vc-pass')) && /Proven/.test(ws().textContent), cards());
     check('the Final card is enabled once the story is proven', !d.querySelector('#ws input[value=final]').disabled && /Opens the story namespace/.test(ws().textContent));
     check('the manifest preview no longer blocks on the walk and the validator findings fold away', !!ws().querySelector('details.vc-path') && /Created\d+ story IDs/.test(ws().textContent));
     const smells = ws().querySelector('.vc-card[data-check="smells"]');
@@ -258,7 +265,6 @@ const status = (res, key) => (res.cards.find((c) => c.key === key) || {}).status
     check('Show more lists every finding, then Show fewer', smells2.querySelectorAll('.vc-item').length === C.run().cards.find((c) => c.key === 'smells').items.length && !!btn(/^Show fewer$/, smells2));
     const proofs = ws().querySelector('.vc-card[data-check="proofs"]');
     check('the proofs card lists the gates in golden order with who opens each', !!proofs.querySelector('.vc-gates') && proofs.querySelectorAll('.vc-gates tbody tr').length === 4 && /Seal chest/.test(proofs.textContent));
-    check('a skippable main quest shows its path as a numbered list', !!proofs.querySelector('.vc-item details.vc-path ol li'));
     // Jumps.
     const pageItem = Array.from(ws().querySelectorAll('.vc-card[data-check="smells"] .vc-item')).find((x) => /Page \d never runs/.test(x.textContent));
     btn(/^Jump$/, pageItem).click(); await wait(30);
@@ -273,7 +279,19 @@ const status = (res, key) => (res.cards.find((c) => c.key === key) || {}).status
     check('a failing card comes first and the Final card is disabled with the reason', cards()[0] === 'proofs' && d.querySelector('#ws input[value=final]').disabled && /story checks? fails?/.test(ws().textContent), cards());
     btn(/^Jump$/, ws().querySelector('.vc-card[data-check="proofs"]')).click(); await wait(30);
     check('Jump on an unreached chapter opens the Quests tab at its main quest', Kit.active() === 'quests');
-    b.story.settings.walkCap = 50000; Kit.index.invalidate(); Kit.bundle.touch('test');
+    b.story.settings.walkCap = 50000;
+    // A trap: a choice that makes the first boss unbeatable. The softlock card fails first and shows the path as a list.
+    const doom = STORY.authored('flg_', 'Doom', { kind: 'story', default: 0, range: [0, 1] }); b.story.records.flg_[doom.id] = doom;
+    const town1 = STORY.world.list('twn_', b).find((t) => t.chapter === STORY.chapters(b)[0].id && t.role === 'start').maps[0];
+    const cross = STORY.authored('evt_', 'Crossroads', { trigger: 'mapEnter', map: town1, kind: 'custom', pages: [{ once: true, cmds: [{ op: 'choice', options: [{ text: 'Stay', cmds: [] }, { text: 'Doom', cmds: [{ op: 'setFlag', flg: doom.id, value: 1 }] }] }] }] });
+    b.story.records.evt_[cross.id] = cross;
+    const boss1 = b.story.records.evt_[STORY.events.idFor('evt|boss|' + STORY.chapters(b)[0].id)], bossCond = boss1.pages[1].cond;
+    boss1.pages[1].cond = { op: 'all', of: [bossCond, { op: 'flag', flg: doom.id, cmp: 'lt', value: 1 }] };
+    Kit.index.invalidate(); Kit.bundle.touch('test'); Kit.go('export'); await wait(400);
+    const trapCard = ws().querySelector('.vc-card[data-check="softlock"]');
+    check('a softlock trap: the No softlock card comes first and its path opens as a numbered list ending with the fatal choice', cards()[0] === 'softlock' && !!trapCard.querySelector('details.vc-path ol li') && /"Doom"/.test(Array.from(trapCard.querySelectorAll('details.vc-path ol li')).pop().textContent), { cards: cards(), trap: trapCard && trapCard.textContent.slice(0, 600) });
+    boss1.pages[1].cond = bossCond; delete b.story.records.evt_[cross.id]; delete b.story.records.flg_[doom.id];
+    Kit.index.invalidate(); Kit.bundle.touch('test');
     // Confirm this world.
     delete b.story.settings.worldHash; Kit.index.invalidate(); Kit.bundle.touch('test');
     Kit.go('export'); await wait(400);

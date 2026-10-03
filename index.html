@@ -434,6 +434,24 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
   Next: Phase 8 (Opus), export, the Day 150 contract, ship: the manifest's day150 block (load order, new game state, the
     opening event, save flag mapping, boss rule; walk.golden.path is a ready replay script), test/phase8.js replaying the
     golden path headlessly from only the four engines and the Final, README, the push, and the six item checklist.
+  ADDENDUM (same session, after review): fixes to the scaffolds for three findings the walk surfaced.
+    Skipped main quests (Phases 3 and 5 scaffolds): the exit event now fires from any unfinished stage once the gates its
+      site needs are set (cond all [quest started, not done, every exit gate flag]) and jumps the quest to done. A pass has
+      two gate cells, an airship lands anywhere, and a seawall needs no crossing, so the exit cell alone cannot close a
+      chapter: the next chapter's seal chest, which every playthrough opens, first runs the previous exit when that chapter
+      is unfinished (if not done then callEvent exit), which also plays the next opener. Result: no ending is reachable
+      with a main quest unfinished (the skippable warning is gone), and the golden path is the shortest path to an ending.
+    Shadowed offer node (Phase 4 scaffold): a main quest's dialogue no longer builds its first stage's offer node when the
+      giver's talk event covers that stage, nor the last chapter's turn in node (the finale ends the game).
+    One person, two quests (Phase 4 scaffold): a giver's pages are ranked (rightmost wins): greetings, main quest turn in,
+      side quest thanks, main quest stage hints, side quest offer, side quest progress. The player can always act on a side
+      quest, main hints show once it is settled, and the main quest's thanks yields to the side quest's.
+    Kept by design (warnings): a giver's greeting yields to their quest dialogue; the last boss's quiet page never runs;
+      a giver of both a main and a side quest never says the main quest's turn in line.
+    Walk after the fixes: demo 13 states, 20 moves, golden path 8 steps; four continents 214 states, 610 moves, golden path
+      16 steps, about 0.4 s in the page. Both proven with no proof warnings.
+    Test changes: phase4 edits a quest dialogue's start node instead of offer; phase7 pins the new counts, expects the
+      proofs to pass with no warnings, and seeds unused dialogues and a softlock trap in the tab test.
 === END SESSION 7 ===
 === END BUILD LOG ===
 -->
@@ -7138,15 +7156,28 @@ var ENGINE_STORY = (function () {
       pages.push({ node: 'after', cond: { op: 'quest', qst: q.id, is: 'done' } });
       return { nodes: nodes, start: 'offer', pages: pages };
     }
+    // A main quest's first stage belongs to the giver's talk event (Phase 5) whenever the stage has no exit condition, so
+    // its offer node would never be seen; and the last chapter's quest completes in the finale, which ends the game, so its
+    // turn in node would never be seen either. Neither is built (Phase 7 found both through the walk).
+    var chs = STORY.chapters(b), lastChapter = chs.length ? chs[chs.length - 1].id : null;
+    var skipFirst = q.kind === 'main' && n > 2 && !st[0].exitWhen && !!q.giver, skipLast = q.kind === 'main' && n > 2 && q.chapter === lastChapter;
+    var firstKey = null;
     for (var i = 0; i < n; i++) {
+      if ((i === 0 && skipFirst) || (i === n - 1 && skipLast)) continue;
       var s = st[i], key = i === 0 ? 'offer' : (i === n - 1 ? 'turnin' : uniqueNodeKey('progress_' + s.key.slice(0, 23), used));
+      if (!firstKey) firstKey = key;
       if (i === 0) used.offer = 1;
       if (i === n - 1 && n > 1) used.turnin = 1;
       var last0 = i === n - 1 && n > 1, finale = last0 && /finale|won/i.test(lab(s));
       nodes[key] = { lines: last0 ? [finale ? 'It is done. The land will remember what you did.' : 'Well done, traveler. Your work here is finished, and the road onward is open.'] : (i === 0 ? ['Welcome, traveler. Your next task: ' + lab(s) + '.'] : ['Remember your purpose. Your next task: ' + lab(s) + '.']) };
       pages.push({ node: key, cond: at(s.key) });
     }
-    return { nodes: nodes, start: 'offer', pages: pages };
+    return { nodes: nodes, start: firstKey || 'offer', pages: pages };
+  }
+  // Where a quest page sits in its giver's list (higher wins): see D.wanted.
+  function pageRank(q, node) {
+    if (q.kind === 'side') return node === 'after' ? 2 : node === 'offer' ? 4 : 5;
+    return node === 'turnin' ? 1 : 3;
   }
   function questBody(q, b) {
     var p = questParts(q, b), body = { kind: 'quest', qst: q.id, speaker: q.giver, start: p.start || 'offer', nodes: p.nodes, notes: 'What ' + nameOf(q.giver, 'the giver') + ' says as ' + (q.name || 'the quest') + ' moves. ' + (q.kind === 'side' ? 'The turn in choice does not check that the task is done; give it a condition, for example an item the task hands over.' : 'Each page opens the node for the stage the quest is at.') };
@@ -7184,7 +7215,15 @@ var ENGINE_STORY = (function () {
       if (!q.giver || !known[q.giver] || (q.kind !== 'main' && q.kind !== 'side') || !Array.isArray(q.stages) || !q.stages.length) return;
       var key = D.questKey(q.id), id = D.idFor(key), parts = questParts(q, b);
       addDlg({ key: key, id: id, name: 'Quest: ' + (q.name || q.id), kind: 'quest', body: questBody(q, b) });
-      parts.pages.forEach(function (p) { out.pages[q.giver].push({ key: D.pageKey.quest(q.id, p.node), origin: 'generated', cond: p.cond, dlg: id, node: p.node }); });
+      parts.pages.forEach(function (p) { out.pages[q.giver].push({ key: D.pageKey.quest(q.id, p.node), origin: 'generated', cond: p.cond, dlg: id, node: p.node, rank: pageRank(q, p.node) }); });
+    });
+    // DECISION (Phase 7), one person giving several quests: the rightmost passing page wins, so the order decides who speaks.
+    // Greetings, then a main quest's turn in (it lasts forever once done), then a side quest's thanks (also forever), then
+    // the main quest's stage hints, then the side quest's offer and progress, which the player must be able to act on.
+    Object.keys(out.pages).forEach(function (npc) {
+      var list = out.pages[npc].map(function (p, i) { return { p: p, i: i }; });
+      list.sort(function (x, y) { return (x.p.rank || 0) - (y.p.rank || 0) || x.i - y.i; });
+      out.pages[npc] = list.map(function (x) { delete x.p.rank; return x.p; });
     });
     return out;
   };
@@ -7990,6 +8029,12 @@ var ENGINE_STORY = (function () {
         if (seals.length) {
           var spot = featureOn(dk, function (f) { return f.kind === 'chest' && f.prize && seals.indexOf(f.item) >= 0; }, b) || featureOn(dk, function (f) { return f.kind === 'chest' && f.prize; }, b);
           var give = [narrate(['Inside the chest lies the seal of ' + cn + '.'])];
+          // DECISION (Phase 7): a pass has two gate cells, an airship lands anywhere, and a seawall needs no crossing, so the
+          // exit cell alone cannot be trusted to close the previous chapter. Every playthrough opens this chest, so it closes
+          // the previous chapter first when that is still unfinished (the previous exit runs, and with it this chapter's opener).
+          var prevQ0 = i > 0 ? mainQuest(chs[i - 1].id, b) : null, prevExit = i > 0 ? (g.nodes.filter(function (x) { return x.chapter === chs[i - 1].id && x.golden && x.kind === 'gate' && x.role === 'exit'; })[0]) : null;
+          var prevExitStage = prevQ0 && prevExit ? stageBy(prevQ0, function (st0) { return st0.site === prevExit.key; }) || stageBy(prevQ0, function (st0) { return st0.key === 'exit'; }) : null;
+          if (prevQ0 && prevExit && prevExitStage && ow) give.unshift({ op: 'if', cond: { op: 'not', of: { op: 'quest', qst: prevQ0.id, is: 'done' } }, then: [{ op: 'callEvent', evt: E.idFor(E.keys.exit(chs[i - 1].id)) }] });
           seals.forEach(function (k) { var it = gateItem(b, k); if (it) give.push({ op: 'giveItem', itm: it, qty: 1 }); give.push({ op: 'setFlag', flg: gateFlag(b, k), value: 1 }); });
           var notHave = anyOf(seals.map(function (k) { return flagIs(gateFlag(b, k), 'lt', 1); }));
           var pb = { site: keyN.key, pages: [{ cmds: [narrate(['The chest is empty.'])] }, { cond: notHave, cmds: give }] };
@@ -8008,7 +8053,10 @@ var ENGINE_STORY = (function () {
         var xc = [narrate([words])], nextCh = chs[i + 1];
         if (after) xc.push(moveTo(q, after.key));
         if (after && nextCh && after.key === q.stages[q.stages.length - 1].key) xc.push({ op: 'callEvent', evt: E.idFor(E.keys.open(nextCh.id)) });
-        var xb = { site: exitN.key, pages: [{ cond: atStage(q, exitStage.key), cmds: xc }] };
+        // DECISION (Phase 7): the exit closes the chapter from any unfinished stage once the gates it needs are set (the boss
+        // has fallen), jumping the quest to done, so a player who never spoke to the giver still finishes the chapter.
+        var exitGates = (exitN.requires || []).map(function (k) { return flagIs(gateFlag(b, k), 'gte', 1); });
+        var xb = { site: exitN.key, pages: [{ cond: { op: 'all', of: [{ op: 'quest', qst: q.id, is: 'started' }, { op: 'not', of: { op: 'quest', qst: q.id, is: 'done' } }].concat(exitGates) }, cmds: xc }] };
         if (cell && ow) { xb.trigger = 'step'; xb.map = ow.id; xb.at = [cell[0], cell[1]]; } else if (ow) { xb.trigger = 'autorun'; xb.map = ow.id; xb.pages[0].once = true; }
         xb.notes = cell ? 'The overworld cell where ' + cn + ' gives way to the next region. Crossing it completes the chapter.' : 'Day 148 placed no gate cell, so the chapter completes on the overworld at once.';
         if (ow) add('exit', E.keys.exit(c.id), 'Exit: ' + cn, c.id, xb);
