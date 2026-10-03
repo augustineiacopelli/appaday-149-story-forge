@@ -431,7 +431,7 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
     allowed, opened in Days 146, 147, 148; the tab under jsdom; two pages agree; the stamped Draft round trip). phase0 89,
     phase1 85, phase2 77, phase3 95, phase4 70, phase5 99, phase6 129 (their engine pins compare with the last commit, so
     they pass once this phase is committed). test/layout.js 72 of 72 views at 390 and 1280, eight new Validation views.
-  Next: Phase 8 (Opus), export, the Day 150 contract, ship: the manifest's day150 block (load order, new game state, the
+  Next (done in Session 8): Phase 8 (Opus), export, the Day 150 contract, ship: the manifest's day150 block (load order, new game state, the
     opening event, save flag mapping, boss rule; walk.golden.path is a ready replay script), test/phase8.js replaying the
     golden path headlessly from only the four engines and the Final, README, the push, and the six item checklist.
   ADDENDUM (same session, after review): fixes to the scaffolds for three findings the walk surfaced.
@@ -453,6 +453,66 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
     Test changes: phase4 edits a quest dialogue's start node instead of offer; phase7 pins the new counts, expects the
       proofs to pass with no warnings, and seeds unused dialogues and a softlock trap in the tab test.
 === END SESSION 7 ===
+=== SESSION 8: PHASE 8, EXPORT, THE GAME KIT, THE DAY 150 CONTRACT (Opus), COMPLETE ===
+  Goal, set by Stino before the build: the result of using the four forges must be a separately playable game, not a
+    game played inside a forge. The plan's Phase 8 proved the story data outside the forge; this session hardens that
+    into a contract a game can be built from and a test that holds it to account.
+  DECISION, the game kit: a game is five engine files plus a Final bundle. Load order render, audio, world, battle, story.
+    The plan of record left ENGINE_BATTLE out (the playtester answers battles with buttons); Day 150 could not fight
+    without it, so it joins the kit. build.js cuts Day 146's ENGINE:BATTLE fence from its page byte for byte and writes
+    engine-battle.js under Day 146's own export header (no bundle hash line); it fails if the fence ever differs.
+  DECISION, the engine table: build.js writes {key, file, global, owner, version, bytes, sha256} for all five files into
+    the page (STORY.engines.FILES); sha256 is over the file with any one bundle hash line removed, the same rule the
+    vendoring check uses. LOAD_ORDER is read from it. engine-story.js is worked out before the page so its hash is known.
+  Found and fixed, a standalone gap: the engine's index was built from STORY.engineExt and the walk's world picture from
+    STORY.checks.walkWorld, both forge code, and Phase 7's "bare" replay borrowed them from the page. A game would have
+    had to reimplement them. Both now live in the engine as ENGINE_STORY.host.ext and ENGINE_STORY.host.world, ported line
+    for line (insertion order kept where JSON order showed), and the forge functions are one line calls to them.
+    Phases 0 to 7 pass unchanged, so the walk sees exactly what it saw before.
+  ENGINE:STORY host section (src/engine-host.js, spliced after the walk): load(bundle) builds {idx, pidx, ext, world, goal,
+    roles} once; newGame(game, opts, hooks) plays a new game's forced events; moves(game, state) lists what the player may
+    do in the walk's order; play(game, state, move, hooks) runs one move and every forced event after it down one path;
+    replay(game, path, opts) plays a walk path, checks each move is available, each run starts where the path says, each
+    choice and battle matches, and compares the recorded steps with the path; opts.state starts from a loaded save.
+    hooks {begin, decide, effect}: decide answers choices with a position and battles with win, lose, or escape (a
+    battle question carries the state, so a shell can build the party for ENGINE_BATTLE). The forced chain reuses the
+    walk's own helpers (siteOpen, byPriority, abstractOf, its caps) so a game runs the rules the proof checked.
+    Engine rules kept: no randomness, clocks, eval, for in, timers, network, host globals, or other engines; version 1.0.0.
+  DECISION, the contract (src/story-day150.js, the manifest's day150 block): contract 1, engines and load order with
+    sha256, the API calls, the new game (open flags, start gates), the opening (forced steps, chapter, hash, first moves),
+    when each trigger is offered, saves (Day 146 schema, derived slots, limits, rules), bosses with troop source (world or
+    story) and boss event, the boss rule, battle input shape and outcome mapping (win, lose, flee to escape, timeout to
+    lose), effects, music roles, the golden path and every ending as replay scripts with end hashes, and what the shell
+    provides (input, render, audio, battles, save storage) and must never need (forge pages, Kit or STORY, forge
+    storage, network, an API key). Everything is read through ENGINE_STORY.host from the bundle, never page state.
+  DECISION, no contract for an unproven story: day150 is null until the story checks prove the story can be finished, so
+    a manifest never promises a game the walk could not finish. Phase 0's hand made story keeps day150 null.
+  Export: the Final dialog and tab gain "the whole game kit (all five engines)", on by default. STORY.exportNow downloads
+    the bundle, manifest, and engine-story.js as before, then fetches the four vendored engines from beside the page,
+    checks each sha256, and downloads them; a file that cannot be read or does not match is never shipped and is named in
+    a toast. Opened from file://, the reads fail and the toast says to copy the files from this repository.
+  Tab: a Day 150 panel under the manifest preview: the game kit table (file, owning day, version, sha256), the contract
+    summary, and Play the golden path, which runs host.replay in the page and reports the walk's exact end state.
+  Test changes: phase0 expects the five file load order. Phases 4 to 6 pin engine-story.js against the last commit, so
+    they pass once this phase is committed.
+  Tests: test/phase8.js 78 of 78 (static rules with the host in the fence; engine-battle.js against Day 146's fence; every
+    root engine against the page's table; five globals and nothing else in a bare context; per fixture: Final allowed, the
+    manifest and a complete day150 block, boss sources checked against the world, no forge or browser name in the game
+    context, the golden path and every ending replayed to the walk's end hashes with no runtime fault, two contexts byte
+    equal, the opening matching the contract, effects seen, a save taken halfway through JSON finishing the same way,
+    saves refused mid event and after the ending, every golden battle through the real ENGINE_BATTLE deterministically,
+    tampered paths refused (missing move, wrong troop, steps after the ending), the game kit export complete and checked,
+    the exported folder alone playing the game, a tampered engine refused, offline naming all four missing; Days 146,
+    147, 148 open the Final with every prior namespace identical but sdq_.flag; two pages write the same story and
+    contract; the panel and Play button under jsdom). phase0 89, phase1 85, phase2 77, phase3 95, phase4 70, phase5 99,
+    phase6 129, phase7 97. test/layout.js 76 of 76 views at 390 and 1280, two new Day 150 panel views.
+  Results: demo golden path 6 moves to Delivered, two endings, bosses from the story side (both slots were empty); four
+    continents golden path 14 moves, one ending, six bosses (one story troop), 15 derived save flags.
+  Left for Day 150: building a battle party with gear and materia. Day 146 does that in its page (WSX.buildParty and its
+    materia placement), outside ENGINE_BATTLE. With a gearless party at the chapter's expected level the engine runs real
+    fights, but several bosses end in a loss or a timeout, so Day 150 should port the party builder. Story balance is
+    otherwise untouched by this forge.
+=== END SESSION 8 ===
 === END BUILD LOG ===
 -->
 <!doctype html>
@@ -783,6 +843,11 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
 .brand-title { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 @media (max-width: 520px) { .brand-title { font-size: 1.02rem; letter-spacing: .03em; } .brand-num { display: none; } }
 /* === STORY:SHELL CSS END === */
+/* Phase 8: the Day 150 panel. */
+.s9-d150 .tbl code { font-size: 0.85em; }
+.s9-d150-out { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.s9-kit-note { margin: 4px 0 10px; }
+.msg-ok { color: var(--ok, #3fa86b); }
 /* === STORY:FLAGS CSS BEGIN === */
 .fg-lead { margin: 4px 0 8px; }
 .fg-stats { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 10px; }
@@ -5451,6 +5516,310 @@ var ENGINE_STORY = (function () {
   }
   S.walk = { CAP: WALK_CAP, FORKS: WALK_FORKS, run: walkRun, hash: hash64, abstract: abstractOf };
 
+  // ---------------------------------------------------------------- the host (Phase 8)
+  // Everything a game needs to run this story from a Final bundle alone, with no forge page: no Kit, no STORY, no
+  // storage, no network. Day 150 calls these; the forge itself now calls ext and world too, so the page, the walk, and a
+  // shipped game all read a bundle the same way.
+  //   ext(bundle)    the IDs and roles the index may name (what the forge used to gather on its own)
+  //   world(bundle)  the walk's picture of the world: {sites, events, npcs, unknown, golden, pos}
+  //   load(bundle)   {version, idx, pidx, ext, world, goal, roles}: a game, built once
+  //   newGame(game, opts, hooks)        a fresh state with the forced events of a new game played: {state, steps, ...}
+  //   moves(game, state)                what the player may do now: [{by, evt, npc, map}] in the walk's fixed order
+  //   play(game, state, move, hooks)    one move and every forced event after it, down one path: {state, steps, ...}
+  //   replay(game, path, opts)          plays a walk path (golden or any ending's) and checks every step against it;
+  //                                     opts {effect(e, ctx), battle(question, ctx)} observe without deciding;
+  //                                     opts.state starts from that state (a loaded save) instead of a new game
+  //   hash(state)                       the walk's 64 bit hash of a state's abstract form
+  // hooks {begin(ctx), decide(question, ctx), effect(effect, ctx)}, all optional. begin is called as each run starts with
+  // ctx {by, evt, npc}; returning false stops before the run. decide answers {kind 'choice', options [{index, text}]} with
+  // a position in options, and {kind 'battle', trp, canLose, canEscape, state} with 'win', 'lose', or 'escape'; a missing hook
+  // picks the first option and wins. A battle is where Day 150 runs ENGINE_BATTLE and reports the outcome. effect sees
+  // every effect the runner returns (text, music, changeMap, and so on), which is what a game draws and plays.
+  // The forced events after a move follow the walk's chain exactly (chapterStart on a chapter change, battleEnd after the
+  // battles, autoruns on the move's map), because the walk is what proved the story can be finished.
+  function hostList(b, ns, prefix) {
+    var m = b && b[ns] && (ns === 'rules' ? b.rules[prefix] : isObj(b[ns].records) ? b[ns].records[prefix] : null);
+    if (!isObj(m)) return [];
+    var out = [], k = keys(m);
+    for (var i = 0; i < k.length; i++) if (isObj(m[k[i]])) out.push(m[k[i]]);
+    return out;
+  }
+  function hostGet(b, ns, id) {
+    var p = prefixOf(id), m = p && b && b[ns] && isObj(b[ns].records) ? b[ns].records[p] : null;
+    return isObj(m) && isObj(m[id]) ? m[id] : null;
+  }
+  function hostGraph(b) { var g = b && b.world && b.world.progression; return isObj(g) && isArray(g.nodes) && g.nodes.length ? g : null; }
+  function hostChapters(b) { var s = b && b.charter && b.charter.sections; return s && isArray(s.chapters) ? s.chapters.filter(isObj) : []; }
+  function hostExt(b) {
+    var ids = {};
+    function add(prefix, list) { var a = ids[prefix] || []; for (var i = 0; i < list.length; i++) a.push(list[i].id); ids[prefix] = a.sort(); }
+    add('npc_', hostList(b, 'world', 'npc_')); add('map_', hostList(b, 'world', 'map_'));
+    add('trp_', hostList(b, 'rules', 'trp_')); add('itm_', hostList(b, 'rules', 'itm_')); add('eqp_', hostList(b, 'rules', 'eqp_')); add('chr_', hostList(b, 'rules', 'chr_'));
+    add('mus_', hostList(b, 'art', 'mus_')); add('sfx_', hostList(b, 'art', 'sfx_')); add('por_', hostList(b, 'art', 'por_'));
+    var chapters = [], cl = hostChapters(b);
+    for (var c = 0; c < cl.length; c++) if (typeof cl[c].id === 'string') chapters.push(cl[c].id);
+    ids.chp_ = chapters.slice().sort();
+    var roles = [], ml = hostList(b, 'art', 'mus_');
+    for (var m = 0; m < ml.length; m++) if (ml[m].subject && ml[m].subject.kind === 'role' && typeof ml[m].subject.ref === 'string') roles.push(ml[m].subject.ref.replace(/^music:/, ''));
+    var g = hostGraph(b);
+    return { chapters: chapters, start: g && isArray(g.start) ? g.start.slice() : [], ids: ids, roles: roles.sort() };
+  }
+  // Sites are Day 148's progression nodes (requires read through the story's bindings) and its regions (a region needs
+  // the gate that leads into it). An event stands on its site when that names a site, else on its person's site (talk),
+  // else on its map's site. Anything placed nowhere stays open and is listed in unknown.
+  function hostWorld(b) {
+    var g = hostGraph(b), story = b && isObj(b.story) ? b.story : {}, bind = isObj(story.bindings) ? story.bindings : {};
+    var sites = {}, order = [], byRecord = {}, golden = [], chapterOf = {}, unknown = [], i, j;
+    function flags(list) {
+      var o = [];
+      if (isArray(list)) for (var f = 0; f < list.length; f++) { var bd = bind[list[f]]; if (isObj(bd) && typeof bd.flg === 'string' && o.indexOf(bd.flg) < 0) o.push(bd.flg); }
+      return o.sort();
+    }
+    function site(k, req) { if (sites[k] === undefined) order.push(k); sites[k] = { requires: req }; }
+    if (g) {
+      for (i = 0; i < g.nodes.length; i++) {
+        var n = g.nodes[i];
+        site(n.key, flags(n.requires));
+        chapterOf[n.key] = n.chapter || null;
+        if (n.record) byRecord[n.record] = n.key;
+        if (n.golden) golden.push(n.key);
+      }
+      var regions = isArray(g.regions) ? g.regions : [], gates = isArray(g.gates) ? g.gates : [];
+      for (i = 0; i < regions.length; i++) {
+        var r = regions[i], gate = null;
+        for (j = 0; j < gates.length && !gate; j++) if (isObj(gates[j]) && gates[j].to === r.key) gate = gates[j];
+        site(r.key, flags(gate ? gate.requires : (r.chapter ? ['chapter:' + r.chapter] : [])));
+        chapterOf[r.key] = r.chapter || null;
+        if (r.record) byRecord[r.record] = r.key;
+      }
+    }
+    function siteOfRecord(id) {
+      if (!id) return null;
+      if (byRecord[id]) return byRecord[id];
+      var rec = hostGet(b, 'world', id);
+      return rec && rec.region && byRecord[rec.region] ? byRecord[rec.region] : null;
+    }
+    function siteOfMap(m) { var rec = m && hostGet(b, 'world', m); return rec && rec.site ? siteOfRecord(rec.site) : null; }
+    var maps = hostList(b, 'world', 'map_'), ow = null, events = {}, npcs = {};
+    for (i = 0; i < maps.length && !ow; i++) if (maps[i].kind === 'overworld') ow = maps[i];
+    var evm = isObj(story.records) && isObj(story.records.evt_) ? story.records.evt_ : {}, evs = [], ek = keys(evm);
+    for (i = 0; i < ek.length; i++) if (isObj(evm[ek[i]])) evs.push(evm[ek[i]]);
+    for (i = 0; i < evs.length; i++) {
+      var e = evs[i], at = null, why = '';
+      if (typeof e.site === 'string' && sites[e.site]) at = e.site;
+      else if (e.trigger === 'talk' && e.npc) { var p = hostGet(b, 'world', e.npc); at = p ? siteOfRecord(p.site) : null; why = 'its person stands nowhere on the progression graph'; }
+      else if (e.map) { at = siteOfMap(e.map); why = ow && e.map === ow.id ? '' : 'its map belongs to no site on the progression graph'; }
+      if (typeof e.site === 'string' && e.site && !sites[e.site]) why = 'its site ' + e.site + ' is not on the progression graph';
+      events[e.id] = { site: at };
+      if (!at && why && e.trigger !== 'chapterStart' && e.trigger !== 'battleEnd') unknown.push({ kind: 'event', id: e.id, why: why });
+    }
+    var people = hostList(b, 'world', 'npc_');
+    for (i = 0; i < people.length; i++) npcs[people[i].id] = { site: siteOfRecord(people[i].site), map: people[i].map || null };
+    var talkers = keys(isObj(story.npcDialogue) ? story.npcDialogue : {});
+    for (i = 0; i < talkers.length; i++) {
+      if (!npcs[talkers[i]]) unknown.push({ kind: 'npc', id: talkers[i], why: 'this person is not in the world' });
+      else if (!npcs[talkers[i]].site) unknown.push({ kind: 'npc', id: talkers[i], why: 'this person stands nowhere on the progression graph' });
+    }
+    // Golden order: the golden nodes as Day 148 lists them; a region or an optional site takes its chapter's first.
+    var pos = {}, firstOf = {};
+    for (i = 0; i < golden.length; i++) { pos[golden[i]] = i; var c = chapterOf[golden[i]]; if (c && firstOf[c] === undefined) firstOf[c] = i; }
+    for (i = 0; i < order.length; i++) { var k = order[i]; if (pos[k] === undefined && chapterOf[k] && firstOf[chapterOf[k]] !== undefined) pos[k] = firstOf[chapterOf[k]]; }
+    return { sites: sites, events: events, npcs: npcs, unknown: unknown, golden: golden, pos: pos };
+  }
+  // The events by role, each list in the order the host checks them (the walk builds the same lists).
+  function hostRoles(idx, W) {
+    var R = { voluntary: [], chapterStart: [], battleEnd: [], autoruns: [], talkBy: {}, npcs: [] }, set = {};
+    each(idx.events, function (e, id) {
+      if (VOLUNTARY[e.trigger]) R.voluntary.push(id);
+      if (e.trigger === 'autorun') R.autoruns.push(id);
+      if (e.trigger === 'chapterStart') R.chapterStart.push(id);
+      if (e.trigger === 'battleEnd') R.battleEnd.push(id);
+      if (e.trigger === 'talk' && typeof e.npc === 'string') { (R.talkBy[e.npc] = R.talkBy[e.npc] || []).push(id); set[e.npc] = 1; }
+    });
+    var order = byPriority(idx);
+    R.chapterStart.sort(order); R.battleEnd.sort(order); R.autoruns.sort(order);
+    each(R.talkBy, function (list) { list.sort(order); });
+    each(idx.npcDialogue, function (p, npc) { set[npc] = 1; });
+    each(W.npcs, function (p, npc) { if (R.talkBy[npc] || idx.npcDialogue[npc]) set[npc] = 1; });
+    R.npcs = keys(set);
+    return R;
+  }
+  function hostLoad(b) {
+    var story = b && isObj(b.story) ? b.story : {}, ext = hostExt(b), W = hostWorld(b);
+    var idx = buildIndex({ records: story.records, bindings: story.bindings, npcDialogue: story.npcDialogue }, ext);
+    var goal = [], qs = isObj(story.records) && isObj(story.records.qst_) ? story.records.qst_ : {};
+    each(qs, function (q, id) { if (isObj(q) && q.kind === 'main' && isArray(q.stages) && q.stages.length && idx.quests[id]) goal.push(id); });
+    return { version: S.version, idx: idx, pidx: dlPlayIndex(idx), ext: ext, world: W, goal: goal, roles: hostRoles(idx, W) };
+  }
+  function hostMapOf(game, mv) {
+    if (mv.npc) return npcInfo(game.world, mv.npc).map || null;
+    var e = mv.evt && game.idx.events[mv.evt];
+    return e && e.map ? e.map : null;
+  }
+  // What the player may do from a quiet state, in the walk's order: events they can walk into, then people to talk to.
+  function hostMoves(game, st) {
+    var R = game.roles, W = game.world, idx = game.idx, pidx = game.pidx, out = [], i;
+    if (!st || st.run || st.ending) return out;
+    for (i = 0; i < R.voluntary.length; i++) {
+      var id = R.voluntary[i];
+      if (siteOpen(W, evtSite(W, id), st, idx) && pickPage(id, st, pidx) >= 0) out.push({ by: idx.events[id].trigger, evt: id, map: idx.events[id].map || null });
+    }
+    for (i = 0; i < R.npcs.length; i++) {
+      var npc = R.npcs[i], info = npcInfo(W, npc), list = R.talkBy[npc] || [], te = null;
+      if (!siteOpen(W, info.site, st, idx)) continue;
+      for (var t = 0; t < list.length && !te; t++) if (pickPage(list[t], st, pidx) >= 0) te = list[t];
+      if (te) { out.push({ by: 'talk', evt: te, npc: npc, map: info.map || null }); continue; }
+      if (dlPick(idx.npcDialogue[npc], st, idx) >= 0) out.push({ by: 'dialogue', npc: npc, map: info.map || null });
+    }
+    return out;
+  }
+  function hostCall(hooks, name, a, b2) { return hooks && typeof hooks[name] === 'function' ? hooks[name](a, b2) : undefined; }
+  // Drives one run down one path. rec collects {choices [text], battles [{trp, outcome}]} the way the walk records them.
+  function hostDrive(game, r, isDlg, hooks, ctx, rec, faults) {
+    var pidx = game.pidx, steps = 0;
+    while (r) {
+      var e = r.effect;
+      if (isObj(e) && e.kind === 'error') faults.push({ code: e.code, message: e.message, evt: ctx.evt || null, npc: ctx.npc || null });
+      hostCall(hooks, 'effect', copy(e), ctx);
+      if (isObj(e) && e.kind === 'gameover') return { state: r.state, gameover: true };
+      if (r.done) return { state: r.state };
+      if (r.waiting === 'choice') {
+        var opts = isObj(e) && isArray(e.options) ? e.options : [], pick = hostCall(hooks, 'decide', { kind: 'choice', options: copy(opts) }, ctx);
+        if (pick === undefined && !(hooks && hooks.decide)) pick = 0;
+        if (typeof pick !== 'number' || pick < 0 || pick >= opts.length || pick !== Math.floor(pick)) return { state: r.state, error: { code: 'undecided', message: 'No answer for a choice in ' + (ctx.evt || ctx.npc) + '.' } };
+        rec.choices.push(opts[pick].text);
+        r = isDlg ? dlChoose(r.state, r.cursor, opts[pick].index, pidx) : choose(r.state, opts[pick].index, pidx);
+        continue;
+      }
+      if (r.waiting === 'battle') {
+        var w = r.state.run && r.state.run.wait, trp = w && w.trp != null ? w.trp : null;
+        var out = hostCall(hooks, 'decide', { kind: 'battle', trp: trp, canLose: !!(isObj(e) && e.canLose), canEscape: !!(isObj(e) && e.canEscape), state: copy(r.state) }, ctx);
+        if (out === undefined && !(hooks && hooks.decide)) out = 'win';
+        if (out !== 'win' && out !== 'lose' && out !== 'escape') return { state: r.state, error: { code: 'undecided', message: 'No outcome for a battle in ' + (ctx.evt || ctx.npc) + '.' } };
+        rec.battles.push({ trp: trp, outcome: out });
+        var rr = resolve(r.state, out, pidx);
+        r = isDlg ? dlDrive(rr, r.cursor, pidx) : rr;
+        continue;
+      }
+      if (++steps > WALK_STEPS) return { state: r.state, error: { code: 'runaway', message: 'A run took more than ' + WALK_STEPS + ' steps without stopping.' } };
+      r = isDlg ? dlStep(r.state, r.cursor, pidx) : step(r.state, pidx);
+    }
+    return { state: null, error: { code: 'lost', message: 'The run stopped without a state.' } };
+  }
+  function hostStep(ctx, rec) {
+    var s = { by: ctx.by };
+    if (ctx.evt) s.evt = ctx.evt;
+    if (ctx.npc) s.npc = ctx.npc;
+    if (rec.choices.length) s.choices = rec.choices;
+    if (rec.battles.length) s.battles = rec.battles;
+    return copy(s);
+  }
+  function hostWon(rec) { var o = []; for (var i = 0; i < rec.battles.length; i++) if (rec.battles[i].trp) o.push(rec.battles[i].trp); return o; }
+  // The forced events after a move (or at a new game), the walk's chain followed down the one path the hooks choose.
+  function hostChain(game, st, fc, hooks, out) {
+    var R = game.roles, idx = game.idx, pidx = game.pidx, W = game.world;
+    var queue = fc.queue.slice(), battles = fc.battles.slice(), chapter = fc.chapter, depth = 0;
+    for (;;) {
+      if (st.ending) return st;
+      if (depth > WALK_CHAIN) { out.error = { code: 'chain', message: 'Forced events ran more than ' + WALK_CHAIN + ' times in a row after one move.' }; return st; }
+      var next = null, kind = null, i, j;
+      if (st.chapter !== chapter) { chapter = st.chapter; for (i = 0; i < R.chapterStart.length; i++) queue.push({ evt: R.chapterStart[i], kind: 'chapterStart' }); }
+      if (battles.length) {
+        for (i = 0; i < battles.length; i++) for (j = 0; j < R.battleEnd.length; j++) {
+          var ev = idx.events[R.battleEnd[j]];
+          if (ev.trp == null || ev.trp === battles[i]) queue.push({ evt: R.battleEnd[j], kind: 'battleEnd' });
+        }
+        battles = [];
+      }
+      while (!next && queue.length) { var q = queue.shift(); if (pickPage(q.evt, st, pidx) >= 0) { next = q.evt; kind = q.kind; } }
+      if (!next && fc.map) for (i = 0; i < R.autoruns.length && !next; i++) {
+        var aid = R.autoruns[i];
+        if (idx.events[aid].map === fc.map && siteOpen(W, evtSite(W, aid), st, idx) && pickPage(aid, st, pidx) >= 0) { next = aid; kind = 'autorun'; }
+      }
+      if (!next) return st;
+      var ctx = { by: kind, evt: next }, rec = { choices: [], battles: [] };
+      if (hostCall(hooks, 'begin', copy(ctx)) === false) { out.error = { code: 'stopped', message: 'The host stopped before ' + next + '.' }; return st; }
+      var h0 = hash64(canon(abstractOf(st))), o = hostDrive(game, start(st, next, pidx), false, hooks, ctx, rec, out.faults);
+      if (o.error) { out.error = o.error; return o.state || st; }
+      out.steps.push(hostStep(ctx, rec));
+      if (o.gameover) { out.gameover = true; return o.state; }
+      if (kind === 'autorun' && hash64(canon(abstractOf(o.state))) === h0) { out.error = { code: 'autorun-loop', message: 'Autorun ' + next + ' passes again as soon as it ends and changes nothing.' }; return st; }
+      st = o.state; battles = hostWon(rec); depth++;
+    }
+  }
+  function hostResult(st, out) {
+    return { state: st, steps: out.steps, ending: st && st.ending ? st.ending : null, gameover: !!out.gameover, error: out.error || null, faults: out.faults };
+  }
+  function hostNew(game, opts, hooks) {
+    var out = { steps: [], faults: [] }, st = createState(game.idx, isObj(opts) ? opts : {});
+    st = hostChain(game, st, { chapter: null, map: null, battles: [], queue: [] }, hooks, out);
+    return hostResult(st, out);
+  }
+  function hostPlay(game, st, mv, hooks) {
+    var out = { steps: [], faults: [] };
+    if (!isObj(mv) || (mv.by !== 'dialogue' && !(mv.evt && game.idx.events[mv.evt]))) { out.error = { code: 'move', message: 'That is not a move.' }; return hostResult(st, out); }
+    if (st.run || st.ending) { out.error = { code: 'busy', message: st.ending ? 'The game has ended.' : 'An event is running.' }; return hostResult(st, out); }
+    var ctx = { by: mv.by }, rec = { choices: [], battles: [] }, map = mv.map !== undefined ? mv.map : hostMapOf(game, mv);
+    if (mv.evt) ctx.evt = mv.evt;
+    if (mv.npc) ctx.npc = mv.npc;
+    if (hostCall(hooks, 'begin', copy(ctx)) === false) { out.error = { code: 'stopped', message: 'The host stopped before the move.' }; return hostResult(st, out); }
+    var o = mv.by === 'dialogue' ? hostDrive(game, dlTalk(st, mv.npc, game.pidx), true, hooks, ctx, rec, out.faults) : hostDrive(game, start(st, mv.evt, game.pidx), false, hooks, ctx, rec, out.faults);
+    if (o.error) { out.error = o.error; return hostResult(o.state || st, out); }
+    out.steps.push(hostStep(ctx, rec));
+    if (o.gameover) { out.gameover = true; return hostResult(o.state, out); }
+    var after = hostChain(game, o.state, { chapter: st.chapter, map: map || null, battles: hostWon(rec), queue: [] }, hooks, out);
+    return hostResult(after, out);
+  }
+  var FORCED = { chapterStart: 1, battleEnd: 1 };
+  // Plays a walk path step by step: each move must be one moves() offers, every run must start where the path says, and
+  // every choice and battle is answered from the path. opts {effect, battle} observe without deciding; opts.state starts
+  // from a quiet state (a loaded save) instead of a new game. Returns {ok, state, ending, hash, played, steps, error, faults}.
+  function hostReplay(game, path, opts) {
+    opts = isObj(opts) ? opts : {};
+    var list = [], cur = 0, active = null, ci = 0, bi = 0, fail = null, faults = [], seen = [], st, i;
+    if (isArray(path)) for (i = 0; i < path.length; i++) if (isObj(path[i]) && path[i].by !== 'newGame') list.push(path[i]);
+    var hooks = {
+      begin: function (ctx) {
+        var s = list[cur];
+        if (!s || s.by !== ctx.by || (s.evt || null) !== (ctx.evt || null) || (s.npc || null) !== (ctx.npc || null)) {
+          fail = fail || { code: 'diverged', at: cur, message: 'Step ' + (cur + 1) + ' should be ' + (s ? s.by + ' ' + (s.evt || s.npc) : 'the end') + ', but the game ran ' + ctx.by + ' ' + (ctx.evt || ctx.npc) + '.' };
+          return false;
+        }
+        active = s; cur++; ci = 0; bi = 0;
+        return true;
+      },
+      decide: function (q, ctx) {
+        if (q.kind === 'choice') {
+          var want = active && isArray(active.choices) ? active.choices[ci++] : undefined;
+          for (var k = 0; k < q.options.length; k++) if (q.options[k].text === want) return k;
+          fail = fail || { code: 'choice', at: cur - 1, message: 'No option "' + want + '" in ' + (ctx.evt || ctx.npc) + '.' };
+          return -1;
+        }
+        var b2 = active && isArray(active.battles) ? active.battles[bi++] : null;
+        if (typeof opts.battle === 'function') opts.battle(copy(q), ctx);
+        if (!isObj(b2) || (b2.trp || null) !== (q.trp || null)) { fail = fail || { code: 'battle', at: cur - 1, message: 'Battle ' + q.trp + ' is not the one the path fought.' }; return null; }
+        return b2.outcome;
+      },
+      effect: function (e, ctx) { if (typeof opts.effect === 'function') opts.effect(e, ctx); }
+    };
+    function take(r) { for (var f = 0; f < r.faults.length; f++) faults.push(r.faults[f]); for (var s = 0; s < r.steps.length; s++) seen.push(r.steps[s]); if (r.error && !fail) fail = r.error; if (r.gameover && !fail) fail = { code: 'gameover', at: cur - 1, message: 'The path lost a battle with no lose list.' }; }
+    if (isObj(opts.state)) st = copy(opts.state);
+    else { var r0 = hostNew(game, {}, hooks); take(r0); st = r0.state; }
+    while (!fail && cur < list.length) {
+      var s = list[cur], mv = null, avail = hostMoves(game, st);
+      if (FORCED[s.by]) { fail = { code: 'diverged', at: cur, message: 'Step ' + (cur + 1) + ' is a forced ' + s.by + ' event, but no move led to it.' }; break; }
+      for (i = 0; i < avail.length && !mv; i++) if (avail[i].by === s.by && (avail[i].evt || null) === (s.evt || null) && (avail[i].npc || null) === (s.npc || null)) mv = avail[i];
+      if (!mv) { fail = { code: 'unavailable', at: cur, message: 'Step ' + (cur + 1) + ' (' + s.by + ' ' + (s.evt || s.npc) + ') is not a move the player can make here.' }; break; }
+      var r = hostPlay(game, st, mv, hooks);
+      take(r); st = r.state;
+    }
+    // Comparing what ran with the path itself checks the recorded choices and battles too, not just the starts.
+    if (!fail && canon(seen) !== canon(list)) fail = { code: 'record', at: cur, message: 'The game ran the path\'s steps but recorded different choices or battles.' };
+    return { ok: !fail, state: st, ending: st && st.ending ? st.ending : null, hash: st ? hash64(canon(abstractOf(st))) : null, played: cur, steps: list.length, error: fail, faults: faults };
+  }
+  S.host = { ext: hostExt, world: hostWorld, load: hostLoad, newGame: hostNew, moves: hostMoves, play: hostPlay, replay: hostReplay,
+    hash: function (st) { return hash64(canon(abstractOf(st))); } };
+
   // ---------------------------------------------------------------- later phases insert sections above this line
   function freeze(o) { Object.freeze(o); keys(o).forEach(function (k) { var v = o[k]; if (v && (typeof v === 'object' || typeof v === 'function') && !Object.isFrozen(v)) freeze(v); }); return o; }
   return freeze(S);
@@ -5631,20 +6000,9 @@ var ENGINE_STORY = (function () {
   // the one place the page gathers them, so every tab, the playtester, and the walk read the same index Day 150 builds.
   // Memoized per bundle on KIT:CORE's index identity (a new identity after any change), so it is rebuilt only when the
   // bundle moves.
-  STORY.engineExt = function (b) {
-    b = b || Kit.bundle.current();
-    var ids = {};
-    function add(prefix, list) { ids[prefix] = (ids[prefix] || []).concat(list.map(function (r) { return r.id; })).sort(); }
-    ['npc_', 'map_'].forEach(function (p) { add(p, STORY.world.list(p, b)); });
-    ['trp_', 'itm_', 'eqp_', 'chr_'].forEach(function (p) { add(p, STORY.rules(p, b)); });
-    ['mus_', 'sfx_', 'por_'].forEach(function (p) { add(p, nsList(b, 'art', p)); });
-    var chapters = STORY.chapters(b).map(function (c) { return c.id; }).filter(function (x) { return typeof x === 'string'; });
-    ids.chp_ = chapters.slice().sort();
-    var roles = nsList(b, 'art', 'mus_').filter(function (m) { return m.subject && m.subject.kind === 'role' && typeof m.subject.ref === 'string'; })
-      .map(function (m) { return m.subject.ref.replace(/^music:/, ''); }).sort();
-    var g = STORY.world.graph(b);
-    return { chapters: chapters, start: g && Array.isArray(g.start) ? g.start.slice() : [], ids: ids, roles: roles };
-  };
+  // Phase 8: the gathering moved into the engine (ENGINE_STORY.host.ext), so a game reading a Final bundle with no forge
+  // page builds exactly the index the page, the playtester, and the walk read.
+  STORY.engineExt = function (b) { return ENGINE_STORY.host.ext(b || Kit.bundle.current()); };
   var engIdx = { key: null, idx: null };
   STORY.engineIndex = function (b) {
     b = b || Kit.bundle.current();
@@ -9238,56 +9596,9 @@ var ENGINE_STORY = (function () {
   // regions (a region needs the gate that leads into it). An event stands on its site field when that names a node or a
   // region, else on the site of its map, else on its person's site. A record the world places nowhere stays open and is
   // listed in unknown, so the References card can say so.
-  C.walkWorld = function (b) {
-    b = b || cur();
-    var g = STORY.world.graph(b), bind = b.story.bindings || {}, sites = {}, byRecord = {}, golden = [], chapterOf = {}, unknown = [];
-    function flags(list) { var o = []; (list || []).forEach(function (k) { var bd = bind[k]; if (U.isObj(bd) && typeof bd.flg === 'string' && o.indexOf(bd.flg) < 0) o.push(bd.flg); }); return o.sort(); }
-    if (g) {
-      g.nodes.forEach(function (n) {
-        sites[n.key] = { requires: flags(n.requires) };
-        chapterOf[n.key] = n.chapter || null;
-        if (n.record) byRecord[n.record] = n.key;
-        if (n.golden) golden.push(n.key);
-      });
-      (g.regions || []).forEach(function (r) {
-        var gate = (g.gates || []).filter(function (x) { return U.isObj(x) && x.to === r.key; })[0];
-        sites[r.key] = { requires: flags(gate ? gate.requires : (r.chapter ? ['chapter:' + r.chapter] : [])) };
-        chapterOf[r.key] = r.chapter || null;
-        if (r.record) byRecord[r.record] = r.key;
-      });
-    }
-    function siteOfRecord(id) {
-      if (!id) return null;
-      if (byRecord[id]) return byRecord[id];
-      var rec = STORY.world.get(id, b);
-      return rec && rec.region && byRecord[rec.region] ? byRecord[rec.region] : null;
-    }
-    function siteOfMap(m) { var rec = m && STORY.world.get(m, b); return rec && rec.site ? siteOfRecord(rec.site) : null; }
-    var ow = STORY.world.overworld(b), events = {}, npcs = {};
-    STORY.records.list('evt_', b).forEach(function (e) {
-      var site = null, why = '';
-      if (typeof e.site === 'string' && sites[e.site]) site = e.site;
-      else if (e.trigger === 'talk' && e.npc) { var p = STORY.world.get(e.npc, b); site = p ? siteOfRecord(p.site) : null; why = 'its person stands nowhere on the progression graph'; }
-      else if (e.map) { site = siteOfMap(e.map); why = ow && e.map === ow.id ? '' : 'its map belongs to no site on the progression graph'; }
-      if (typeof e.site === 'string' && e.site && !sites[e.site]) why = 'its site ' + e.site + ' is not on the progression graph';
-      events[e.id] = { site: site };
-      if (!site && why && e.trigger !== 'chapterStart' && e.trigger !== 'battleEnd') unknown.push({ kind: 'event', id: e.id, why: why });
-    });
-    STORY.world.list('npc_', b).forEach(function (n) {
-      var site = siteOfRecord(n.site);
-      npcs[n.id] = { site: site, map: n.map || null };
-    });
-    Object.keys(b.story.npcDialogue || {}).sort().forEach(function (npc) {
-      if (!npcs[npc]) unknown.push({ kind: 'npc', id: npc, why: 'this person is not in the world' });
-      else if (!npcs[npc].site) unknown.push({ kind: 'npc', id: npc, why: 'this person stands nowhere on the progression graph' });
-    });
-    // Golden order: the golden nodes as Day 148 lists them. A region or an optional site takes the place of its chapter's
-    // first golden node.
-    var pos = {}, firstOf = {};
-    golden.forEach(function (k, i) { pos[k] = i; var c = chapterOf[k]; if (c && firstOf[c] === undefined) firstOf[c] = i; });
-    Object.keys(sites).forEach(function (k) { if (pos[k] === undefined && chapterOf[k] && firstOf[chapterOf[k]] !== undefined) pos[k] = firstOf[chapterOf[k]]; });
-    return { sites: sites, events: events, npcs: npcs, unknown: unknown, golden: golden, pos: pos };
-  };
+  // Phase 8: the picture is built by the engine (ENGINE_STORY.host.world) from the bundle alone, so Day 150 places events
+  // and people on the same sites the walk proved the story on.
+  C.walkWorld = function (b) { b = b || cur(); STORY.ensure(b); return ES.host.world(b); };
 
   // ---------------------------------------------------------------- the walk
   function mainQuests(b) { return Q.list(b).filter(function (q) { return q.kind === 'main' && Array.isArray(q.stages) && q.stages.length; }); }
@@ -9594,6 +9905,119 @@ var ENGINE_STORY = (function () {
   C.canJump = function (it) { return !!it && (!!it.npc || !!it.tab || (!!it.recordId && Kit.jump.can(it.recordId))); };
 })();
 // === STORY:CHECKS END ===
+// === STORY:DAY150 BEGIN ===
+// Phase 8: the Day 150 contract, the manifest's day150 block. It says exactly what a shipped game needs and promises that
+// nothing else is needed: the five engine files in load order (each with its sha256) and the Final bundle. No forge
+// page, no Kit, no STORY, no storage of the forge's, no network, and no API key. test/phase8.js proves it by playing the
+// golden path and every ending in a bare vm holding only those five files and the bundle.
+// Everything here is read through ENGINE_STORY.host from the bundle itself, never from page state, so the contract
+// describes what a game will see.
+(function () {
+  'use strict';
+  var U = Kit.util, ES = ENGINE_STORY, H = ES.host;
+  var D = STORY.day150c = {};
+  D.CONTRACT = 1;
+  // ENGINE_BATTLE reports win, lose, flee, or timeout; the story asks for win, lose, or escape. A timeout (the battle hit
+  // its tick cap) counts as a loss. flee may only be offered when the story's question says canEscape.
+  D.OUTCOMES = { win: 'win', lose: 'lose', flee: 'escape', timeout: 'lose' };
+  // What the shell (Day 150's page) must provide itself, and what it must never need.
+  D.SHELL = {
+    provides: [
+      'input: offer the moves ENGINE_STORY.host.moves(game, state) returns for the map the player stands on, and play the one chosen with ENGINE_STORY.host.play',
+      'render: draw each effect the effect hook receives (text, choice, fade, face, moveActor, changeMap, vehicle, wait) with ENGINE_RENDER on a canvas the shell owns',
+      'audio: play music (a role key or a mus_) and sfx effects with ENGINE_AUDIO, starting audio only after a user gesture',
+      'battle: answer each battle question by running ENGINE_BATTLE on its trp with a party built from state.party, and report the outcome through OUTCOMES',
+      'saves: keep ENGINE_STORY.save.toSave(state, game.idx) in storage the shell owns (slot count and keys are the shell\'s), and restore with ENGINE_STORY.save.fromSave'
+    ],
+    never: ['the forge pages (Days 146 to 149)', 'Kit or STORY', 'a forge\'s storage keys', 'network access', 'an API key']
+  };
+  // When the shell offers each trigger. chapterStart, battleEnd, and the forced autoruns are the host's own; play runs
+  // them after every move.
+  D.TRIGGERS = {
+    mapEnter: 'offered when the player enters the move\'s map',
+    step: 'offered when the player stands on the event\'s at cell on the move\'s map',
+    autorun: 'offered when the player is on the move\'s map; ENGINE_STORY.host.play also runs autoruns on the moved to map by itself',
+    talk: 'offered when the player talks to the move\'s npc',
+    dialogue: 'the same, for a person with only dialogue pages',
+    chapterStart: 'never offered; run by the host at a new game and whenever the chapter changes',
+    battleEnd: 'never offered; run by the host after the battles of a run'
+  };
+
+  function pathSteps(path) { return (path || []).filter(function (s) { return U.isObj(s) && s.by !== 'newGame'; }).map(function (s) { return U.clone(s); }); }
+  function bosses(b) {
+    var evs = STORY.records.list('evt_', b).filter(function (e) { return e.kind === 'boss' && typeof e.dgn === 'string'; });
+    return STORY.events.bosses(b).map(function (x) {
+      var bt = STORY.events.bossTroop(x.dgn, b), ev = evs.filter(function (e) { return e.dgn === x.dgn; })[0] || null;
+      return { chapter: x.chapter, dgn: x.dgn, troop: bt.trp, source: bt.slot ? 'story' : 'world', chosen: !!bt.chosen, evt: ev ? ev.id : null, finale: !!x.finale };
+    });
+  }
+
+  // The block, or null until the story checks prove the story. lazy: also null while the checks for this state have not
+  // run yet, so drawing a tab never walks.
+  STORY.day150 = function (b, lazy) {
+    b = b || Kit.bundle.current();
+    if (!b || !STORY.checks || typeof STORY.checks.walk !== 'function' || STORY.readiness(b) !== true) return null;
+    if (lazy && !STORY.checks.ready(b)) return null;
+    // A contract promises a game that can be finished, so there is none until the story checks prove that.
+    var sum = STORY.checks.summary ? STORY.checks.summary(b) : null;
+    if (!sum || sum.proven !== true) return null;
+    STORY.ensure(b);
+    var game = H.load(b), R = STORY.checks.walk(b).result, files = (STORY.engines.FILES || []).map(function (f) { return U.clone(f); });
+    // A new game: the state before anything runs, then the forced opening (decided the way the golden path decides it).
+    var fresh = ES.state.create(game.idx, {}), golden = R.golden ? pathSteps(R.golden.path) : [];
+    var openSteps = [], at = 0, active = null, ci = 0, bi = 0;
+    var boot = H.newGame(game, {}, {
+      begin: function (ctx) { active = golden[at] && golden[at].by === ctx.by && golden[at].evt === ctx.evt ? golden[at] : null; at++; ci = 0; bi = 0; openSteps.push(ctx); },
+      decide: function (q) {
+        if (q.kind === 'choice') { var want = active && active.choices ? active.choices[ci++] : null, k = q.options.map(function (o) { return o.text; }).indexOf(want); return k < 0 ? 0 : k; }
+        var bb = active && active.battles ? active.battles[bi++] : null;
+        return bb ? bb.outcome : 'win';
+      }
+    });
+    var ow = STORY.world.overworld(b), g = STORY.world.graph(b), idx = game.idx;
+    var endings = U.isObj(R.endings) ? Object.keys(R.endings).sort().map(function (e) { return { end: e, hash: R.endings[e].hash, steps: pathSteps(R.endings[e].path) }; }) : [];
+    return {
+      contract: D.CONTRACT,
+      summary: 'A game is the five engine files below, loaded in this order, plus this Final bundle. Nothing else from any forge is needed.',
+      engines: files,
+      loadOrder: files.map(function (f) { return f.file; }),
+      hashRule: 'sha256 of the file with any one line of the form /* Bundle hash <hex> */ removed',
+      api: {
+        load: 'var game = ENGINE_STORY.host.load(bundle)',
+        newGame: 'var r = ENGINE_STORY.host.newGame(game, {gil, items, party}, hooks); r.state is the first quiet state',
+        loop: 'ENGINE_STORY.host.moves(game, state) lists what the player may do; ENGINE_STORY.host.play(game, state, move, hooks) runs one and every forced event after it',
+        hooks: '{begin(ctx), decide(question, ctx), effect(effect, ctx)}; decide answers {kind choice, options} with a position and {kind battle, trp, canLose, canEscape, state} with win, lose, or escape',
+        save: 'ENGINE_STORY.save.toSave(state, game.idx) between moves; ENGINE_STORY.save.fromSave(save, game.idx) to restore',
+        replay: 'ENGINE_STORY.host.replay(game, steps) plays golden.steps or any endings[].steps and checks each one'
+      },
+      newGame: { chapter: fresh.chapter, openFlags: idx.start.slice(), startGates: g && Array.isArray(g.start) ? g.start.slice() : [], gil: 0, party: [], items: {} },
+      opening: { steps: boot.steps, chapter: boot.state.chapter, hash: H.hash(boot.state), firstMoves: H.moves(game, boot.state), faults: boot.faults.length },
+      start: { overworld: ow ? ow.id : null, chapter: boot.state.chapter },
+      triggers: U.clone(D.TRIGGERS),
+      saves: {
+        schema: 'Day 146 save: the story keeps flags [{flg, value}], gil, inventory [{item, qty}], party [chr_], and chapter; quest stages and once pages pack into derived flags',
+        derived: ES.save.slots(idx), limits: U.clone(ES.save.LIMITS),
+        rules: ['never save while an event is running (toSave refuses)', 'never save after an ending', 'a flag at its default is left out']
+      },
+      bosses: bosses(b),
+      bossRule: 'A boss is the world troop when Day 148 set one (its boss zone, else dgn_.troop); otherwise the startBattle troop of the story\'s boss event whose dgn names that dungeon. The scaffolded boss events already carry the resolved troop.',
+      battle: {
+        engine: 'ENGINE_BATTLE',
+        call: 'ENGINE_BATTLE.init({ruleset: bundle.charter.ruleset, records: bundle.rules, party: members, troopId: question.trp, weatherId: null}, seed, opts) then advance, or run for an automatic battle',
+        member: '{chr, level, equipment [eqp_], materia [{eqp, slot, mat, ap}], abilities [abl_], row, job, jobLevel, cls}',
+        party: 'question.state.party lists the chr_ ids in the party; levels and gear come from the chapter\'s eps_ record (targetLevel, gearTier) in bundle.rules',
+        outcomes: U.clone(D.OUTCOMES)
+      },
+      effects: { commands: ES.cmd.OPS.slice(), host: ['end', 'none', 'idle', 'gameover', 'error'], silent: ['if', 'setFlag', 'addFlag', 'callEvent'] },
+      musicRoles: game.ext.roles.slice(),
+      golden: R.golden ? { ending: R.golden.ending, hash: R.golden.hash, full: !!R.goldenFull, steps: golden } : null,
+      endings: endings,
+      shell: U.clone(D.SHELL),
+      proof: 'test/phase8.js plays golden.steps and every endings[].steps in a bare vm holding only these five files and this bundle, and gets these hashes'
+    };
+  };
+})();
+// === STORY:DAY150 END ===
 // === WS:FLAGS BEGIN ===
 (function () {
   'use strict';
@@ -12014,7 +12438,10 @@ var ENGINE_STORY = (function () {
   // ---------------------------------------------------------------- the engine file
   // ENGINE:STORY read back from this page's own script and written out as engine-story.js under a header. The markers
   // are built from parts so this fence never finds itself.
-  var ENG = STORY.engines = { FILE: 'engine-story.js', GLOBAL: 'ENGINE_STORY', LOAD_ORDER: ['engine-render.js', 'engine-audio.js', 'engine-world.js', 'engine-story.js'] };
+  // FILES is the game kit, written in by build.js: every engine a game loads, in load order, with its owner, version,
+  // size, and sha256 (over the file with any bundle hash line removed).
+  var ENG = STORY.engines = { FILE: 'engine-story.js', GLOBAL: 'ENGINE_STORY', FILES: [{"key":"render","file":"engine-render.js","global":"ENGINE_RENDER","owner":147,"version":"1.0.0","bytes":222033,"sha256":"1ad0fc0d07fcb10a4917cc5550822860c6e3aac4a0414d050625ba906fad3281"},{"key":"audio","file":"engine-audio.js","global":"ENGINE_AUDIO","owner":147,"version":"1.0.0","bytes":52509,"sha256":"4b77f7e557628e21330c7ca742cfb6664f0fd615f33bb40a9e5b16fb6751207a"},{"key":"world","file":"engine-world.js","global":"ENGINE_WORLD","owner":148,"version":"1.0.0","bytes":170257,"sha256":"146dcdad83307655b3e28288078dfb6fca7de86842ed9ecd13c6f3a61b39180f"},{"key":"battle","file":"engine-battle.js","global":"ENGINE_BATTLE","owner":146,"version":"1.0.0","bytes":64214,"sha256":"cc091bedd5acb06baf6cf5ef39ce8f3a3a9d02275bb479f4e24b8cde2b80177e"},{"key":"story","file":"engine-story.js","global":"ENGINE_STORY","owner":149,"version":"1.0.0","bytes":136967,"sha256":"75451b0ee690b40fdc5658d4f0dfc29c572788d2262622bbff3f1b40284c3786"}] };
+  ENG.LOAD_ORDER = (ENG.FILES || []).map(function (f) { return f.file; });
   ENG.markers = function () { var f = '// === ENGINE:' + 'STORY '; return [f + 'BEGIN ===', f + 'END ===']; };
   ENG.cut = function (text) {
     var mk = ENG.markers(), a = text.indexOf(mk[0]), z = text.indexOf(mk[1]);
@@ -12035,6 +12462,29 @@ var ENGINE_STORY = (function () {
       (hash ? '/* Bundle hash ' + hash + ' */\n' : '');
   };
   ENG.file = function (hash) { return { key: 'engine-story', name: ENG.FILE, text: ENG.header(hash) + ENG.source(), mime: 'text/javascript' }; };
+  // The rest of the game kit: the four vendored engines, read from beside this page (they are the files the page itself
+  // loads) and checked against the sha256 the build wrote in. Resolves to {files, missing [{file, why}]}; a file that
+  // cannot be read or does not match is listed in missing, never shipped. Opened from disk (file://), a browser refuses
+  // the reads, and the toast says to copy the files from the repository instead.
+  ENG.noHashLine = function (s) { return String(s).replace(/^\/\* Bundle hash [0-9a-f]+ \*\/\n/m, ''); };
+  ENG.sha256 = function (text) {
+    var c = window.crypto && window.crypto.subtle;
+    if (!c || typeof TextEncoder === 'undefined') return Promise.reject(new Error('This browser cannot hash files.'));
+    return c.digest('SHA-256', new TextEncoder().encode(text)).then(function (buf) { return Array.prototype.map.call(new Uint8Array(buf), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); });
+  };
+  ENG.kit = function () {
+    var wanted = (ENG.FILES || []).filter(function (f) { return f.key !== 'story'; }), files = [], missing = [];
+    return Promise.all(wanted.map(function (f) {
+      return Promise.resolve().then(function () { return window.fetch(f.file, { cache: 'no-store' }); })
+        .then(function (r) { if (!r || !r.ok) throw new Error('not found beside this page'); return r.text(); })
+        .then(function (text) { return ENG.sha256(ENG.noHashLine(text)).then(function (h) { if (h !== f.sha256) throw new Error('its sha256 is not the one this page was built with'); files.push({ key: 'engine-' + f.key, name: f.file, text: text, mime: 'text/javascript', order: ENG.LOAD_ORDER.indexOf(f.file) }); }); })
+        .catch(function (e) { missing.push({ file: f.file, why: e && e.message || String(e) }); });
+    })).then(function () {
+      files.sort(function (a, z) { return a.order - z.order; });
+      missing.sort(function (a, z) { return a.file < z.file ? -1 : 1; });
+      return { files: files, missing: missing };
+    });
+  };
 
   // ---------------------------------------------------------------- manifest
   var ID_SCAN = /^[a-z]{3}_[a-z0-9_]*[a-z0-9]$/;
@@ -12067,8 +12517,8 @@ var ENGINE_STORY = (function () {
       exportedAt: U.now(), created: created, referenced: referenced, unresolved: unresolved.sort(), forward: fw, storyOpened: Kit.codex.isOpened('story', b), counts: counts,
       validation: Kit.validate.summary(Kit.validate(b)), worldCheck: { clean: !wc.length, problems: wc.map(function (p) { return p.message; }) },
       // Phase 7 fills checks and walk; Phase 8 fills the Day 150 contract.
-      checks: STORY.checks && !lazy ? STORY.checks.summary(b) : null, walk: STORY.checks && STORY.checks.walkStats && !lazy ? STORY.checks.walkStats(b) : null, day150: STORY.day150 ? STORY.day150(b) : null,
-      engines: [{ key: 'story', global: ENG.GLOBAL, file: ENG.FILE, version: ENGINE_STORY.version }], loadOrder: ENG.LOAD_ORDER.slice()
+      checks: STORY.checks && !lazy ? STORY.checks.summary(b) : null, walk: STORY.checks && STORY.checks.walkStats && !lazy ? STORY.checks.walkStats(b) : null, day150: STORY.day150 ? STORY.day150(b, lazy) : null,
+      engines: (ENG.FILES || []).map(function (f) { return { key: f.key, global: f.global, file: f.file, version: f.version, owner: f.owner, sha256: f.sha256 }; }), loadOrder: ENG.LOAD_ORDER.slice()
     };
   };
 
@@ -12116,11 +12566,22 @@ var ENGINE_STORY = (function () {
     return { hash: out.hash, files: files };
   };
   function download(files) { files.forEach(function (f, i) { setTimeout(function () { U.download(f.name, f.text, f.mime); }, i * 350); }); }
+  // opts.kit (Final only): after the bundle, manifest, and engine-story.js, also download the other four engines, so the
+  // download is a whole game kit. out.kit is the promise of that second step ({files, missing}).
   STORY.exportNow = function (status, opts) {
+    opts = opts || {};
     try {
       var out = Kit.buildExport(status, opts);
       download(out.files);
       Kit.ui.toast('Exported ' + out.files.length + ' files (' + status + '). Hash ' + out.hash.slice(0, 12) + '.', 'ok', 6000);
+      if (status === 'final' && opts.kit && opts.engines !== false) {
+        out.kit = ENG.kit().then(function (k) {
+          setTimeout(function () { download(k.files); }, out.files.length * 350);
+          if (k.missing.length) Kit.ui.toast('The game kit is missing ' + k.missing.map(function (m) { return m.file; }).join(', ') + ' (' + k.missing[0].why + '). Copy ' + (k.missing.length === 1 ? 'it' : 'them') + ' from the appaday-149-story-forge repository; the manifest lists each sha256.', 'warn', 9000);
+          else Kit.ui.toast('Game kit complete: all five engines, checked by sha256.', 'ok', 6000);
+          return k;
+        });
+      }
       Kit.rerender();
       return out;
     } catch (e) { Kit.ui.toast(e.message, 'error', 7000); return null; }
@@ -12140,9 +12601,11 @@ var ENGINE_STORY = (function () {
     host.appendChild(rc);
     var tg = el('div', 's9-opts');
     tg.appendChild(toggle('Include engine-story.js', st.engines, function (on) { st.engines = on; if (onChange) onChange(); }));
+    tg.appendChild(toggle('Final: the whole game kit (all five engines)', st.kit && st.engines, function (on) { st.kit = on; if (on) st.engines = true; if (onChange) onChange(); }));
     host.appendChild(tg);
+    host.appendChild(el('p', 'muted s9-kit-note', esc('A Final with the game kit is everything Day 150 needs to run the game: ' + ENG.LOAD_ORDER.join(', ') + ', the bundle, and the manifest. The forge is not part of the game.')));
   }
-  function exportState() { return { status: 'draft', engines: true }; }
+  function exportState() { return { status: 'draft', engines: true, kit: true }; }
   Kit.openExport = function () {
     var st = exportState();
     Kit.ui.dialog({
@@ -12150,7 +12613,7 @@ var ENGINE_STORY = (function () {
       body: function (body) { exportForm(body, st); },
       actions: [
         { label: 'Close', kind: 'ghost', value: null },
-        { label: 'Download', kind: 'primary', icon: 'export', onClick: function () { if (!STORY.exportNow(st.status, { engines: st.engines })) return false; } }
+        { label: 'Download', kind: 'primary', icon: 'export', onClick: function () { if (!STORY.exportNow(st.status, { engines: st.engines, kit: st.kit })) return false; } }
       ]
     });
   };
@@ -12323,6 +12786,37 @@ var ENGINE_STORY = (function () {
     p.appendChild(r);
     host.appendChild(p);
   }
+  // ---------------------------------------------------------------- the Day 150 panel
+  // The game kit table and a Play check: the golden path played through ENGINE_STORY.host, the same loop a shipped game
+  // runs, compared with the walk's own end state.
+  function day150Panel(b) {
+    var sec = el('section', 'panel s9-d150');
+    sec.appendChild(el('h3', 'section-h', 'Day 150: the game kit'));
+    sec.appendChild(el('p', 'muted', esc('A game is these five files plus a Final bundle. Day 150\'s page draws, plays sound, runs battles, and keeps saves; the forge is not part of the game.')));
+    sec.appendChild(table([{ label: 'File' }, { label: 'From' }, { label: 'Version' }, { label: 'sha256' }], (ENG.FILES || []).map(function (f, i) {
+      return '<tr><th scope="row">' + (i + 1) + '. ' + esc(f.file) + '</th><td>Day ' + f.owner + '</td><td>' + esc(f.version) + '</td><td><code>' + esc(f.sha256.slice(0, 12)) + '</code></td></tr>';
+    })));
+    var d = STORY.day150(b, true), out = el('div', 's9-d150-out');
+    if (!d) out.appendChild(el('p', 'muted', esc(STORY.readiness(b) === true ? 'The contract appears once the story checks prove the story can be finished.' : 'The contract appears once a Day 148 world is open.')));
+    else {
+      out.appendChild(el('div', null, kv([
+        ['Opening', esc(plural(d.opening.steps.length, 'forced event') + ', then ' + plural(d.opening.firstMoves.length, 'move') + ' to choose from')],
+        ['Golden path', d.golden ? esc(plural(d.golden.steps.length, 'step') + ' to ' + nameOf(d.golden.ending)) : chip('chip-error', 'none')],
+        ['Endings', esc(String(d.endings.length))], ['Bosses', esc(d.bosses.map(function (x) { return x.source === 'story' ? 'story troop' : 'world troop'; }).join(', ') || 'none')],
+        ['Save slots', esc(plural(d.saves.derived.length, 'derived flag'))]
+      ])));
+      var res = el('p', 'muted s9-play-res');
+      out.appendChild(button('Play the golden path', 'spark', '', function () {
+        var game = ENGINE_STORY.host.load(b), r = d.golden ? ENGINE_STORY.host.replay(game, d.golden.steps) : null;
+        var ok = !!r && r.ok && r.ending === d.golden.ending && r.hash === d.golden.hash && !r.faults.length;
+        res.className = 'msg ' + (ok ? 'msg-ok' : 'msg-error') + ' s9-play-res';
+        res.textContent = !r ? 'There is no golden path to play.' : ok ? 'Played ' + plural(r.played, 'step') + ' through the game loop to ' + nameOf(r.ending) + ', the walk\'s exact end state.' : 'The game loop stopped: ' + (r.error ? r.error.message : 'it ended somewhere else.');
+      }));
+      out.appendChild(res);
+    }
+    sec.appendChild(out);
+    return sec;
+  }
   function renderExport(host) {
     var head = el('section', 'panel');
     head.innerHTML = '<h2 class="panel-title">Validation and Export</h2><p class="muted">Export the bundle, its forge 149 manifest, and engine-story.js. Days 146, 147, and 148 open the bundle unchanged. A Final export opens the story namespace for Day 150.</p>';
@@ -12332,7 +12826,7 @@ var ENGINE_STORY = (function () {
     var p = el('section', 'panel');
     p.appendChild(el('h3', 'section-h', 'Export the bundle'));
     exportForm(p, st, function () { Kit.rerender(); }, true);
-    p.appendChild(button('Download', 'export', 'btn-primary', function () { STORY.exportNow(st.status, { engines: st.engines }); }));
+    p.appendChild(button('Download', 'export', 'btn-primary', function () { STORY.exportNow(st.status, { engines: st.engines, kit: st.kit }); }));
     host.appendChild(p);
     var m = el('section', 'panel'), man = STORY.manifest(cur(), '', { lazy: true });
     m.appendChild(el('h3', 'section-h', 'Manifest preview'));
@@ -12340,6 +12834,7 @@ var ENGINE_STORY = (function () {
       ['Unresolved', man.unresolved.length ? chip('chip-broken', String(man.unresolved.length)) : chip('chip-ok', '0')],
       ['Engine', esc(ENG.FILE + ' ' + ENGINE_STORY.version)], ['Day 150 loads', esc(ENG.LOAD_ORDER.join(', '))]])));
     host.appendChild(m);
+    host.appendChild(day150Panel(cur()));
     var z = el('section', 'panel');
     z.appendChild(el('h3', 'section-h', 'Size'));
     sizeBody(z);

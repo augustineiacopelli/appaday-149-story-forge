@@ -109,6 +109,9 @@ const ROOT = require('path').join(__dirname, '..');
     await click(/^Show \d+ more$/); await pg.waitForTimeout(150);
     await pg.evaluate(() => { document.querySelectorAll('#ws .vc-card details').forEach((d) => { d.open = true; }); }); await pg.waitForTimeout(100);
     report.push(Object.assign({ w }, await audit('validation: every finding shown, paths and the gate table open')));
+    // Phase 8: the Day 150 panel on this edited story (it withholds the contract until the story is proven again).
+    await pg.waitForFunction(() => !!document.querySelector('#ws .s9-d150'), null, { timeout: 60000 });
+    report.push(Object.assign({ w }, await audit('day 150 panel: game kit table, contract withheld or shown')));
     await pg.evaluate(() => { window.STORY.validationUi.more = {}; const b = window.Kit.bundle.current(); b.story.settings.walkCap = 40; window.Kit.bundle.touch('layout'); window.Kit.rerender(); });
     await pg.waitForFunction(() => document.querySelectorAll('#ws .vc-card.vc-fail').length > 0, null, { timeout: 60000 });
     await pg.evaluate(() => { document.querySelectorAll('#ws .vc-card details').forEach((d) => { d.open = true; }); }); await pg.waitForTimeout(100);
@@ -126,6 +129,13 @@ const ROOT = require('path').join(__dirname, '..');
     await pg.evaluate(() => window.Kit.ui.closeTop()); await pg.waitForTimeout(100);
     await pg.evaluate(() => window.STORY.openSize()); await pg.waitForTimeout(200);
     report.push(Object.assign({ w }, await audit('size drawer')));
+    // Phase 8: a freshly scaffolded, proven story; the golden path played through the game loop in the panel.
+    await pg.evaluate(() => { window.Kit.ui.closeTop(); window.Kit.bundle.load(window.STORY_DEMO.fixture('four')); const b = window.Kit.bundle.current(), S = window.STORY; S.quests.scaffold(b); S.dialogue.scaffold(b); S.flags.sync(b); S.ends.scaffold(b); S.events.scaffold(b); window.Kit.go('export'); });
+    await pg.waitForFunction(() => Array.from(document.querySelectorAll('#ws .s9-d150 button')).some((x) => /Play the golden path/.test(x.textContent)), null, { timeout: 60000 });
+    await pg.evaluate(() => { Array.from(document.querySelectorAll('#ws .s9-d150 button')).find((x) => /Play the golden path/.test(x.textContent)).click(); });
+    await pg.waitForFunction(() => /Played \d+ steps/.test((document.querySelector('#ws .s9-play-res') || {}).textContent || ''), null, { timeout: 30000 });
+    report.push(Object.assign({ w }, await audit('day 150 panel: proven story, golden path played through the game loop')));
+    await (await pg.$('#ws .s9-d150')).screenshot({ path: ROOT + '/test/out/phase8-day150-' + w + '.png' });
     await pg.evaluate(() => window.Kit.ui.closeTop()); await pg.waitForTimeout(100);
     report.forEach((r) => { if (r.w === w && !r.errs) r.errs = errs.slice(); });
     await pg.close();

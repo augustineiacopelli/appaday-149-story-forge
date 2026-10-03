@@ -73,56 +73,9 @@
   // regions (a region needs the gate that leads into it). An event stands on its site field when that names a node or a
   // region, else on the site of its map, else on its person's site. A record the world places nowhere stays open and is
   // listed in unknown, so the References card can say so.
-  C.walkWorld = function (b) {
-    b = b || cur();
-    var g = STORY.world.graph(b), bind = b.story.bindings || {}, sites = {}, byRecord = {}, golden = [], chapterOf = {}, unknown = [];
-    function flags(list) { var o = []; (list || []).forEach(function (k) { var bd = bind[k]; if (U.isObj(bd) && typeof bd.flg === 'string' && o.indexOf(bd.flg) < 0) o.push(bd.flg); }); return o.sort(); }
-    if (g) {
-      g.nodes.forEach(function (n) {
-        sites[n.key] = { requires: flags(n.requires) };
-        chapterOf[n.key] = n.chapter || null;
-        if (n.record) byRecord[n.record] = n.key;
-        if (n.golden) golden.push(n.key);
-      });
-      (g.regions || []).forEach(function (r) {
-        var gate = (g.gates || []).filter(function (x) { return U.isObj(x) && x.to === r.key; })[0];
-        sites[r.key] = { requires: flags(gate ? gate.requires : (r.chapter ? ['chapter:' + r.chapter] : [])) };
-        chapterOf[r.key] = r.chapter || null;
-        if (r.record) byRecord[r.record] = r.key;
-      });
-    }
-    function siteOfRecord(id) {
-      if (!id) return null;
-      if (byRecord[id]) return byRecord[id];
-      var rec = STORY.world.get(id, b);
-      return rec && rec.region && byRecord[rec.region] ? byRecord[rec.region] : null;
-    }
-    function siteOfMap(m) { var rec = m && STORY.world.get(m, b); return rec && rec.site ? siteOfRecord(rec.site) : null; }
-    var ow = STORY.world.overworld(b), events = {}, npcs = {};
-    STORY.records.list('evt_', b).forEach(function (e) {
-      var site = null, why = '';
-      if (typeof e.site === 'string' && sites[e.site]) site = e.site;
-      else if (e.trigger === 'talk' && e.npc) { var p = STORY.world.get(e.npc, b); site = p ? siteOfRecord(p.site) : null; why = 'its person stands nowhere on the progression graph'; }
-      else if (e.map) { site = siteOfMap(e.map); why = ow && e.map === ow.id ? '' : 'its map belongs to no site on the progression graph'; }
-      if (typeof e.site === 'string' && e.site && !sites[e.site]) why = 'its site ' + e.site + ' is not on the progression graph';
-      events[e.id] = { site: site };
-      if (!site && why && e.trigger !== 'chapterStart' && e.trigger !== 'battleEnd') unknown.push({ kind: 'event', id: e.id, why: why });
-    });
-    STORY.world.list('npc_', b).forEach(function (n) {
-      var site = siteOfRecord(n.site);
-      npcs[n.id] = { site: site, map: n.map || null };
-    });
-    Object.keys(b.story.npcDialogue || {}).sort().forEach(function (npc) {
-      if (!npcs[npc]) unknown.push({ kind: 'npc', id: npc, why: 'this person is not in the world' });
-      else if (!npcs[npc].site) unknown.push({ kind: 'npc', id: npc, why: 'this person stands nowhere on the progression graph' });
-    });
-    // Golden order: the golden nodes as Day 148 lists them. A region or an optional site takes the place of its chapter's
-    // first golden node.
-    var pos = {}, firstOf = {};
-    golden.forEach(function (k, i) { pos[k] = i; var c = chapterOf[k]; if (c && firstOf[c] === undefined) firstOf[c] = i; });
-    Object.keys(sites).forEach(function (k) { if (pos[k] === undefined && chapterOf[k] && firstOf[chapterOf[k]] !== undefined) pos[k] = firstOf[chapterOf[k]]; });
-    return { sites: sites, events: events, npcs: npcs, unknown: unknown, golden: golden, pos: pos };
-  };
+  // Phase 8: the picture is built by the engine (ENGINE_STORY.host.world) from the bundle alone, so Day 150 places events
+  // and people on the same sites the walk proved the story on.
+  C.walkWorld = function (b) { b = b || cur(); STORY.ensure(b); return ES.host.world(b); };
 
   // ---------------------------------------------------------------- the walk
   function mainQuests(b) { return Q.list(b).filter(function (q) { return q.kind === 'main' && Array.isArray(q.stages) && q.stages.length; }); }

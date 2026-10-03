@@ -430,7 +430,7 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
     allowed, opened in Days 146, 147, 148; the tab under jsdom; two pages agree; the stamped Draft round trip). phase0 89,
     phase1 85, phase2 77, phase3 95, phase4 70, phase5 99, phase6 129 (their engine pins compare with the last commit, so
     they pass once this phase is committed). test/layout.js 72 of 72 views at 390 and 1280, eight new Validation views.
-  Next: Phase 8 (Opus), export, the Day 150 contract, ship: the manifest's day150 block (load order, new game state, the
+  Next (done in Session 8): Phase 8 (Opus), export, the Day 150 contract, ship: the manifest's day150 block (load order, new game state, the
     opening event, save flag mapping, boss rule; walk.golden.path is a ready replay script), test/phase8.js replaying the
     golden path headlessly from only the four engines and the Final, README, the push, and the six item checklist.
   ADDENDUM (same session, after review): fixes to the scaffolds for three findings the walk surfaced.
@@ -452,4 +452,64 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
     Test changes: phase4 edits a quest dialogue's start node instead of offer; phase7 pins the new counts, expects the
       proofs to pass with no warnings, and seeds unused dialogues and a softlock trap in the tab test.
 === END SESSION 7 ===
+=== SESSION 8: PHASE 8, EXPORT, THE GAME KIT, THE DAY 150 CONTRACT (Opus), COMPLETE ===
+  Goal, set by Stino before the build: the result of using the four forges must be a separately playable game, not a
+    game played inside a forge. The plan's Phase 8 proved the story data outside the forge; this session hardens that
+    into a contract a game can be built from and a test that holds it to account.
+  DECISION, the game kit: a game is five engine files plus a Final bundle. Load order render, audio, world, battle, story.
+    The plan of record left ENGINE_BATTLE out (the playtester answers battles with buttons); Day 150 could not fight
+    without it, so it joins the kit. build.js cuts Day 146's ENGINE:BATTLE fence from its page byte for byte and writes
+    engine-battle.js under Day 146's own export header (no bundle hash line); it fails if the fence ever differs.
+  DECISION, the engine table: build.js writes {key, file, global, owner, version, bytes, sha256} for all five files into
+    the page (STORY.engines.FILES); sha256 is over the file with any one bundle hash line removed, the same rule the
+    vendoring check uses. LOAD_ORDER is read from it. engine-story.js is worked out before the page so its hash is known.
+  Found and fixed, a standalone gap: the engine's index was built from STORY.engineExt and the walk's world picture from
+    STORY.checks.walkWorld, both forge code, and Phase 7's "bare" replay borrowed them from the page. A game would have
+    had to reimplement them. Both now live in the engine as ENGINE_STORY.host.ext and ENGINE_STORY.host.world, ported line
+    for line (insertion order kept where JSON order showed), and the forge functions are one line calls to them.
+    Phases 0 to 7 pass unchanged, so the walk sees exactly what it saw before.
+  ENGINE:STORY host section (src/engine-host.js, spliced after the walk): load(bundle) builds {idx, pidx, ext, world, goal,
+    roles} once; newGame(game, opts, hooks) plays a new game's forced events; moves(game, state) lists what the player may
+    do in the walk's order; play(game, state, move, hooks) runs one move and every forced event after it down one path;
+    replay(game, path, opts) plays a walk path, checks each move is available, each run starts where the path says, each
+    choice and battle matches, and compares the recorded steps with the path; opts.state starts from a loaded save.
+    hooks {begin, decide, effect}: decide answers choices with a position and battles with win, lose, or escape (a
+    battle question carries the state, so a shell can build the party for ENGINE_BATTLE). The forced chain reuses the
+    walk's own helpers (siteOpen, byPriority, abstractOf, its caps) so a game runs the rules the proof checked.
+    Engine rules kept: no randomness, clocks, eval, for in, timers, network, host globals, or other engines; version 1.0.0.
+  DECISION, the contract (src/story-day150.js, the manifest's day150 block): contract 1, engines and load order with
+    sha256, the API calls, the new game (open flags, start gates), the opening (forced steps, chapter, hash, first moves),
+    when each trigger is offered, saves (Day 146 schema, derived slots, limits, rules), bosses with troop source (world or
+    story) and boss event, the boss rule, battle input shape and outcome mapping (win, lose, flee to escape, timeout to
+    lose), effects, music roles, the golden path and every ending as replay scripts with end hashes, and what the shell
+    provides (input, render, audio, battles, save storage) and must never need (forge pages, Kit or STORY, forge
+    storage, network, an API key). Everything is read through ENGINE_STORY.host from the bundle, never page state.
+  DECISION, no contract for an unproven story: day150 is null until the story checks prove the story can be finished, so
+    a manifest never promises a game the walk could not finish. Phase 0's hand made story keeps day150 null.
+  Export: the Final dialog and tab gain "the whole game kit (all five engines)", on by default. STORY.exportNow downloads
+    the bundle, manifest, and engine-story.js as before, then fetches the four vendored engines from beside the page,
+    checks each sha256, and downloads them; a file that cannot be read or does not match is never shipped and is named in
+    a toast. Opened from file://, the reads fail and the toast says to copy the files from this repository.
+  Tab: a Day 150 panel under the manifest preview: the game kit table (file, owning day, version, sha256), the contract
+    summary, and Play the golden path, which runs host.replay in the page and reports the walk's exact end state.
+  Test changes: phase0 expects the five file load order. Phases 4 to 6 pin engine-story.js against the last commit, so
+    they pass once this phase is committed.
+  Tests: test/phase8.js 78 of 78 (static rules with the host in the fence; engine-battle.js against Day 146's fence; every
+    root engine against the page's table; five globals and nothing else in a bare context; per fixture: Final allowed, the
+    manifest and a complete day150 block, boss sources checked against the world, no forge or browser name in the game
+    context, the golden path and every ending replayed to the walk's end hashes with no runtime fault, two contexts byte
+    equal, the opening matching the contract, effects seen, a save taken halfway through JSON finishing the same way,
+    saves refused mid event and after the ending, every golden battle through the real ENGINE_BATTLE deterministically,
+    tampered paths refused (missing move, wrong troop, steps after the ending), the game kit export complete and checked,
+    the exported folder alone playing the game, a tampered engine refused, offline naming all four missing; Days 146,
+    147, 148 open the Final with every prior namespace identical but sdq_.flag; two pages write the same story and
+    contract; the panel and Play button under jsdom). phase0 89, phase1 85, phase2 77, phase3 95, phase4 70, phase5 99,
+    phase6 129, phase7 97. test/layout.js 76 of 76 views at 390 and 1280, two new Day 150 panel views.
+  Results: demo golden path 6 moves to Delivered, two endings, bosses from the story side (both slots were empty); four
+    continents golden path 14 moves, one ending, six bosses (one story troop), 15 derived save flags.
+  Left for Day 150: building a battle party with gear and materia. Day 146 does that in its page (WSX.buildParty and its
+    materia placement), outside ENGINE_BATTLE. With a gearless party at the chapter's expected level the engine runs real
+    fights, but several bosses end in a loss or a timeout, so Day 150 should port the party builder. Story balance is
+    otherwise untouched by this forge.
+=== END SESSION 8 ===
 === END BUILD LOG ===

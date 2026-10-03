@@ -16,10 +16,10 @@
       "detail": [
         1,
         139593,
-        253966,
-        282484,
-        1363727,
-        1395251
+        276405,
+        304194,
+        1391336,
+        1430127
       ]
     },
     {
@@ -277,7 +277,7 @@
       "ok": true,
       "detail": [
         "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
-        "qst_a_hand_made_quest_a11j"
+        "qst_a_hand_made_quest_mq28"
       ]
     },
     {
@@ -334,7 +334,7 @@
         },
         "149": {
           "status": "draft",
-          "exportedAt": "2026-10-03T19:26:29.267Z",
+          "exportedAt": "2026-10-03T23:44:00.569Z",
           "storyVersion": "1.0.0",
           "engineVersion": "1.0.0",
           "charterVersion": 1,
@@ -357,7 +357,7 @@
       "ok": true,
       "detail": {
         "forge": 149,
-        "bundleHash": "5eeb22ae8804989db8973ab49c9101aab55492b28575616afe25232e0ade98d1",
+        "bundleHash": "4479b356dad351b81b77b5af86a98fe9d6ae419b398965949dcaa0e9cf4c3dfa",
         "storyVersion": "1.0.0",
         "generator": {
           "name": "appaday-149-story",
@@ -370,15 +370,15 @@
           "generatorVersion": "1.0.0",
           "seed": 42
         },
-        "exportedAt": "2026-10-03T19:26:29.310Z",
+        "exportedAt": "2026-10-03T23:44:00.600Z",
         "created": [
           "flg_flg_gate_chapter_chp_the_far_shore_izf4_qdn1",
           "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
           "flg_flg_gate_item_seal_chp_the_far_shore_izf_tz57",
           "flg_flg_gate_item_seal_chp_the_lowlands_auem_0r61",
           "flg_flg_gate_vehicle_ship_iqdm",
-          "flg_flg_quest_qst_a_hand_made_quest_a11j_0id1",
-          "qst_a_hand_made_quest_a11j"
+          "flg_flg_quest_qst_a_hand_made_quest_mq28_kb1m",
+          "qst_a_hand_made_quest_mq28"
         ],
         "referenced": [
           "chp_the_far_shore_izf4",
@@ -411,7 +411,7 @@
           "warnings": 1,
           "worldHash": "50a3539b63a6addf",
           "worldStamp": null,
-          "storyDigest": "864dd099:1",
+          "storyDigest": "9a901a94:1",
           "cards": [
             {
               "key": "references",
@@ -487,21 +487,56 @@
           "endings": [],
           "golden": null,
           "softlocks": 1,
-          "digest": "864dd099:1"
+          "digest": "9a901a94:1"
         },
         "day150": null,
         "engines": [
           {
+            "key": "render",
+            "global": "ENGINE_RENDER",
+            "file": "engine-render.js",
+            "version": "1.0.0",
+            "owner": 147,
+            "sha256": "1ad0fc0d07fcb10a4917cc5550822860c6e3aac4a0414d050625ba906fad3281"
+          },
+          {
+            "key": "audio",
+            "global": "ENGINE_AUDIO",
+            "file": "engine-audio.js",
+            "version": "1.0.0",
+            "owner": 147,
+            "sha256": "4b77f7e557628e21330c7ca742cfb6664f0fd615f33bb40a9e5b16fb6751207a"
+          },
+          {
+            "key": "world",
+            "global": "ENGINE_WORLD",
+            "file": "engine-world.js",
+            "version": "1.0.0",
+            "owner": 148,
+            "sha256": "146dcdad83307655b3e28288078dfb6fca7de86842ed9ecd13c6f3a61b39180f"
+          },
+          {
+            "key": "battle",
+            "global": "ENGINE_BATTLE",
+            "file": "engine-battle.js",
+            "version": "1.0.0",
+            "owner": 146,
+            "sha256": "cc091bedd5acb06baf6cf5ef39ce8f3a3a9d02275bb479f4e24b8cde2b80177e"
+          },
+          {
             "key": "story",
             "global": "ENGINE_STORY",
             "file": "engine-story.js",
-            "version": "1.0.0"
+            "version": "1.0.0",
+            "owner": 149,
+            "sha256": "75451b0ee690b40fdc5658d4f0dfc29c572788d2262622bbff3f1b40284c3786"
           }
         ],
         "loadOrder": [
           "engine-render.js",
           "engine-audio.js",
           "engine-world.js",
+          "engine-battle.js",
           "engine-story.js"
         ]
       }

@@ -28,3 +28,8 @@
 .brand-title { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 @media (max-width: 520px) { .brand-title { font-size: 1.02rem; letter-spacing: .03em; } .brand-num { display: none; } }
 /* === STORY:SHELL CSS END === */
+/* Phase 8: the Day 150 panel. */
+.s9-d150 .tbl code { font-size: 0.85em; }
+.s9-d150-out { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.s9-kit-note { margin: 4px 0 10px; }
+.msg-ok { color: var(--ok, #3fa86b); }

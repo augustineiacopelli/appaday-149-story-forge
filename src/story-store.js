@@ -173,20 +173,9 @@
   // the one place the page gathers them, so every tab, the playtester, and the walk read the same index Day 150 builds.
   // Memoized per bundle on KIT:CORE's index identity (a new identity after any change), so it is rebuilt only when the
   // bundle moves.
-  STORY.engineExt = function (b) {
-    b = b || Kit.bundle.current();
-    var ids = {};
-    function add(prefix, list) { ids[prefix] = (ids[prefix] || []).concat(list.map(function (r) { return r.id; })).sort(); }
-    ['npc_', 'map_'].forEach(function (p) { add(p, STORY.world.list(p, b)); });
-    ['trp_', 'itm_', 'eqp_', 'chr_'].forEach(function (p) { add(p, STORY.rules(p, b)); });
-    ['mus_', 'sfx_', 'por_'].forEach(function (p) { add(p, nsList(b, 'art', p)); });
-    var chapters = STORY.chapters(b).map(function (c) { return c.id; }).filter(function (x) { return typeof x === 'string'; });
-    ids.chp_ = chapters.slice().sort();
-    var roles = nsList(b, 'art', 'mus_').filter(function (m) { return m.subject && m.subject.kind === 'role' && typeof m.subject.ref === 'string'; })
-      .map(function (m) { return m.subject.ref.replace(/^music:/, ''); }).sort();
-    var g = STORY.world.graph(b);
-    return { chapters: chapters, start: g && Array.isArray(g.start) ? g.start.slice() : [], ids: ids, roles: roles };
-  };
+  // Phase 8: the gathering moved into the engine (ENGINE_STORY.host.ext), so a game reading a Final bundle with no forge
+  // page builds exactly the index the page, the playtester, and the walk read.
+  STORY.engineExt = function (b) { return ENGINE_STORY.host.ext(b || Kit.bundle.current()); };
   var engIdx = { key: null, idx: null };
   STORY.engineIndex = function (b) {
     b = b || Kit.bundle.current();

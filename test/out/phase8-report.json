@@ -1,0 +1,604 @@
+[
+  {
+    "name": "the new sources exist and are pure ASCII",
+    "ok": true
+  },
+  {
+    "name": "the Phase 8 parts of ws-story149.js are found",
+    "ok": true
+  },
+  {
+    "name": "no forbidden APIs, randomness, or storage in the new JavaScript",
+    "ok": true
+  },
+  {
+    "name": "no dashes used as punctuation in the new prose",
+    "ok": true
+  },
+  {
+    "name": "the host section follows the walk, above the freeze line",
+    "ok": true
+  },
+  {
+    "name": "the whole engine fence keeps the rules with the host in it: no randomness, clocks, eval, for in, timers, network, host globals, or other engines",
+    "ok": true,
+    "detail": []
+  },
+  {
+    "name": "engine-battle.js is Day 146's ENGINE:BATTLE fence byte for byte under Day 146's export header",
+    "ok": true
+  },
+  {
+    "name": "the page carries the game kit table: five files in load order (render, audio, world, battle, story) from Days 147, 147, 148, 146, 149",
+    "ok": true
+  },
+  {
+    "name": "every root engine file matches the sha256 and size in that table",
+    "ok": true,
+    "detail": [
+      "engine-render.js 1ad0fc0d",
+      "engine-audio.js 4b77f7e5",
+      "engine-world.js 146dcdad",
+      "engine-battle.js cc091bed",
+      "engine-story.js 75451b0e"
+    ]
+  },
+  {
+    "name": "the five engines load into a bare context together and declare exactly their five globals",
+    "ok": true
+  },
+  {
+    "name": "ENGINE_STORY.host is frozen with ext, world, load, newGame, moves, play, replay, and hash",
+    "ok": true
+  },
+  {
+    "name": "demo: the fixture imports and the forge reports a clean world",
+    "ok": true
+  },
+  {
+    "name": "demo: the forge reads the bundle through the engine host (engineExt and walkWorld are the host's)",
+    "ok": true
+  },
+  {
+    "name": "demo: Final export is allowed",
+    "ok": true
+  },
+  {
+    "name": "demo: Final stamps forges 149 final and opens story",
+    "ok": true
+  },
+  {
+    "name": "demo: the manifest names forge 149, the bundle hash, nothing unresolved, and the five engine load order",
+    "ok": true
+  },
+  {
+    "name": "demo: the day150 block is complete: contract 1, engines with sha256, api, new game, opening, saves, bosses, battle, effects, golden, endings, shell",
+    "ok": true,
+    "detail": {
+      "opening": 1,
+      "bosses": [
+        {
+          "chapter": "chp_the_lowlands_auem",
+          "dgn": "dgn_dgn_chp_the_lowlands_auem_boss_po39",
+          "troop": "trp_lowland_pack_r3w4",
+          "source": "story",
+          "chosen": false,
+          "evt": "evt_evt_boss_chp_the_lowlands_auem_kkvs",
+          "finale": false
+        },
+        {
+          "chapter": "chp_the_far_shore_izf4",
+          "dgn": "dgn_dgn_chp_the_far_shore_izf4_boss_plrq",
+          "troop": "trp_the_warden_n1yb",
+          "source": "world",
+          "chosen": false,
+          "evt": "evt_evt_boss_chp_the_far_shore_izf4_7bap",
+          "finale": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "demo: the opening starts in the first chapter, and the start is the overworld",
+    "ok": true
+  },
+  {
+    "name": "demo: every boss names its troop source, and an empty world slot is filled from the story side only",
+    "ok": true,
+    "detail": [
+      {
+        "chapter": "chp_the_lowlands_auem",
+        "dgn": "dgn_dgn_chp_the_lowlands_auem_boss_po39",
+        "troop": "trp_lowland_pack_r3w4",
+        "source": "story",
+        "chosen": false,
+        "evt": "evt_evt_boss_chp_the_lowlands_auem_kkvs",
+        "finale": false
+      },
+      {
+        "chapter": "chp_the_far_shore_izf4",
+        "dgn": "dgn_dgn_chp_the_far_shore_izf4_boss_plrq",
+        "troop": "trp_the_warden_n1yb",
+        "source": "world",
+        "chosen": false,
+        "evt": "evt_evt_boss_chp_the_far_shore_izf4_7bap",
+        "finale": true
+      }
+    ]
+  },
+  {
+    "name": "demo: the game context holds no forge or browser name at all",
+    "ok": true
+  },
+  {
+    "name": "demo: the bare game plays the golden path to the walk's ending and exact end state, with no runtime fault",
+    "ok": true,
+    "detail": {
+      "ending": "end_end_1_delivered_vlh4"
+    }
+  },
+  {
+    "name": "demo: the bare game reaches every ending the walk found, each at its exact end state",
+    "ok": true,
+    "detail": [
+      true,
+      true
+    ]
+  },
+  {
+    "name": "demo: two bare contexts play the golden path to the same state byte for byte",
+    "ok": true
+  },
+  {
+    "name": "demo: a new game in the bare context matches the contract's opening (forced events, chapter, state, first moves)",
+    "ok": true
+  },
+  {
+    "name": "demo: the effect hook sees what a game draws: text and the other effects of the golden path",
+    "ok": true,
+    "detail": {
+      "effects": 35,
+      "texts": 11
+    }
+  },
+  {
+    "name": "demo: a save taken halfway through the golden path, sent through JSON, and loaded finishes at the same ending and end state",
+    "ok": true,
+    "detail": {
+      "cut": 3,
+      "err": null
+    }
+  },
+  {
+    "name": "demo: the save refuses to be taken mid event and after the ending",
+    "ok": true
+  },
+  {
+    "name": "demo: every golden path battle runs in the real ENGINE_BATTLE with a party from the story state, deterministically, and maps to a story outcome",
+    "ok": true,
+    "detail": [
+      {
+        "trp": "trp_lowland_pack_r3w4",
+        "outcome": "win",
+        "same": true,
+        "story": "win"
+      },
+      {
+        "trp": "trp_the_warden_n1yb",
+        "outcome": "timeout",
+        "same": true,
+        "story": "lose"
+      }
+    ]
+  },
+  {
+    "name": "demo: every golden path battle is a troop the contract lists as a boss or a troop in the Rules",
+    "ok": true
+  },
+  {
+    "name": "demo: a path missing a move is refused with a reason naming the step",
+    "ok": true,
+    "detail": {
+      "code": "unavailable",
+      "at": 1,
+      "message": "Step 2 (step evt_evt_boss_chp_the_lowlands_auem_kkvs) is not a move the player can make here."
+    }
+  },
+  {
+    "name": "demo: a path that names the wrong troop is refused",
+    "ok": true,
+    "detail": {
+      "code": "battle",
+      "at": 2,
+      "message": "Battle trp_lowland_pack_r3w4 is not the one the path fought."
+    }
+  },
+  {
+    "name": "demo: a path that goes on after the ending is refused",
+    "ok": true
+  },
+  {
+    "name": "demo: the Final game kit export downloads all five engines, the bundle, and the manifest, nothing missing",
+    "ok": true,
+    "detail": []
+  },
+  {
+    "name": "demo: each engine in the exported folder matches the manifest's sha256 (any bundle hash line aside)",
+    "ok": true
+  },
+  {
+    "name": "demo: the exported folder alone, loaded in the manifest's order, plays the game to its ending",
+    "ok": true,
+    "detail": null
+  },
+  {
+    "name": "demo: a tampered engine beside the page is refused, never shipped, and named as missing",
+    "ok": true,
+    "detail": [
+      {
+        "file": "engine-world.js",
+        "why": "its sha256 is not the one this page was built with"
+      }
+    ]
+  },
+  {
+    "name": "demo: opened offline (nothing to fetch), the kit names all four files missing instead of failing",
+    "ok": true
+  },
+  {
+    "name": "four: the fixture imports and the forge reports a clean world",
+    "ok": true
+  },
+  {
+    "name": "four: the forge reads the bundle through the engine host (engineExt and walkWorld are the host's)",
+    "ok": true
+  },
+  {
+    "name": "four: Final export is allowed",
+    "ok": true
+  },
+  {
+    "name": "four: Final stamps forges 149 final and opens story",
+    "ok": true
+  },
+  {
+    "name": "four: the manifest names forge 149, the bundle hash, nothing unresolved, and the five engine load order",
+    "ok": true
+  },
+  {
+    "name": "four: the day150 block is complete: contract 1, engines with sha256, api, new game, opening, saves, bosses, battle, effects, golden, endings, shell",
+    "ok": true,
+    "detail": {
+      "opening": 1,
+      "bosses": [
+        {
+          "chapter": "chp_the_lowlands_auem",
+          "dgn": "dgn_dgn_chp_the_lowlands_auem_boss_po39",
+          "troop": "trp_slime_king_k4t2",
+          "source": "world",
+          "chosen": false,
+          "evt": "evt_evt_boss_chp_the_lowlands_auem_kkvs",
+          "finale": false
+        },
+        {
+          "chapter": "chp_the_marches_m4r2",
+          "dgn": "dgn_dgn_chp_the_marches_m4r2_boss_jc17",
+          "troop": "trp_march_mixed_m5x3",
+          "source": "story",
+          "chosen": false,
+          "evt": "evt_evt_boss_chp_the_marches_m4r2_9gha",
+          "finale": false
+        },
+        {
+          "chapter": "chp_the_far_shore_izf4",
+          "dgn": "dgn_dgn_chp_the_far_shore_izf4_boss_plrq",
+          "troop": "trp_the_warden_n1yb",
+          "source": "world",
+          "chosen": false,
+          "evt": "evt_evt_boss_chp_the_far_shore_izf4_7bap",
+          "finale": false
+        },
+        {
+          "chapter": "chp_the_frost_reach_f7k1",
+          "dgn": "dgn_dgn_chp_the_frost_reach_f7k1_boss_a0ek",
+          "troop": "trp_frost_wolf_f8b9",
+          "source": "world",
+          "chosen": false,
+          "evt": "evt_evt_boss_chp_the_frost_reach_f7k1_nfmm",
+          "finale": false
+        },
+        {
+          "chapter": "chp_the_sunken_coast_s2c9",
+          "dgn": "dgn_dgn_chp_the_sunken_coast_s2c9_boss_suof",
+          "troop": "trp_tide_wisp_t2b7",
+          "source": "world",
+          "chosen": false,
+          "evt": "evt_evt_boss_chp_the_sunken_coast_s2c9_xksj",
+          "finale": false
+        },
+        {
+          "chapter": "chp_the_last_light_l9t3",
+          "dgn": "dgn_dgn_chp_the_last_light_l9t3_boss_z5em",
+          "troop": "trp_hollow_one_h9b2",
+          "source": "world",
+          "chosen": false,
+          "evt": "evt_evt_boss_chp_the_last_light_l9t3_ng9v",
+          "finale": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "four: the opening starts in the first chapter, and the start is the overworld",
+    "ok": true
+  },
+  {
+    "name": "four: every boss names its troop source, and an empty world slot is filled from the story side only",
+    "ok": true,
+    "detail": [
+      {
+        "chapter": "chp_the_lowlands_auem",
+        "dgn": "dgn_dgn_chp_the_lowlands_auem_boss_po39",
+        "troop": "trp_slime_king_k4t2",
+        "source": "world",
+        "chosen": false,
+        "evt": "evt_evt_boss_chp_the_lowlands_auem_kkvs",
+        "finale": false
+      },
+      {
+        "chapter": "chp_the_marches_m4r2",
+        "dgn": "dgn_dgn_chp_the_marches_m4r2_boss_jc17",
+        "troop": "trp_march_mixed_m5x3",
+        "source": "story",
+        "chosen": false,
+        "evt": "evt_evt_boss_chp_the_marches_m4r2_9gha",
+        "finale": false
+      },
+      {
+        "chapter": "chp_the_far_shore_izf4",
+        "dgn": "dgn_dgn_chp_the_far_shore_izf4_boss_plrq",
+        "troop": "trp_the_warden_n1yb",
+        "source": "world",
+        "chosen": false,
+        "evt": "evt_evt_boss_chp_the_far_shore_izf4_7bap",
+        "finale": false
+      },
+      {
+        "chapter": "chp_the_frost_reach_f7k1",
+        "dgn": "dgn_dgn_chp_the_frost_reach_f7k1_boss_a0ek",
+        "troop": "trp_frost_wolf_f8b9",
+        "source": "world",
+        "chosen": false,
+        "evt": "evt_evt_boss_chp_the_frost_reach_f7k1_nfmm",
+        "finale": false
+      },
+      {
+        "chapter": "chp_the_sunken_coast_s2c9",
+        "dgn": "dgn_dgn_chp_the_sunken_coast_s2c9_boss_suof",
+        "troop": "trp_tide_wisp_t2b7",
+        "source": "world",
+        "chosen": false,
+        "evt": "evt_evt_boss_chp_the_sunken_coast_s2c9_xksj",
+        "finale": false
+      },
+      {
+        "chapter": "chp_the_last_light_l9t3",
+        "dgn": "dgn_dgn_chp_the_last_light_l9t3_boss_z5em",
+        "troop": "trp_hollow_one_h9b2",
+        "source": "world",
+        "chosen": false,
+        "evt": "evt_evt_boss_chp_the_last_light_l9t3_ng9v",
+        "finale": true
+      }
+    ]
+  },
+  {
+    "name": "four: the game context holds no forge or browser name at all",
+    "ok": true
+  },
+  {
+    "name": "four: the bare game plays the golden path to the walk's ending and exact end state, with no runtime fault",
+    "ok": true,
+    "detail": {
+      "ending": "end_end_1_delivered_vlh4"
+    }
+  },
+  {
+    "name": "four: the bare game reaches every ending the walk found, each at its exact end state",
+    "ok": true,
+    "detail": [
+      true
+    ]
+  },
+  {
+    "name": "four: two bare contexts play the golden path to the same state byte for byte",
+    "ok": true
+  },
+  {
+    "name": "four: a new game in the bare context matches the contract's opening (forced events, chapter, state, first moves)",
+    "ok": true
+  },
+  {
+    "name": "four: the effect hook sees what a game draws: text and the other effects of the golden path",
+    "ok": true,
+    "detail": {
+      "effects": 93,
+      "texts": 30
+    }
+  },
+  {
+    "name": "four: a save taken halfway through the golden path, sent through JSON, and loaded finishes at the same ending and end state",
+    "ok": true,
+    "detail": {
+      "cut": 7,
+      "err": null
+    }
+  },
+  {
+    "name": "four: the save refuses to be taken mid event and after the ending",
+    "ok": true
+  },
+  {
+    "name": "four: every golden path battle runs in the real ENGINE_BATTLE with a party from the story state, deterministically, and maps to a story outcome",
+    "ok": true,
+    "detail": [
+      {
+        "trp": "trp_slime_king_k4t2",
+        "outcome": "timeout",
+        "same": true,
+        "story": "lose"
+      },
+      {
+        "trp": "trp_march_mixed_m5x3",
+        "outcome": "win",
+        "same": true,
+        "story": "win"
+      },
+      {
+        "trp": "trp_the_warden_n1yb",
+        "outcome": "timeout",
+        "same": true,
+        "story": "lose"
+      },
+      {
+        "trp": "trp_frost_wolf_f8b9",
+        "outcome": "lose",
+        "same": true,
+        "story": "lose"
+      },
+      {
+        "trp": "trp_tide_wisp_t2b7",
+        "outcome": "lose",
+        "same": true,
+        "story": "lose"
+      },
+      {
+        "trp": "trp_hollow_one_h9b2",
+        "outcome": "lose",
+        "same": true,
+        "story": "lose"
+      }
+    ]
+  },
+  {
+    "name": "four: every golden path battle is a troop the contract lists as a boss or a troop in the Rules",
+    "ok": true
+  },
+  {
+    "name": "four: a path missing a move is refused with a reason naming the step",
+    "ok": true,
+    "detail": {
+      "code": "unavailable",
+      "at": 1,
+      "message": "Step 2 (step evt_evt_boss_chp_the_lowlands_auem_kkvs) is not a move the player can make here."
+    }
+  },
+  {
+    "name": "four: a path that names the wrong troop is refused",
+    "ok": true,
+    "detail": {
+      "code": "battle",
+      "at": 2,
+      "message": "Battle trp_slime_king_k4t2 is not the one the path fought."
+    }
+  },
+  {
+    "name": "four: a path that goes on after the ending is refused",
+    "ok": true
+  },
+  {
+    "name": "four: the Final game kit export downloads all five engines, the bundle, and the manifest, nothing missing",
+    "ok": true,
+    "detail": []
+  },
+  {
+    "name": "four: each engine in the exported folder matches the manifest's sha256 (any bundle hash line aside)",
+    "ok": true
+  },
+  {
+    "name": "four: the exported folder alone, loaded in the manifest's order, plays the game to its ending",
+    "ok": true,
+    "detail": null
+  },
+  {
+    "name": "four: a tampered engine beside the page is refused, never shipped, and named as missing",
+    "ok": true,
+    "detail": [
+      {
+        "file": "engine-world.js",
+        "why": "its sha256 is not the one this page was built with"
+      }
+    ]
+  },
+  {
+    "name": "four: opened offline (nothing to fetch), the kit names all four files missing instead of failing",
+    "ok": true
+  },
+  {
+    "name": "demo: every prior namespace in the Final is identical to the Day 148 fixture except sdq_.flag",
+    "ok": true
+  },
+  {
+    "name": "demo: sdq_.flag is the only field the story wrote outside its namespace, and each points at a story flag",
+    "ok": true
+  },
+  {
+    "name": "demo: Day 146 opens the Final with no errors and no broken references",
+    "ok": true,
+    "detail": []
+  },
+  {
+    "name": "demo: Day 147 opens the Final with no errors and no broken references",
+    "ok": true,
+    "detail": []
+  },
+  {
+    "name": "demo: Day 148 opens the Final with no errors and no broken references",
+    "ok": true,
+    "detail": []
+  },
+  {
+    "name": "four: every prior namespace in the Final is identical to the Day 148 fixture except sdq_.flag",
+    "ok": true
+  },
+  {
+    "name": "four: sdq_.flag is the only field the story wrote outside its namespace, and each points at a story flag",
+    "ok": true
+  },
+  {
+    "name": "four: Day 146 opens the Final with no errors and no broken references",
+    "ok": true,
+    "detail": []
+  },
+  {
+    "name": "four: Day 147 opens the Final with no errors and no broken references",
+    "ok": true,
+    "detail": []
+  },
+  {
+    "name": "four: Day 148 opens the Final with no errors and no broken references",
+    "ok": true,
+    "detail": []
+  },
+  {
+    "name": "two fresh pages scaffold the same story byte for byte",
+    "ok": true
+  },
+  {
+    "name": "two fresh pages write the same Day 150 contract",
+    "ok": true
+  },
+  {
+    "name": "the export tab shows the game kit: five files in load order with their source day and sha256",
+    "ok": true
+  },
+  {
+    "name": "Play the golden path runs the game loop in the page and reports the walk's exact end state",
+    "ok": true,
+    "detail": "Played 14 steps through the game loop to Delivered, the walk's exact end state."
+  },
+  {
+    "name": "the export dialog offers the whole game kit for a Final, on by default",
+    "ok": true
+  }
+]

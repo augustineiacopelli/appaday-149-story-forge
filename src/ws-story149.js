@@ -57,7 +57,10 @@
   // ---------------------------------------------------------------- the engine file
   // ENGINE:STORY read back from this page's own script and written out as engine-story.js under a header. The markers
   // are built from parts so this fence never finds itself.
-  var ENG = STORY.engines = { FILE: 'engine-story.js', GLOBAL: 'ENGINE_STORY', LOAD_ORDER: ['engine-render.js', 'engine-audio.js', 'engine-world.js', 'engine-story.js'] };
+  // FILES is the game kit, written in by build.js: every engine a game loads, in load order, with its owner, version,
+  // size, and sha256 (over the file with any bundle hash line removed).
+  var ENG = STORY.engines = { FILE: 'engine-story.js', GLOBAL: 'ENGINE_STORY', FILES: /*ENGINE_FILES*/null };
+  ENG.LOAD_ORDER = (ENG.FILES || []).map(function (f) { return f.file; });
   ENG.markers = function () { var f = '// === ENGINE:' + 'STORY '; return [f + 'BEGIN ===', f + 'END ===']; };
   ENG.cut = function (text) {
     var mk = ENG.markers(), a = text.indexOf(mk[0]), z = text.indexOf(mk[1]);
@@ -78,6 +81,29 @@
       (hash ? '/* Bundle hash ' + hash + ' */\n' : '');
   };
   ENG.file = function (hash) { return { key: 'engine-story', name: ENG.FILE, text: ENG.header(hash) + ENG.source(), mime: 'text/javascript' }; };
+  // The rest of the game kit: the four vendored engines, read from beside this page (they are the files the page itself
+  // loads) and checked against the sha256 the build wrote in. Resolves to {files, missing [{file, why}]}; a file that
+  // cannot be read or does not match is listed in missing, never shipped. Opened from disk (file://), a browser refuses
+  // the reads, and the toast says to copy the files from the repository instead.
+  ENG.noHashLine = function (s) { return String(s).replace(/^\/\* Bundle hash [0-9a-f]+ \*\/\n/m, ''); };
+  ENG.sha256 = function (text) {
+    var c = window.crypto && window.crypto.subtle;
+    if (!c || typeof TextEncoder === 'undefined') return Promise.reject(new Error('This browser cannot hash files.'));
+    return c.digest('SHA-256', new TextEncoder().encode(text)).then(function (buf) { return Array.prototype.map.call(new Uint8Array(buf), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); });
+  };
+  ENG.kit = function () {
+    var wanted = (ENG.FILES || []).filter(function (f) { return f.key !== 'story'; }), files = [], missing = [];
+    return Promise.all(wanted.map(function (f) {
+      return Promise.resolve().then(function () { return window.fetch(f.file, { cache: 'no-store' }); })
+        .then(function (r) { if (!r || !r.ok) throw new Error('not found beside this page'); return r.text(); })
+        .then(function (text) { return ENG.sha256(ENG.noHashLine(text)).then(function (h) { if (h !== f.sha256) throw new Error('its sha256 is not the one this page was built with'); files.push({ key: 'engine-' + f.key, name: f.file, text: text, mime: 'text/javascript', order: ENG.LOAD_ORDER.indexOf(f.file) }); }); })
+        .catch(function (e) { missing.push({ file: f.file, why: e && e.message || String(e) }); });
+    })).then(function () {
+      files.sort(function (a, z) { return a.order - z.order; });
+      missing.sort(function (a, z) { return a.file < z.file ? -1 : 1; });
+      return { files: files, missing: missing };
+    });
+  };
 
   // ---------------------------------------------------------------- manifest
   var ID_SCAN = /^[a-z]{3}_[a-z0-9_]*[a-z0-9]$/;
@@ -110,8 +136,8 @@
       exportedAt: U.now(), created: created, referenced: referenced, unresolved: unresolved.sort(), forward: fw, storyOpened: Kit.codex.isOpened('story', b), counts: counts,
       validation: Kit.validate.summary(Kit.validate(b)), worldCheck: { clean: !wc.length, problems: wc.map(function (p) { return p.message; }) },
       // Phase 7 fills checks and walk; Phase 8 fills the Day 150 contract.
-      checks: STORY.checks && !lazy ? STORY.checks.summary(b) : null, walk: STORY.checks && STORY.checks.walkStats && !lazy ? STORY.checks.walkStats(b) : null, day150: STORY.day150 ? STORY.day150(b) : null,
-      engines: [{ key: 'story', global: ENG.GLOBAL, file: ENG.FILE, version: ENGINE_STORY.version }], loadOrder: ENG.LOAD_ORDER.slice()
+      checks: STORY.checks && !lazy ? STORY.checks.summary(b) : null, walk: STORY.checks && STORY.checks.walkStats && !lazy ? STORY.checks.walkStats(b) : null, day150: STORY.day150 ? STORY.day150(b, lazy) : null,
+      engines: (ENG.FILES || []).map(function (f) { return { key: f.key, global: f.global, file: f.file, version: f.version, owner: f.owner, sha256: f.sha256 }; }), loadOrder: ENG.LOAD_ORDER.slice()
     };
   };
 
@@ -159,11 +185,22 @@
     return { hash: out.hash, files: files };
   };
   function download(files) { files.forEach(function (f, i) { setTimeout(function () { U.download(f.name, f.text, f.mime); }, i * 350); }); }
+  // opts.kit (Final only): after the bundle, manifest, and engine-story.js, also download the other four engines, so the
+  // download is a whole game kit. out.kit is the promise of that second step ({files, missing}).
   STORY.exportNow = function (status, opts) {
+    opts = opts || {};
     try {
       var out = Kit.buildExport(status, opts);
       download(out.files);
       Kit.ui.toast('Exported ' + out.files.length + ' files (' + status + '). Hash ' + out.hash.slice(0, 12) + '.', 'ok', 6000);
+      if (status === 'final' && opts.kit && opts.engines !== false) {
+        out.kit = ENG.kit().then(function (k) {
+          setTimeout(function () { download(k.files); }, out.files.length * 350);
+          if (k.missing.length) Kit.ui.toast('The game kit is missing ' + k.missing.map(function (m) { return m.file; }).join(', ') + ' (' + k.missing[0].why + '). Copy ' + (k.missing.length === 1 ? 'it' : 'them') + ' from the appaday-149-story-forge repository; the manifest lists each sha256.', 'warn', 9000);
+          else Kit.ui.toast('Game kit complete: all five engines, checked by sha256.', 'ok', 6000);
+          return k;
+        });
+      }
       Kit.rerender();
       return out;
     } catch (e) { Kit.ui.toast(e.message, 'error', 7000); return null; }
@@ -183,9 +220,11 @@
     host.appendChild(rc);
     var tg = el('div', 's9-opts');
     tg.appendChild(toggle('Include engine-story.js', st.engines, function (on) { st.engines = on; if (onChange) onChange(); }));
+    tg.appendChild(toggle('Final: the whole game kit (all five engines)', st.kit && st.engines, function (on) { st.kit = on; if (on) st.engines = true; if (onChange) onChange(); }));
     host.appendChild(tg);
+    host.appendChild(el('p', 'muted s9-kit-note', esc('A Final with the game kit is everything Day 150 needs to run the game: ' + ENG.LOAD_ORDER.join(', ') + ', the bundle, and the manifest. The forge is not part of the game.')));
   }
-  function exportState() { return { status: 'draft', engines: true }; }
+  function exportState() { return { status: 'draft', engines: true, kit: true }; }
   Kit.openExport = function () {
     var st = exportState();
     Kit.ui.dialog({
@@ -193,7 +232,7 @@
       body: function (body) { exportForm(body, st); },
       actions: [
         { label: 'Close', kind: 'ghost', value: null },
-        { label: 'Download', kind: 'primary', icon: 'export', onClick: function () { if (!STORY.exportNow(st.status, { engines: st.engines })) return false; } }
+        { label: 'Download', kind: 'primary', icon: 'export', onClick: function () { if (!STORY.exportNow(st.status, { engines: st.engines, kit: st.kit })) return false; } }
       ]
     });
   };
@@ -366,6 +405,37 @@
     p.appendChild(r);
     host.appendChild(p);
   }
+  // ---------------------------------------------------------------- the Day 150 panel
+  // The game kit table and a Play check: the golden path played through ENGINE_STORY.host, the same loop a shipped game
+  // runs, compared with the walk's own end state.
+  function day150Panel(b) {
+    var sec = el('section', 'panel s9-d150');
+    sec.appendChild(el('h3', 'section-h', 'Day 150: the game kit'));
+    sec.appendChild(el('p', 'muted', esc('A game is these five files plus a Final bundle. Day 150\'s page draws, plays sound, runs battles, and keeps saves; the forge is not part of the game.')));
+    sec.appendChild(table([{ label: 'File' }, { label: 'From' }, { label: 'Version' }, { label: 'sha256' }], (ENG.FILES || []).map(function (f, i) {
+      return '<tr><th scope="row">' + (i + 1) + '. ' + esc(f.file) + '</th><td>Day ' + f.owner + '</td><td>' + esc(f.version) + '</td><td><code>' + esc(f.sha256.slice(0, 12)) + '</code></td></tr>';
+    })));
+    var d = STORY.day150(b, true), out = el('div', 's9-d150-out');
+    if (!d) out.appendChild(el('p', 'muted', esc(STORY.readiness(b) === true ? 'The contract appears once the story checks prove the story can be finished.' : 'The contract appears once a Day 148 world is open.')));
+    else {
+      out.appendChild(el('div', null, kv([
+        ['Opening', esc(plural(d.opening.steps.length, 'forced event') + ', then ' + plural(d.opening.firstMoves.length, 'move') + ' to choose from')],
+        ['Golden path', d.golden ? esc(plural(d.golden.steps.length, 'step') + ' to ' + nameOf(d.golden.ending)) : chip('chip-error', 'none')],
+        ['Endings', esc(String(d.endings.length))], ['Bosses', esc(d.bosses.map(function (x) { return x.source === 'story' ? 'story troop' : 'world troop'; }).join(', ') || 'none')],
+        ['Save slots', esc(plural(d.saves.derived.length, 'derived flag'))]
+      ])));
+      var res = el('p', 'muted s9-play-res');
+      out.appendChild(button('Play the golden path', 'spark', '', function () {
+        var game = ENGINE_STORY.host.load(b), r = d.golden ? ENGINE_STORY.host.replay(game, d.golden.steps) : null;
+        var ok = !!r && r.ok && r.ending === d.golden.ending && r.hash === d.golden.hash && !r.faults.length;
+        res.className = 'msg ' + (ok ? 'msg-ok' : 'msg-error') + ' s9-play-res';
+        res.textContent = !r ? 'There is no golden path to play.' : ok ? 'Played ' + plural(r.played, 'step') + ' through the game loop to ' + nameOf(r.ending) + ', the walk\'s exact end state.' : 'The game loop stopped: ' + (r.error ? r.error.message : 'it ended somewhere else.');
+      }));
+      out.appendChild(res);
+    }
+    sec.appendChild(out);
+    return sec;
+  }
   function renderExport(host) {
     var head = el('section', 'panel');
     head.innerHTML = '<h2 class="panel-title">Validation and Export</h2><p class="muted">Export the bundle, its forge 149 manifest, and engine-story.js. Days 146, 147, and 148 open the bundle unchanged. A Final export opens the story namespace for Day 150.</p>';
@@ -375,7 +445,7 @@
     var p = el('section', 'panel');
     p.appendChild(el('h3', 'section-h', 'Export the bundle'));
     exportForm(p, st, function () { Kit.rerender(); }, true);
-    p.appendChild(button('Download', 'export', 'btn-primary', function () { STORY.exportNow(st.status, { engines: st.engines }); }));
+    p.appendChild(button('Download', 'export', 'btn-primary', function () { STORY.exportNow(st.status, { engines: st.engines, kit: st.kit }); }));
     host.appendChild(p);
     var m = el('section', 'panel'), man = STORY.manifest(cur(), '', { lazy: true });
     m.appendChild(el('h3', 'section-h', 'Manifest preview'));
@@ -383,6 +453,7 @@
       ['Unresolved', man.unresolved.length ? chip('chip-broken', String(man.unresolved.length)) : chip('chip-ok', '0')],
       ['Engine', esc(ENG.FILE + ' ' + ENGINE_STORY.version)], ['Day 150 loads', esc(ENG.LOAD_ORDER.join(', '))]])));
     host.appendChild(m);
+    host.appendChild(day150Panel(cur()));
     var z = el('section', 'panel');
     z.appendChild(el('h3', 'section-h', 'Size'));
     sizeBody(z);

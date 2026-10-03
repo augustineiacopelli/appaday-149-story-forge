@@ -1,0 +1,732 @@
+{
+  "forge": 149,
+  "bundleHash": "5d89f87ce99548bc79aaa790c9c87e3d92303601727dcc5cf55229d9060b36b9",
+  "storyVersion": "1.0.0",
+  "generator": {
+    "name": "appaday-149-story",
+    "version": "1.0.0"
+  },
+  "engineVersion": "1.0.0",
+  "charterVersion": 1,
+  "world": {
+    "version": "1.0.0",
+    "generatorVersion": "1.0.0",
+    "seed": 42
+  },
+  "exportedAt": "2026-10-03T23:45:26.487Z",
+  "created": [
+    "flg_flg_ending_2_614w",
+    "flg_flg_gate_chapter_chp_the_far_shore_izf4_qdn1",
+    "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
+    "flg_flg_gate_item_seal_chp_the_far_shore_izf_tz57",
+    "flg_flg_gate_item_seal_chp_the_lowlands_auem_0r61",
+    "flg_flg_gate_vehicle_ship_iqdm",
+    "flg_flg_once_evt_evt_finale_pfp1_rq83",
+    "flg_flg_once_evt_evt_open_chp_the_far_shore_z5up",
+    "flg_flg_once_evt_evt_open_chp_the_lowlands_a_vk6f",
+    "flg_flg_qdone_qst_qst_main_chp_the_far_shore_9x3w",
+    "flg_flg_qdone_qst_qst_main_chp_the_lowlands_grwd",
+    "flg_flg_quest_qst_qst_main_chp_the_far_shore_ycfn",
+    "flg_flg_quest_qst_qst_main_chp_the_lowlands_1umy",
+    "flg_flg_story_finale_u63u",
+    "qst_qst_main_chp_the_far_shore_izf4_wfd6",
+    "qst_qst_main_chp_the_lowlands_auem_382x",
+    "dlg_dlg_quest_qst_qst_main_chp_the_far_shore_xulv",
+    "dlg_dlg_quest_qst_qst_main_chp_the_lowlands_vw4h",
+    "dlg_dlg_role_guard_chp_the_far_shore_izf4_ojf0",
+    "dlg_dlg_role_guard_chp_the_lowlands_auem_brsk",
+    "dlg_dlg_role_innkeeper_chp_the_far_shore_izf_ou5n",
+    "dlg_dlg_role_innkeeper_chp_the_lowlands_auem_kcbs",
+    "dlg_dlg_role_priest_chp_the_far_shore_izf4_repz",
+    "dlg_dlg_role_priest_chp_the_lowlands_auem_qafy",
+    "dlg_dlg_role_resident_chp_the_far_shore_izf4_oz6f",
+    "dlg_dlg_role_resident_chp_the_lowlands_auem_pfve",
+    "dlg_dlg_role_shop_armor_chp_the_far_shore_iz_bn9z",
+    "dlg_dlg_role_shop_armor_chp_the_lowlands_aue_3vxc",
+    "dlg_dlg_role_shop_item_chp_the_far_shore_izf_pcxq",
+    "dlg_dlg_role_shop_item_chp_the_lowlands_auem_f9c9",
+    "dlg_dlg_role_shop_weapon_chp_the_far_shore_i_26jb",
+    "dlg_dlg_role_shop_weapon_chp_the_lowlands_au_wj4w",
+    "evt_evt_boss_chp_the_far_shore_izf4_7bap",
+    "evt_evt_boss_chp_the_lowlands_auem_kkvs",
+    "evt_evt_exit_chp_the_lowlands_auem_2248",
+    "evt_evt_finale_pfp1",
+    "evt_evt_open_chp_the_far_shore_izf4_rlyf",
+    "evt_evt_open_chp_the_lowlands_auem_7aom",
+    "evt_evt_prize_chp_the_far_shore_izf4_ykaj",
+    "evt_evt_prize_chp_the_lowlands_auem_bp9a",
+    "evt_evt_talk_npc_npc_twn_chp_the_far_shore_i_dhh2",
+    "evt_evt_talk_npc_npc_twn_chp_the_lowlands_au_2drs",
+    "end_end_1_delivered_vlh4",
+    "end_end_2_kept_6lzb"
+  ],
+  "referenced": [
+    "chp_the_far_shore_izf4",
+    "chp_the_lowlands_auem",
+    "dgn_dgn_chp_the_far_shore_izf4_boss_plrq",
+    "dgn_dgn_chp_the_lowlands_auem_boss_po39",
+    "map_map_dgn_chp_the_far_shore_izf4_boss_2_z4us",
+    "map_map_dgn_chp_the_far_shore_izf4_key_1_dil0",
+    "map_map_dgn_chp_the_lowlands_auem_boss_2_2thq",
+    "map_map_dgn_chp_the_lowlands_auem_key_1_olqf",
+    "map_map_overworld_670c",
+    "npc_npc_twn_chp_the_far_shore_izf4_start_res_hbfb",
+    "npc_npc_twn_chp_the_lowlands_auem_start_resi_ia27",
+    "trp_lowland_pack_r3w4",
+    "trp_the_warden_n1yb"
+  ],
+  "unresolved": [],
+  "forward": [],
+  "storyOpened": true,
+  "counts": {
+    "flg_": 14,
+    "qst_": 2,
+    "dlg_": 16,
+    "evt_": 10,
+    "end_": 2
+  },
+  "validation": {
+    "errors": 0,
+    "broken": 0,
+    "forward": 0,
+    "warnings": 0
+  },
+  "worldCheck": {
+    "clean": true,
+    "problems": []
+  },
+  "checks": {
+    "engineVersion": "1.0.0",
+    "proven": true,
+    "errors": 0,
+    "warnings": 3,
+    "worldHash": "50a3539b63a6addf",
+    "worldStamp": "50a3539b63a6addf",
+    "storyDigest": "0ed6c8cc:1",
+    "cards": [
+      {
+        "key": "references",
+        "title": "References",
+        "status": "pass",
+        "errors": 0,
+        "warnings": 0,
+        "codes": []
+      },
+      {
+        "key": "smells",
+        "title": "Story smells",
+        "status": "warn",
+        "errors": 0,
+        "warnings": 3,
+        "codes": [
+          "npc-page-never-wins",
+          "page-never-wins"
+        ]
+      },
+      {
+        "key": "walk",
+        "title": "The walk",
+        "status": "pass",
+        "errors": 0,
+        "warnings": 0,
+        "codes": []
+      },
+      {
+        "key": "proofs",
+        "title": "The proofs",
+        "status": "pass",
+        "errors": 0,
+        "warnings": 0,
+        "codes": []
+      },
+      {
+        "key": "softlock",
+        "title": "No softlock",
+        "status": "pass",
+        "errors": 0,
+        "warnings": 0,
+        "codes": []
+      },
+      {
+        "key": "floor",
+        "title": "The 12 hour floor",
+        "status": "pass",
+        "errors": 0,
+        "warnings": 0,
+        "codes": []
+      }
+    ]
+  },
+  "walk": {
+    "states": 13,
+    "edges": 20,
+    "expanded": 13,
+    "capped": false,
+    "cap": 50000,
+    "maxDepth": 5,
+    "runs": 20,
+    "gameovers": 0,
+    "endings": [
+      "end_end_1_delivered_vlh4",
+      "end_end_2_kept_6lzb"
+    ],
+    "golden": {
+      "steps": 8,
+      "full": true,
+      "ending": "end_end_1_delivered_vlh4"
+    },
+    "softlocks": 0,
+    "digest": "0ed6c8cc:1"
+  },
+  "day150": {
+    "contract": 1,
+    "summary": "A game is the five engine files below, loaded in this order, plus this Final bundle. Nothing else from any forge is needed.",
+    "engines": [
+      {
+        "key": "render",
+        "file": "engine-render.js",
+        "global": "ENGINE_RENDER",
+        "owner": 147,
+        "version": "1.0.0",
+        "bytes": 222033,
+        "sha256": "1ad0fc0d07fcb10a4917cc5550822860c6e3aac4a0414d050625ba906fad3281"
+      },
+      {
+        "key": "audio",
+        "file": "engine-audio.js",
+        "global": "ENGINE_AUDIO",
+        "owner": 147,
+        "version": "1.0.0",
+        "bytes": 52509,
+        "sha256": "4b77f7e557628e21330c7ca742cfb6664f0fd615f33bb40a9e5b16fb6751207a"
+      },
+      {
+        "key": "world",
+        "file": "engine-world.js",
+        "global": "ENGINE_WORLD",
+        "owner": 148,
+        "version": "1.0.0",
+        "bytes": 170257,
+        "sha256": "146dcdad83307655b3e28288078dfb6fca7de86842ed9ecd13c6f3a61b39180f"
+      },
+      {
+        "key": "battle",
+        "file": "engine-battle.js",
+        "global": "ENGINE_BATTLE",
+        "owner": 146,
+        "version": "1.0.0",
+        "bytes": 64214,
+        "sha256": "cc091bedd5acb06baf6cf5ef39ce8f3a3a9d02275bb479f4e24b8cde2b80177e"
+      },
+      {
+        "key": "story",
+        "file": "engine-story.js",
+        "global": "ENGINE_STORY",
+        "owner": 149,
+        "version": "1.0.0",
+        "bytes": 136967,
+        "sha256": "75451b0ee690b40fdc5658d4f0dfc29c572788d2262622bbff3f1b40284c3786"
+      }
+    ],
+    "loadOrder": [
+      "engine-render.js",
+      "engine-audio.js",
+      "engine-world.js",
+      "engine-battle.js",
+      "engine-story.js"
+    ],
+    "hashRule": "sha256 of the file with any one line of the form /* Bundle hash <hex> */ removed",
+    "api": {
+      "load": "var game = ENGINE_STORY.host.load(bundle)",
+      "newGame": "var r = ENGINE_STORY.host.newGame(game, {gil, items, party}, hooks); r.state is the first quiet state",
+      "loop": "ENGINE_STORY.host.moves(game, state) lists what the player may do; ENGINE_STORY.host.play(game, state, move, hooks) runs one and every forced event after it",
+      "hooks": "{begin(ctx), decide(question, ctx), effect(effect, ctx)}; decide answers {kind choice, options} with a position and {kind battle, trp, canLose, canEscape, state} with win, lose, or escape",
+      "save": "ENGINE_STORY.save.toSave(state, game.idx) between moves; ENGINE_STORY.save.fromSave(save, game.idx) to restore",
+      "replay": "ENGINE_STORY.host.replay(game, steps) plays golden.steps or any endings[].steps and checks each one"
+    },
+    "newGame": {
+      "chapter": "chp_the_lowlands_auem",
+      "openFlags": [
+        "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo"
+      ],
+      "startGates": [
+        "chapter:chp_the_lowlands_auem"
+      ],
+      "gil": 0,
+      "party": [],
+      "items": {}
+    },
+    "opening": {
+      "steps": [
+        {
+          "by": "chapterStart",
+          "evt": "evt_evt_open_chp_the_lowlands_auem_7aom"
+        }
+      ],
+      "chapter": "chp_the_lowlands_auem",
+      "hash": "8eb3250648f0b70f",
+      "firstMoves": [
+        {
+          "by": "step",
+          "evt": "evt_evt_prize_chp_the_lowlands_auem_bp9a",
+          "map": "map_map_dgn_chp_the_lowlands_auem_key_1_olqf"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_chur_83ch",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_guar_jrr4",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_guar_ltht",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_inn_t8of",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_resi_3wef",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_resi_3xwu",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_resi_dbsn",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "talk",
+          "evt": "evt_evt_talk_npc_npc_twn_chp_the_lowlands_au_2drs",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_resi_ia27",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_resi_lx9w",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_resi_w2r2",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_shop_1hii",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_shop_d080",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_start_shop_ulph",
+          "map": "map_map_twn_chp_the_lowlands_auem_start_1_oy9u"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_town_churc_3xob",
+          "map": "map_map_twn_chp_the_lowlands_auem_town_1_yt0x"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_town_guard_8bsw",
+          "map": "map_map_twn_chp_the_lowlands_auem_town_1_yt0x"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_town_guard_gctd",
+          "map": "map_map_twn_chp_the_lowlands_auem_town_1_yt0x"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_town_inn_qpqc",
+          "map": "map_map_twn_chp_the_lowlands_auem_town_1_yt0x"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_town_resid_0p5v",
+          "map": "map_map_twn_chp_the_lowlands_auem_town_1_yt0x"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_town_resid_bzg9",
+          "map": "map_map_twn_chp_the_lowlands_auem_town_1_yt0x"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_town_resid_i1mv",
+          "map": "map_map_twn_chp_the_lowlands_auem_town_1_yt0x"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_town_resid_ncj1",
+          "map": "map_map_twn_chp_the_lowlands_auem_town_1_yt0x"
+        },
+        {
+          "by": "dialogue",
+          "npc": "npc_npc_twn_chp_the_lowlands_auem_town_shop_nw83",
+          "map": "map_map_twn_chp_the_lowlands_auem_town_1_yt0x"
+        }
+      ],
+      "faults": 0
+    },
+    "start": {
+      "overworld": "map_map_overworld_670c",
+      "chapter": "chp_the_lowlands_auem"
+    },
+    "triggers": {
+      "mapEnter": "offered when the player enters the move's map",
+      "step": "offered when the player stands on the event's at cell on the move's map",
+      "autorun": "offered when the player is on the move's map; ENGINE_STORY.host.play also runs autoruns on the moved to map by itself",
+      "talk": "offered when the player talks to the move's npc",
+      "dialogue": "the same, for a person with only dialogue pages",
+      "chapterStart": "never offered; run by the host at a new game and whenever the chapter changes",
+      "battleEnd": "never offered; run by the host after the battles of a run"
+    },
+    "saves": {
+      "schema": "Day 146 save: the story keeps flags [{flg, value}], gil, inventory [{item, qty}], party [chr_], and chapter; quest stages and once pages pack into derived flags",
+      "derived": [
+        {
+          "flg": "flg_flg_once_evt_evt_finale_pfp1_rq83",
+          "kind": "once",
+          "of": "evt_evt_finale_pfp1"
+        },
+        {
+          "flg": "flg_flg_once_evt_evt_open_chp_the_far_shore_z5up",
+          "kind": "once",
+          "of": "evt_evt_open_chp_the_far_shore_izf4_rlyf"
+        },
+        {
+          "flg": "flg_flg_once_evt_evt_open_chp_the_lowlands_a_vk6f",
+          "kind": "once",
+          "of": "evt_evt_open_chp_the_lowlands_auem_7aom"
+        },
+        {
+          "flg": "flg_flg_quest_qst_qst_main_chp_the_far_shore_ycfn",
+          "kind": "quest",
+          "of": "qst_qst_main_chp_the_far_shore_izf4_wfd6"
+        },
+        {
+          "flg": "flg_flg_quest_qst_qst_main_chp_the_lowlands_1umy",
+          "kind": "quest",
+          "of": "qst_qst_main_chp_the_lowlands_auem_382x"
+        }
+      ],
+      "limits": {
+        "stages": 255,
+        "groups": 22,
+        "oncePages": 31
+      },
+      "rules": [
+        "never save while an event is running (toSave refuses)",
+        "never save after an ending",
+        "a flag at its default is left out"
+      ]
+    },
+    "bosses": [
+      {
+        "chapter": "chp_the_lowlands_auem",
+        "dgn": "dgn_dgn_chp_the_lowlands_auem_boss_po39",
+        "troop": "trp_lowland_pack_r3w4",
+        "source": "story",
+        "chosen": false,
+        "evt": "evt_evt_boss_chp_the_lowlands_auem_kkvs",
+        "finale": false
+      },
+      {
+        "chapter": "chp_the_far_shore_izf4",
+        "dgn": "dgn_dgn_chp_the_far_shore_izf4_boss_plrq",
+        "troop": "trp_the_warden_n1yb",
+        "source": "world",
+        "chosen": false,
+        "evt": "evt_evt_boss_chp_the_far_shore_izf4_7bap",
+        "finale": true
+      }
+    ],
+    "bossRule": "A boss is the world troop when Day 148 set one (its boss zone, else dgn_.troop); otherwise the startBattle troop of the story's boss event whose dgn names that dungeon. The scaffolded boss events already carry the resolved troop.",
+    "battle": {
+      "engine": "ENGINE_BATTLE",
+      "call": "ENGINE_BATTLE.init({ruleset: bundle.charter.ruleset, records: bundle.rules, party: members, troopId: question.trp, weatherId: null}, seed, opts) then advance, or run for an automatic battle",
+      "member": "{chr, level, equipment [eqp_], materia [{eqp, slot, mat, ap}], abilities [abl_], row, job, jobLevel, cls}",
+      "party": "question.state.party lists the chr_ ids in the party; levels and gear come from the chapter's eps_ record (targetLevel, gearTier) in bundle.rules",
+      "outcomes": {
+        "win": "win",
+        "lose": "lose",
+        "flee": "escape",
+        "timeout": "lose"
+      }
+    },
+    "effects": {
+      "commands": [
+        "addFlag",
+        "callEvent",
+        "changeMap",
+        "choice",
+        "ending",
+        "face",
+        "fade",
+        "gil",
+        "giveItem",
+        "if",
+        "moveActor",
+        "music",
+        "party",
+        "questStage",
+        "setFlag",
+        "sfx",
+        "startBattle",
+        "takeItem",
+        "text",
+        "vehicle",
+        "wait"
+      ],
+      "host": [
+        "end",
+        "none",
+        "idle",
+        "gameover",
+        "error"
+      ],
+      "silent": [
+        "if",
+        "setFlag",
+        "addFlag",
+        "callEvent"
+      ]
+    },
+    "musicRoles": [
+      "battle",
+      "boss",
+      "defeat",
+      "dungeon",
+      "ending:1",
+      "ending:2",
+      "field:eastland",
+      "field:westland",
+      "motif:theme",
+      "motif:villain",
+      "title",
+      "town",
+      "victory"
+    ],
+    "golden": {
+      "ending": "end_end_1_delivered_vlh4",
+      "hash": "9437d264bf31da0d",
+      "full": true,
+      "steps": [
+        {
+          "by": "chapterStart",
+          "evt": "evt_evt_open_chp_the_lowlands_auem_7aom"
+        },
+        {
+          "by": "step",
+          "evt": "evt_evt_prize_chp_the_lowlands_auem_bp9a"
+        },
+        {
+          "battles": [
+            {
+              "outcome": "win",
+              "trp": "trp_lowland_pack_r3w4"
+            }
+          ],
+          "by": "step",
+          "evt": "evt_evt_boss_chp_the_lowlands_auem_kkvs"
+        },
+        {
+          "by": "step",
+          "evt": "evt_evt_prize_chp_the_far_shore_izf4_ykaj"
+        },
+        {
+          "battles": [
+            {
+              "outcome": "win",
+              "trp": "trp_the_warden_n1yb"
+            }
+          ],
+          "by": "step",
+          "evt": "evt_evt_boss_chp_the_far_shore_izf4_7bap"
+        },
+        {
+          "by": "autorun",
+          "choices": [
+            "Delivered"
+          ],
+          "evt": "evt_evt_finale_pfp1"
+        }
+      ]
+    },
+    "endings": [
+      {
+        "end": "end_end_1_delivered_vlh4",
+        "hash": "9437d264bf31da0d",
+        "steps": [
+          {
+            "by": "chapterStart",
+            "evt": "evt_evt_open_chp_the_lowlands_auem_7aom"
+          },
+          {
+            "by": "step",
+            "evt": "evt_evt_prize_chp_the_lowlands_auem_bp9a"
+          },
+          {
+            "battles": [
+              {
+                "outcome": "win",
+                "trp": "trp_lowland_pack_r3w4"
+              }
+            ],
+            "by": "step",
+            "evt": "evt_evt_boss_chp_the_lowlands_auem_kkvs"
+          },
+          {
+            "by": "step",
+            "evt": "evt_evt_prize_chp_the_far_shore_izf4_ykaj"
+          },
+          {
+            "battles": [
+              {
+                "outcome": "win",
+                "trp": "trp_the_warden_n1yb"
+              }
+            ],
+            "by": "step",
+            "evt": "evt_evt_boss_chp_the_far_shore_izf4_7bap"
+          },
+          {
+            "by": "autorun",
+            "choices": [
+              "Delivered"
+            ],
+            "evt": "evt_evt_finale_pfp1"
+          }
+        ]
+      },
+      {
+        "end": "end_end_2_kept_6lzb",
+        "hash": "37c65498e7f4f380",
+        "steps": [
+          {
+            "by": "chapterStart",
+            "evt": "evt_evt_open_chp_the_lowlands_auem_7aom"
+          },
+          {
+            "by": "step",
+            "evt": "evt_evt_prize_chp_the_lowlands_auem_bp9a"
+          },
+          {
+            "battles": [
+              {
+                "outcome": "win",
+                "trp": "trp_lowland_pack_r3w4"
+              }
+            ],
+            "by": "step",
+            "evt": "evt_evt_boss_chp_the_lowlands_auem_kkvs"
+          },
+          {
+            "by": "step",
+            "evt": "evt_evt_prize_chp_the_far_shore_izf4_ykaj"
+          },
+          {
+            "battles": [
+              {
+                "outcome": "win",
+                "trp": "trp_the_warden_n1yb"
+              }
+            ],
+            "by": "step",
+            "evt": "evt_evt_boss_chp_the_far_shore_izf4_7bap"
+          },
+          {
+            "by": "autorun",
+            "choices": [
+              "Kept"
+            ],
+            "evt": "evt_evt_finale_pfp1"
+          }
+        ]
+      }
+    ],
+    "shell": {
+      "provides": [
+        "input: offer the moves ENGINE_STORY.host.moves(game, state) returns for the map the player stands on, and play the one chosen with ENGINE_STORY.host.play",
+        "render: draw each effect the effect hook receives (text, choice, fade, face, moveActor, changeMap, vehicle, wait) with ENGINE_RENDER on a canvas the shell owns",
+        "audio: play music (a role key or a mus_) and sfx effects with ENGINE_AUDIO, starting audio only after a user gesture",
+        "battle: answer each battle question by running ENGINE_BATTLE on its trp with a party built from state.party, and report the outcome through OUTCOMES",
+        "saves: keep ENGINE_STORY.save.toSave(state, game.idx) in storage the shell owns (slot count and keys are the shell's), and restore with ENGINE_STORY.save.fromSave"
+      ],
+      "never": [
+        "the forge pages (Days 146 to 149)",
+        "Kit or STORY",
+        "a forge's storage keys",
+        "network access",
+        "an API key"
+      ]
+    },
+    "proof": "test/phase8.js plays golden.steps and every endings[].steps in a bare vm holding only these five files and this bundle, and gets these hashes"
+  },
+  "engines": [
+    {
+      "key": "render",
+      "global": "ENGINE_RENDER",
+      "file": "engine-render.js",
+      "version": "1.0.0",
+      "owner": 147,
+      "sha256": "1ad0fc0d07fcb10a4917cc5550822860c6e3aac4a0414d050625ba906fad3281"
+    },
+    {
+      "key": "audio",
+      "global": "ENGINE_AUDIO",
+      "file": "engine-audio.js",
+      "version": "1.0.0",
+      "owner": 147,
+      "sha256": "4b77f7e557628e21330c7ca742cfb6664f0fd615f33bb40a9e5b16fb6751207a"
+    },
+    {
+      "key": "world",
+      "global": "ENGINE_WORLD",
+      "file": "engine-world.js",
+      "version": "1.0.0",
+      "owner": 148,
+      "sha256": "146dcdad83307655b3e28288078dfb6fca7de86842ed9ecd13c6f3a61b39180f"
+    },
+    {
+      "key": "battle",
+      "global": "ENGINE_BATTLE",
+      "file": "engine-battle.js",
+      "version": "1.0.0",
+      "owner": 146,
+      "sha256": "cc091bedd5acb06baf6cf5ef39ce8f3a3a9d02275bb479f4e24b8cde2b80177e"
+    },
+    {
+      "key": "story",
+      "global": "ENGINE_STORY",
+      "file": "engine-story.js",
+      "version": "1.0.0",
+      "owner": 149,
+      "sha256": "75451b0ee690b40fdc5658d4f0dfc29c572788d2262622bbff3f1b40284c3786"
+    }
+  ],
+  "loadOrder": [
+    "engine-render.js",
+    "engine-audio.js",
+    "engine-world.js",
+    "engine-battle.js",
+    "engine-story.js"
+  ]
+}

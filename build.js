@@ -38,6 +38,27 @@ VENDORED.forEach((v) => {
   if (v.norm(ours) !== v.norm(theirs)) { console.error(v.file + ' differs from ' + v.owner + ' (' + sha(ours).slice(0, 12) + ' here, ' + sha(theirs).slice(0, 12) + ' in ' + v.owner + '). Run node build.js --revendor to take ' + v.owner + '\'s copy.'); process.exit(1); }
   console.log(v.file, ours.length, 'chars, byte equal to ' + v.owner + (v.norm === noHashLine ? ' (hash line aside)' : '') + ', sha256', sha(ours).slice(0, 16));
 });
+// 1b. engine-battle.js: Day 146 ships ENGINE:BATTLE inside its page, between two marker lines, and writes it out as a file
+// at export. Day 149 vendors that same text under Day 146's export header (without a bundle hash line), so the game kit
+// holds all five engines. The text between the markers must equal Day 146's byte for byte.
+const BATTLE_OPEN = '// === ENGINE:BATTLE BEGIN ===', BATTLE_CLOSE = '// === ENGINE:BATTLE END ===';
+function battleInner(text) {
+  let a = text.indexOf(BATTLE_OPEN), z = text.indexOf(BATTLE_CLOSE, a + 1);
+  if (a < 0 || z < 0) throw new Error('ENGINE:BATTLE fence not found in Day 146.');
+  a = text.indexOf('\n', a); z = text.lastIndexOf('\n', z);
+  return text.slice(a + 1, z + 1);
+}
+const battleSrc = battleInner(src146);
+const battleVer = /var VERSION = '([^']+)'/.exec(battleSrc);
+if (!battleVer) throw new Error('No version in ENGINE:BATTLE.');
+const battleFile = '/* Saga Forge ENGINE:BATTLE, engine version ' + battleVer[1] + '\n * Forge 146 export. Declares one global, ENGINE_BATTLE. No dependencies. */\n' + battleSrc;
+if (REVENDOR || !exists('engine-battle.js')) fs.writeFileSync(path.join(__dirname, 'engine-battle.js'), battleFile);
+{
+  const ours = R('engine-battle.js'), body = ours.slice(ours.indexOf('*/\n') + 3);
+  if (body !== battleSrc) { console.error('engine-battle.js differs from Day 146\'s ENGINE:BATTLE fence. Run node build.js --revendor to take Day 146\'s copy.'); process.exit(1); }
+  console.log('engine-battle.js', ours.length, 'chars, fence byte equal to Day 146, version', battleVer[1], 'sha256', sha(ours).slice(0, 16));
+}
+
 // Day 148 vendors render and audio from Day 147 too; all three copies must agree, or Day 150 would load two versions.
 ['engine-render.js', 'engine-audio.js'].forEach((f) => {
   if (fs.readFileSync(path.join(dir148, f), 'utf8') !== R(f)) { console.error(f + ' in Day 148 differs from Day 147\'s. Revendor Day 148 first.'); process.exit(1); }
@@ -52,14 +73,30 @@ const demoSrc = R('src/story-demo.js').replace('/*DEMO_JSON*/null', () => embed(
 const buildLog = R('src/build-log.txt');
 // ENGINE:STORY is one fence in the output. Later phases keep their engine sections in their own source files, spliced in
 // order above the freeze line, so each phase's engine code stays readable on its own.
-const ENGINE_SECTIONS = ['src/engine-index.js', 'src/engine-cond.js', 'src/engine-cmd.js', 'src/engine-run.js', 'src/engine-pages.js', 'src/engine-dlg.js', 'src/engine-save.js', 'src/engine-walk.js'].filter(exists);
+const ENGINE_SECTIONS = ['src/engine-index.js', 'src/engine-cond.js', 'src/engine-cmd.js', 'src/engine-run.js', 'src/engine-pages.js', 'src/engine-dlg.js', 'src/engine-save.js', 'src/engine-walk.js', 'src/engine-host.js'].filter(exists);
 const FREEZE = '  // ---------------------------------------------------------------- later phases insert sections above this line';
 const engineBase = R('src/engine-story.js');
 if (engineBase.split(FREEZE).length !== 2) throw new Error('ENGINE:STORY freeze marker not found exactly once.');
 const engineStory = engineBase.replace(FREEZE, () => ENGINE_SECTIONS.map((f) => R(f).replace(/\s+$/, '') + '\n\n').join('') + FREEZE).trim();
+// engine-story.js is the fence under a header (STORY.engines adds the same header at run time, plus a bundle hash line
+// when a bundle is exported). Worked out here, before the page, so the page can carry every engine file's hash.
+const storyVer = /var S = \{ version: '([^']+)' \}/.exec(engineStory);
+if (!storyVer) throw new Error('No version in ENGINE:STORY.');
+const storyFile = '/* Story Forge ENGINE:STORY, engine version ' + storyVer[1] + '\n' +
+  ' * Forge 149 (AppADay 149). Declares one global, ENGINE_STORY. No dependencies; reads no host global. */\n' + engineStory + '\n';
+// The game kit: every engine a game loads, in load order, as the repository holds them. sha256 is over the file with any
+// one '/* Bundle hash <hex> */' line removed, so an exported copy (which carries that line) checks against the same value.
+const ENGINE_FILES = [
+  { key: 'render', file: 'engine-render.js', global: 'ENGINE_RENDER', owner: 147, text: R('engine-render.js') },
+  { key: 'audio', file: 'engine-audio.js', global: 'ENGINE_AUDIO', owner: 147, text: R('engine-audio.js') },
+  { key: 'world', file: 'engine-world.js', global: 'ENGINE_WORLD', owner: 148, text: R('engine-world.js') },
+  { key: 'battle', file: 'engine-battle.js', global: 'ENGINE_BATTLE', owner: 146, text: R('engine-battle.js') },
+  { key: 'story', file: 'engine-story.js', global: 'ENGINE_STORY', owner: 149, text: storyFile }
+].map((f) => ({ key: f.key, file: f.file, global: f.global, owner: f.owner, version: (/engine version ([0-9.]+)/.exec(f.text.slice(0, 400)) || /version: '([0-9.]+)'/.exec(f.text) || [0, 'unknown'])[1], bytes: Buffer.byteLength(noHashLine(f.text)), sha256: sha(noHashLine(f.text)) }));
+const engineTable = JSON.stringify(ENGINE_FILES);
 // Workspace fences arrive with later phases; each is optional until its phase.
 const CSS_FENCES = ['src/story-flags.css', 'src/story-quests.css', 'src/story-dialogue.css', 'src/story-events.css', 'src/story-endings.css', 'src/story-validation.css'].filter(exists);
-const JS_FENCES = ['src/story-scaffold.js', 'src/story-quests.js', 'src/story-dialogue.js', 'src/story-events.js', 'src/story-endings.js', 'src/story-checks.js', 'src/ws-flags.js', 'src/ws-cond.js', 'src/ws-quests.js', 'src/ws-dialogue.js', 'src/ws-events.js', 'src/ws-endings.js', 'src/ws-validation.js'].filter(exists);
+const JS_FENCES = ['src/story-scaffold.js', 'src/story-quests.js', 'src/story-dialogue.js', 'src/story-events.js', 'src/story-endings.js', 'src/story-checks.js', 'src/story-day150.js', 'src/ws-flags.js', 'src/ws-cond.js', 'src/ws-quests.js', 'src/ws-dialogue.js', 'src/ws-events.js', 'src/ws-endings.js', 'src/ws-validation.js'].filter(exists);
 
 const html = `<!--
 ${buildLog.trim()}
@@ -123,7 +160,7 @@ ${engineStory}
 ${R('src/story-store.js').trim()}
 ${demoSrc.trim()}
 ${JS_FENCES.map((f) => R(f).trim()).join('\n')}
-${R('src/ws-story149.js').trim()}
+${R('src/ws-story149.js').trim().replace('/*ENGINE_FILES*/null', () => engineTable)}
 ${R('src/app-boot.js').trim()}
 </script>
 </body>
@@ -135,15 +172,13 @@ const same = fence(out, '// === KIT:CORE BEGIN ===', '// === KIT:CORE END ===') 
 console.log('index.html', out.length, 'chars,', out.split('\n').length, 'lines; KIT:CORE verbatim:', same);
 if (!same) process.exit(1);
 
-// 3. engine-story.js: the ENGINE:STORY fence under a header. STORY.engines cuts the same fence out of the page at run
-// time and adds the same header, with the bundle hash line when a bundle is exported. This repository copy carries no hash.
+// 3. engine-story.js: the ENGINE:STORY fence under a header, checked against the page's own fence. This repository copy
+// carries no bundle hash.
 const open = '// === ENGINE:STORY BEGIN ===', close = '// === ENGINE:STORY END ===';
 const a = out.indexOf(open), z = out.indexOf(close);
 if (a < 0 || z < a || out.indexOf(open, a + 1) >= 0) throw new Error('ENGINE:STORY fence not found exactly once.');
-const engSrc = out.slice(a, z + close.length) + '\n';
-const ver = /var S = \{ version: '([^']+)' \}/.exec(engSrc);
-if (!ver) throw new Error('No version in ENGINE:STORY.');
-const header = '/* Story Forge ENGINE:STORY, engine version ' + ver[1] + '\n' +
-  ' * Forge 149 (AppADay 149). Declares one global, ENGINE_STORY. No dependencies; reads no host global. */\n';
-fs.writeFileSync(path.join(__dirname, 'engine-story.js'), header + engSrc);
-console.log('engine-story.js', (header + engSrc).length, 'chars, version', ver[1]);
+if (out.slice(a, z + close.length) !== engineStory) throw new Error('The page\'s ENGINE:STORY fence differs from the one built.');
+fs.writeFileSync(path.join(__dirname, 'engine-story.js'), storyFile);
+console.log('engine-story.js', storyFile.length, 'chars, version', storyVer[1]);
+ENGINE_FILES.forEach((f) => { if (sha(noHashLine(R(f.file))) !== f.sha256) { console.error(f.file + ' does not match the table the page carries.'); process.exit(1); } });
+console.log('game kit:', ENGINE_FILES.map((f) => f.file + ' ' + f.version + ' ' + f.sha256.slice(0, 12)).join(', '));

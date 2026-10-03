@@ -157,7 +157,7 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   check('Draft leaves story out of kit.opened', db.kit.opened.join() === 'charter,rules,art,world', db.kit.opened);
   check('manifest: forge 149, hash equals the bundle hash, created story IDs, the chapter referenced, nothing unresolved, world clean, load order',
     man.forge === 149 && man.bundleHash === db.kit.contentHash && man.created.indexOf(flg.id) >= 0 && man.created.indexOf(qst.id) >= 0 && man.created.length === STORY.count(db) && !man.unresolved.length && man.referenced.indexOf(chp) >= 0 && man.worldCheck.clean && man.world.seed === 42 &&
-    canon(man.loadOrder) === canon(['engine-render.js', 'engine-audio.js', 'engine-world.js', 'engine-story.js']) &&
+    canon(man.loadOrder) === canon(['engine-render.js', 'engine-audio.js', 'engine-world.js', 'engine-battle.js', 'engine-story.js']) &&
     // Phase 7: the manifest carries the six checks (this hand made story is not proven) and the walk's statistics.
     man.checks && man.checks.proven === false && man.checks.cards.length === 6 && man.walk && man.walk.states > 0 && man.day150 === null, man);
   const engOut = draft.files[2].text;
@@ -166,7 +166,7 @@ const cut = (t, a, z) => t.slice(t.indexOf(a), t.indexOf(z) + z.length);
   let finalErr = null; try { Kit.buildExport('final'); } catch (e) { finalErr = e.message; }
   check('Final is refused until the story checks pass, with a readable reason', /story checks? fails?/.test(finalErr || '') && Kit.bundle.current().kit.opened.indexOf('story') < 0, finalErr);
   Kit.go('export'); await wait(250); ws = d.getElementById('ws').textContent;
-  check('the Validation and Export tab: counts, world clean, the Final block, Draft and Final cards, manifest preview, size', /0 errors/.test(ws) && /World clean/.test(ws) && /story checks? fails?/.test(ws) && d.querySelectorAll('#ws .vc-card').length === 6 && /Created\d+ story IDs/.test(ws) && /Unresolved0/.test(ws) && /engine-render\.js, engine-audio\.js, engine-world\.js, engine-story\.js/.test(ws) && d.querySelectorAll('#ws input[name=s9Status]').length === 2 && d.querySelector('#ws input[value=final]').disabled);
+  check('the Validation and Export tab: counts, world clean, the Final block, Draft and Final cards, manifest preview, size', /0 errors/.test(ws) && /World clean/.test(ws) && /story checks? fails?/.test(ws) && d.querySelectorAll('#ws .vc-card').length === 6 && /Created\d+ story IDs/.test(ws) && /Unresolved0/.test(ws) && /engine-render\.js, engine-audio\.js, engine-world\.js, engine-battle\.js, engine-story\.js/.test(ws) && d.querySelectorAll('#ws input[name=s9Status]').length === 2 && d.querySelector('#ws input[value=final]').disabled);
 
   // ---------------------------------------------------------------- 5. Round trip into Days 146, 147, 148 and back.
   const base = { 146: await in146(demoText), 147: await in147(demoText), 148: await in148(demoText) };
