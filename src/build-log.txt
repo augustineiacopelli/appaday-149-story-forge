@@ -110,4 +110,65 @@ DECISIONS (2026-10-03, from the Planning session, accepted as the plan of record
   5. Commands are a closed nested vocabulary with no goto: text, choice, if, setFlag, addFlag, giveItem, takeItem, gil,
      questStage, party, startBattle (win and lose lists), moveActor, face, wait, fade, music, sfx, changeMap, vehicle,
      callEvent, ending.
+SESSION 1 / PHASE 1 (2026-10-03, Opus): ENGINE:STORY CORE. COMPLETE.
+  Sections, spliced above the freeze line in this order (build.js ENGINE_SECTIONS gained src/engine-index.js first):
+    engine-index, engine-cond, engine-cmd, engine-run, engine-pages, engine-save. Engine version stays 1.0.0 (nothing has
+    shipped). The whole fence still passes the Phase 0 scan, plus no timers and no transcendental Math.
+  DECISION, the index: the engine never reads a bundle. ENGINE_STORY.index.build(story, ext) turns {records, bindings}
+    and ext {chapters (Charter order), start (graph.start), ids {npc_ map_ trp_ itm_ eqp_ chr_ mus_ sfx_ por_ chp_},
+    roles (Day 147 role refs without 'music:')} into lookup tables the caller owns (records copied in; a digest of
+    both). Every interpreter function takes the index as its last argument, so the plan's signatures read
+    cond.eval(tree, state, idx), run.start(state, evt, idx, opts), run.step(state, idx), run.choose(state, option, idx),
+    run.resolve(state, outcome, idx), pages.pick(evt, state, idx). The page builds it with STORY.engineIndex(b) (and
+    STORY.engineExt(b)) in STORY:STORE, memoized on KIT:CORE's index identity, so any edit followed by
+    Kit.bundle.touch rebuilds it; test/phase1.js proves the page's index equals the bare engine's byte for byte.
+  State: {flags (every indexed flag, default until set), items {itm_ or eqp_: qty, 999 cap}, gil (floor 0), party [chr],
+    quests {qst: {stage key or null, failed, closed [group keys, sorted]}}, chapter, seen {'evt#page': 1}, ending,
+    run}. Two additions to the plan's shape: ending (the end_ reached, after which start refuses) and keys always
+    sorted (every returned state is a canonical copy). state.create(idx, {gil, party, items}) sets the start gates'
+    bound flags to 1. DECISION, the chapter: no chapter command; state.chapter is derived after every flag write as the
+    last chapter in Charter order whose bound chapter:<chp> gate flag is 1 or more (first chapter otherwise).
+  Conditions: op all any not flag item chapter quest true (quest is at, reached, failed, started, done; reached is
+    false once failed). Missing means true; unknown ops, strings, and trees deeper than 32 fail closed (depth is
+    measured first so a not cannot flip the cutoff). cond.lint codes: op, ref, missing, cmp, not-int, is, id-field,
+    never (empty any, or no value in a flag's range passes), too-deep. cond.reads lists flags, items, chapters, quests.
+  Commands: the 21 of the plan, fields as documented in engine-cmd.js. DECISIONS: giveItem and takeItem take itm_ or
+    eqp_ (materia stays Day 150's); music takes role, mus, or stop (an unscored role is a warning, not an error);
+    moveActor and face take who 'player' or an npc_; changeMap at is [x, y]; a choice's hidden options keep their
+    original indexes and cancel is reported only when visible; startBattle without a lose list makes a loss game over,
+    and escape needs an escape list. cmd.lint adds one-option, empty, always (warnings), recursion (a self call),
+    too-deep (16 levels), not-list. cmd.refs reports reads, sets, quest moves, items given and taken, calls, endings,
+    battles, and every ID by prefix (for Phase 2's who reads, who sets). cmd.walk visits depth first.
+  Runner: {state, effect, waiting, done}. Effect kind is the command's op with its fields, or end (with the quests that
+    settled), none, idle, gameover, error {code}. if, setFlag, addFlag, callEvent are silent. A run lives in state.run
+    as {evt, page, stack [{evt, page, path, i}], wait} with path as keys from the page's cmds, so a paused cutscene is
+    plain JSON that resumes in another context (proven). Errors write nothing and the run carries on: closed, backward,
+    failed, done, recursion (an event already on the stack, directly or through another), ref, op, waiting, busy,
+    not-waiting, option, outcome, no-escape, ended, page, runaway (100000 silent commands). run.play(state, evt, idx,
+    {choices, battles, page, max}) answers in order and stops at the first unanswered question.
+  Quests (DECISION, how stages move): questStage stage only moves forward; skipping ahead applies every skipped stage's
+    sets; the last stage sets completeFlag. branch commits a group (exclusivity in the engine), fail sets failed and the
+    fail sets, refused once complete. When an event ends, quests settle in sorted order until nothing moves: a fail
+    cond that passes fails an unfinished quest, and a stage whose exitWhen passes advances. quests.settle is public.
+  Pages: highest passing page wins; a once page that ran (seen) steps aside; start marks once pages seen; the
+    playtester may force a page. pages.lint checks trigger (mapEnter, step, autorun need map; step needs at; talk needs
+    npc; battleEnd may name a trp; chapterStart needs no site), pages, once, priority, and warns on an autorun page
+    that is not once and sets nothing its condition reads.
+  DECISION, saves: Day 146 saves story progress only as flags [{flg, value}], so the engine packs the rest into derived
+    flags with structural IDs: flg|quest|<qst> holds (stage position + 1) in bits 0 to 7, failed in bit 8, closed groups
+    in bits 9 to 30; flg|once|<evt> holds a bit per once page that ran. save.slots(idx) lists them so Phase 2 scaffolds a
+    flg_ record for each (Day 146 resolves the save's flg references); save.limits reports quests past 255 stages or 22
+    groups and once pages past 30. toFlags leaves defaults out and is sorted; fromFlags starts from defaults (not a new
+    game's open gates, so a gate set back to 0 survives); toSave {flags, gil, inventory, party, chapter} refuses mid
+    event and after an ending; fromSave accepts party members as IDs or {chr}.
+  Tests: test/phase1.js 85 of 85 over a hand authored story on both fixtures (test/storyfx.js: every gate bound, two
+    quests with stages, a branch group, a fail rule, nine events using all 21 commands, two endings). Whole playthroughs
+    replay byte for byte in two vm contexts and in the page. test/phase0.js still 89 of 89. Timing: about 0.3 ms to play
+    a short event with its state hash on the four continent fixture.
+  Next: Phase 2 (Sonnet), flags and gate bindings: flg_ records (kind gate quest story counter, default, range, note),
+    the binding table from STORY.world.gateKeys with optional display itm_, the save slot flags from
+    ENGINE_STORY.save.slots, sdq_.flag filled from each side quest's completion flag, the Flags tab with who reads and
+    who sets (ENGINE_STORY.cmd.refs and cond.reads over every page, quest, and ending). Remember Kit.bundle.touch after
+    every edit so STORY.engineIndex rebuilds.
+=== END SESSION 1 ===
 === END BUILD LOG ===

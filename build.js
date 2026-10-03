@@ -52,7 +52,7 @@ const demoSrc = R('src/story-demo.js').replace('/*DEMO_JSON*/null', () => embed(
 const buildLog = R('src/build-log.txt');
 // ENGINE:STORY is one fence in the output. Later phases keep their engine sections in their own source files, spliced in
 // order above the freeze line, so each phase's engine code stays readable on its own.
-const ENGINE_SECTIONS = ['src/engine-cond.js', 'src/engine-cmd.js', 'src/engine-run.js', 'src/engine-pages.js', 'src/engine-save.js', 'src/engine-walk.js'].filter(exists);
+const ENGINE_SECTIONS = ['src/engine-index.js', 'src/engine-cond.js', 'src/engine-cmd.js', 'src/engine-run.js', 'src/engine-pages.js', 'src/engine-save.js', 'src/engine-walk.js'].filter(exists);
 const FREEZE = '  // ---------------------------------------------------------------- later phases insert sections above this line';
 const engineBase = R('src/engine-story.js');
 if (engineBase.split(FREEZE).length !== 2) throw new Error('ENGINE:STORY freeze marker not found exactly once.');

@@ -1,0 +1,579 @@
+{
+ "passed": 85,
+ "total": 85,
+ "results": [
+  {
+   "name": "engine sections spliced above the freeze line in order: index, conditions, commands, runner, pages, saves",
+   "ok": true,
+   "detail": [
+    6428,
+    15361,
+    25336,
+    39968,
+    56312,
+    60534,
+    67317
+   ]
+  },
+  {
+   "name": "the page carries the same ENGINE:STORY fence as engine-story.js",
+   "ok": true
+  },
+  {
+   "name": "the whole fence keeps the rules: no randomness, clocks, eval, for in, timers, host globals, and Object.keys only in util.keys",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "the API is all there: 26 functions",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "every section is deep frozen, version 1.0.0",
+   "ok": true
+  },
+  {
+   "name": "the closed vocabularies: 8 condition ops, 21 commands, 6 triggers",
+   "ok": true,
+   "detail": [
+    [
+     "all",
+     "any",
+     "chapter",
+     "flag",
+     "item",
+     "not",
+     "quest",
+     "true"
+    ],
+    [
+     "addFlag",
+     "callEvent",
+     "changeMap",
+     "choice",
+     "ending",
+     "face",
+     "fade",
+     "gil",
+     "giveItem",
+     "if",
+     "moveActor",
+     "music",
+     "party",
+     "questStage",
+     "setFlag",
+     "sfx",
+     "startBattle",
+     "takeItem",
+     "text",
+     "vehicle",
+     "wait"
+    ],
+    [
+     "autorun",
+     "battleEnd",
+     "chapterStart",
+     "mapEnter",
+     "step",
+     "talk"
+    ]
+   ]
+  },
+  {
+   "name": "index: flags with defaults and ranges, quests shaped, events, endings, chapters in Charter order",
+   "ok": true
+  },
+  {
+   "name": "index: every gate bound, chapter flags known, the start gate resolved to its flag, roles without the music: prefix",
+   "ok": true
+  },
+  {
+   "name": "index: the same in a second vm context, byte for byte, digest included",
+   "ok": true
+  },
+  {
+   "name": "index: record key order does not matter",
+   "ok": true
+  },
+  {
+   "name": "index: owns its copies, so a later edit of the source changes nothing built",
+   "ok": true
+  },
+  {
+   "name": "index: a default outside the range is clamped, a fraction is 0",
+   "ok": true
+  },
+  {
+   "name": "new game: every flag at its default, the start gate at 1, chapter one, empty quests, items capped at 999, party deduplicated",
+   "ok": true
+  },
+  {
+   "name": "state.hash is stable and order free",
+   "ok": true
+  },
+  {
+   "name": "flag: all six comparisons against value",
+   "ok": true
+  },
+  {
+   "name": "flag: defaults to gte 1; an unset flag reads its default",
+   "ok": true
+  },
+  {
+   "name": "true, missing (null and undefined) pass; all, any, not; empty all passes and empty any fails",
+   "ok": true
+  },
+  {
+   "name": "item counts itm_ and eqp_ held",
+   "ok": true
+  },
+  {
+   "name": "chapter compares Charter positions (default gte)",
+   "ok": true
+  },
+  {
+   "name": "quest: at, reached (not after failing), started, done, failed",
+   "ok": true
+  },
+  {
+   "name": "an unknown op, a string, and a tree deeper than 32 all fail closed (never throw)",
+   "ok": true
+  },
+  {
+   "name": "lint: a clean tree has no problems",
+   "ok": true
+  },
+  {
+   "name": "lint: unknown op, unresolved flag, item, chapter, quest, stage; bad cmp; fractional value; missing of; strings",
+   "ok": true
+  },
+  {
+   "name": "lint: an id field, a comparison no value in the flag's range can pass, an empty any, too deep",
+   "ok": true
+  },
+  {
+   "name": "lint paths point into the tree",
+   "ok": true
+  },
+  {
+   "name": "reads: every flag, item, chapter, and quest a tree reads, sorted and unique",
+   "ok": true
+  },
+  {
+   "name": "the test story lints clean, every event, every command",
+   "ok": true,
+   "detail": {}
+  },
+  {
+   "name": "lint catches every op's mistakes (33 cases)",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "lint covers all 21 ops with a mistake each",
+   "ok": true
+  },
+  {
+   "name": "lint: an id field anywhere, a self call, nesting past 16, a list that is not a list",
+   "ok": true
+  },
+  {
+   "name": "lint: warnings for a one option choice, an if with no lists, an if with no condition, but no errors",
+   "ok": true
+  },
+  {
+   "name": "lint paths name the nested command",
+   "ok": true
+  },
+  {
+   "name": "refs: sets, reads, quest moves, items given and taken, events called, battles, every ID by prefix",
+   "ok": true,
+   "detail": {
+    "reads": {
+     "flags": [],
+     "items": [
+      "itm_antidote_ma2s"
+     ],
+     "chapters": [],
+     "quests": []
+    },
+    "sets": {
+     "flags": [
+      "flg_flg_gate_chapter_chp_the_far_shore_izf4_qdn1",
+      "flg_flg_gate_vehicle_ship_iqdm"
+     ]
+    },
+    "quests": {
+     "qst_qst_side_270h": [
+      "done",
+      "ring.give",
+      "ring.keep"
+     ]
+    },
+    "items": {
+     "give": [
+      "eqp_plain_ring_62mq",
+      "itm_antidote_ma2s"
+     ],
+     "take": [
+      "itm_antidote_ma2s"
+     ]
+    },
+    "refs": {
+     "eqp_": [
+      "eqp_plain_ring_62mq"
+     ],
+     "evt_": [
+      "evt_evt_shared_l4w1"
+     ],
+     "flg_": [
+      "flg_flg_gate_chapter_chp_the_far_shore_izf4_qdn1",
+      "flg_flg_gate_vehicle_ship_iqdm"
+     ],
+     "itm_": [
+      "itm_antidote_ma2s"
+     ],
+     "map_": [
+      "map_map_overworld_670c"
+     ],
+     "npc_": [
+      "npc_npc_twn_chp_the_far_shore_izf4_start_gua_147y"
+     ],
+     "qst_": [
+      "qst_qst_side_270h"
+     ],
+     "sfx_": [
+      "sfx_air_spell_bnay"
+     ],
+     "trp_": [
+      "trp_the_warden_n1yb"
+     ]
+    },
+    "events": [
+     "evt_evt_shared_l4w1"
+    ],
+    "endings": [],
+    "battles": [
+     "trp_the_warden_n1yb"
+    ]
+   }
+  },
+  {
+   "name": "walk visits nested commands depth first (2 + 2 + 1 + 1 in the elder's first page)",
+   "ok": true,
+   "detail": 6
+  },
+  {
+   "name": "pick: the highest page whose condition passes wins (rightmost rule)",
+   "ok": true
+  },
+  {
+   "name": "pick: a once page that has run steps aside for the page below; none passing is -1",
+   "ok": true
+  },
+  {
+   "name": "event lint: trigger, its site (map, npc, cell, troop), pages, once, priority",
+   "ok": true
+  },
+  {
+   "name": "event lint: an autorun page that is not once and never changes what it reads warns of a loop",
+   "ok": true
+  },
+  {
+   "name": "start never touches the state passed in",
+   "ok": true
+  },
+  {
+   "name": "the opening cutscene: fade, music, text, quest, party, gil, end; once page marked; main quest started",
+   "ok": true,
+   "detail": "fade music text questStage party gil end"
+  },
+  {
+   "name": "effects carry their command's fields: text speaker, portrait, lines; music role",
+   "ok": true
+  },
+  {
+   "name": "a once page never runs twice: the opening has no page left",
+   "ok": true
+  },
+  {
+   "name": "a choice hides options whose condition fails, keeps original indexes, and names the cancel option",
+   "ok": true
+  },
+  {
+   "name": "choosing Yes: the side quest is accepted, talked is set, and the main quest settles from arrive to key on the way out",
+   "ok": true,
+   "detail": {
+    "kind": "end",
+    "evt": "evt_evt_elder_6z32",
+    "quests": [
+     {
+      "qst": "qst_qst_main_7q6x",
+      "from": "arrive",
+      "to": "key"
+     }
+    ]
+   }
+  },
+  {
+   "name": "step refuses while a choice is waiting, and so does start; resolve refuses without a battle",
+   "ok": true
+  },
+  {
+   "name": "choosing a hidden option is refused and the choice stays open",
+   "ok": true
+  },
+  {
+   "name": "choosing Later adds to the counter and carries on past the choice",
+   "ok": true
+  },
+  {
+   "name": "branch: giving the ring back sets kind, closes the ring group, and takes gil down to 0, never below",
+   "ok": true
+  },
+  {
+   "name": "branch: the other outcome is then refused with an error effect and writes nothing, and the run carries on to done",
+   "ok": true
+  },
+  {
+   "name": "branch: keeping it instead sets greedy and gives the ring",
+   "ok": true
+  },
+  {
+   "name": "pages move with the quest: after done, the elder says thank you",
+   "ok": true
+  },
+  {
+   "name": "a step event with no passing page runs nothing",
+   "ok": true
+  },
+  {
+   "name": "the boss: music, sfx, then the battle waits with canLose false and canEscape true",
+   "ok": true
+  },
+  {
+   "name": "win: chapter two flag and ship set silently, items stack to 999 and no further, then the map change and the ship",
+   "ok": true
+  },
+  {
+   "name": "the chapter follows its bound flag: chapter two now, and the main quest settles boss to exit (completeFlag set)",
+   "ok": true,
+   "detail": {
+    "kind": "end",
+    "evt": "evt_evt_boss_zzvr",
+    "quests": [
+     {
+      "qst": "qst_qst_main_7q6x",
+      "from": "key",
+      "to": "boss"
+     },
+     {
+      "qst": "qst_qst_main_7q6x",
+      "from": "boss",
+      "to": "exit"
+     }
+    ]
+   }
+  },
+  {
+   "name": "entering a stage applies its sets (boss sets count to 1)",
+   "ok": true
+  },
+  {
+   "name": "lose with no lose list is game over: the run ends, nothing after runs",
+   "ok": true
+  },
+  {
+   "name": "escape runs the escape list and carries on",
+   "ok": true
+  },
+  {
+   "name": "a battle outcome other than win, lose, or escape is refused and the battle still waits",
+   "ok": true
+  },
+  {
+   "name": "settle: the side quest, accepted but not done, fails when chapter two begins, applying its fail sets",
+   "ok": true
+  },
+  {
+   "name": "callEvent runs the callee's active page (once), then returns: move, face, text, wait, takeItem, else branch",
+   "ok": true
+  },
+  {
+   "name": "called again, the once page has run, so page zero shows through",
+   "ok": true
+  },
+  {
+   "name": "a call cycle (A calls B calls A) is refused with an error effect, and the rest still runs",
+   "ok": true,
+   "detail": "error text end"
+  },
+  {
+   "name": "questStage: skipping ahead applies every skipped stage's sets; moving back is refused; failing a complete quest is refused",
+   "ok": true,
+   "detail": "questStage error questStage end"
+  },
+  {
+   "name": "the finale: an all condition picks the good ending; nothing after an ending runs; the game is over",
+   "ok": true
+  },
+  {
+   "name": "without kind, the plain ending",
+   "ok": true
+  },
+  {
+   "name": "only one event runs at a time; step with nothing running is idle",
+   "ok": true
+  },
+  {
+   "name": "the playtester can force a page; a page that is not there is refused",
+   "ok": true
+  },
+  {
+   "name": "a state paused mid cutscene is plain JSON: copied through JSON and resumed in another context, it finishes the same",
+   "ok": true
+  },
+  {
+   "name": "addFlag clamps to the flag's range",
+   "ok": true
+  },
+  {
+   "name": "quests.settle on its own chains exitWhen across stages and reports each move",
+   "ok": true
+  },
+  {
+   "name": "save slots: one per quest and one per event with once pages, structural, sorted",
+   "ok": true,
+   "detail": [
+    {
+     "flg": "flg_flg_once_evt_evt_open_6h99_eplq",
+     "kind": "once",
+     "of": "evt_evt_open_6h99"
+    },
+    {
+     "flg": "flg_flg_once_evt_evt_shared_l4w1_z6qy",
+     "kind": "once",
+     "of": "evt_evt_shared_l4w1"
+    },
+    {
+     "flg": "flg_flg_quest_qst_qst_main_7q6x_b4xe",
+     "kind": "quest",
+     "of": "qst_qst_main_7q6x"
+    },
+    {
+     "flg": "flg_flg_quest_qst_qst_side_270h_uvwo",
+     "kind": "quest",
+     "of": "qst_qst_side_270h"
+    }
+   ]
+  },
+  {
+   "name": "round trip: 7 states through Day 146's flags list and back, in another context, identical",
+   "ok": true,
+   "detail": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+   ]
+  },
+  {
+   "name": "the flags list is [{flg, value}] whole numbers, sorted, defaults left out, quest packed",
+   "ok": true,
+   "detail": [
+    {
+     "flg": "flg_flg_gate_chapter_chp_the_lowlands_auem_j0bo",
+     "value": 1
+    },
+    {
+     "flg": "flg_flg_kind_d5hy",
+     "value": 1
+    },
+    {
+     "flg": "flg_flg_once_evt_evt_open_6h99_eplq",
+     "value": 1
+    },
+    {
+     "flg": "flg_flg_quest_qst_qst_main_7q6x_b4xe",
+     "value": 2
+    },
+    {
+     "flg": "flg_flg_quest_qst_qst_side_270h_uvwo",
+     "value": 515
+    },
+    {
+     "flg": "flg_flg_side_done_bxg8",
+     "value": 1
+    },
+    {
+     "flg": "flg_flg_talked_s8s5",
+     "value": 1
+    }
+   ]
+  },
+  {
+   "name": "a start gate set back to 0 survives the round trip (saves start from defaults, not a new game)",
+   "ok": true
+  },
+  {
+   "name": "a failed quest and an accepted branch pack and unpack",
+   "ok": true
+  },
+  {
+   "name": "toSave refuses mid event and after an ending; fromSave takes party members as objects",
+   "ok": true
+  },
+  {
+   "name": "save limits: 255 stages, 22 branch groups, once pages 0 to 30",
+   "ok": true
+  },
+  {
+   "name": "a whole playthrough replays byte for byte in two vm contexts (effects, state hashes, final state, saved flags)",
+   "ok": true,
+   "detail": 4850
+  },
+  {
+   "name": "the four continent fixture: 14 gate keys bound, 6 chapters, same index and playthrough in two contexts",
+   "ok": true
+  },
+  {
+   "name": "STORY.engineExt equals the ext Day 150 builds from the bundle",
+   "ok": true,
+   "detail": {
+    "page": [
+     "npc_35",
+     "map_12",
+     "trp_4",
+     "itm_4",
+     "eqp_3",
+     "chr_3",
+     "mus_16",
+     "sfx_33",
+     "por_4",
+     "chp_2"
+    ]
+   }
+  },
+  {
+   "name": "STORY.engineIndex equals the bare engine's index of the same bundle, byte for byte",
+   "ok": true
+  },
+  {
+   "name": "memoized while the bundle is unchanged, rebuilt after a change",
+   "ok": true
+  },
+  {
+   "name": "the same playthrough in the page (jsdom) gives the same bytes as in the bare contexts",
+   "ok": true
+  },
+  {
+   "name": "no page errors",
+   "ok": true,
+   "detail": []
+  }
+ ]
+}

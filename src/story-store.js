@@ -167,6 +167,36 @@
     emptyBossSlots: function (b) { return STORY.world.list('dgn_', b).filter(function (d) { return d.role === 'boss' && !d.troop; }); }
   };
 
+  // ---------------------------------------------------------------- the engine's view of a bundle (Phase 1)
+  // ENGINE_STORY never reads a bundle; it reads an index built from the story namespace and the IDs it may name. This is
+  // the one place the page gathers them, so every tab, the playtester, and the walk read the same index Day 150 builds.
+  // Memoized per bundle on KIT:CORE's index identity (a new identity after any change), so it is rebuilt only when the
+  // bundle moves.
+  STORY.engineExt = function (b) {
+    b = b || Kit.bundle.current();
+    var ids = {};
+    function add(prefix, list) { ids[prefix] = (ids[prefix] || []).concat(list.map(function (r) { return r.id; })).sort(); }
+    ['npc_', 'map_'].forEach(function (p) { add(p, STORY.world.list(p, b)); });
+    ['trp_', 'itm_', 'eqp_', 'chr_'].forEach(function (p) { add(p, STORY.rules(p, b)); });
+    ['mus_', 'sfx_', 'por_'].forEach(function (p) { add(p, nsList(b, 'art', p)); });
+    var chapters = STORY.chapters(b).map(function (c) { return c.id; }).filter(function (x) { return typeof x === 'string'; });
+    ids.chp_ = chapters.slice().sort();
+    var roles = nsList(b, 'art', 'mus_').filter(function (m) { return m.subject && m.subject.kind === 'role' && typeof m.subject.ref === 'string'; })
+      .map(function (m) { return m.subject.ref.replace(/^music:/, ''); }).sort();
+    var g = STORY.world.graph(b);
+    return { chapters: chapters, start: g && Array.isArray(g.start) ? g.start.slice() : [], ids: ids, roles: roles };
+  };
+  var engIdx = { key: null, idx: null };
+  STORY.engineIndex = function (b) {
+    b = b || Kit.bundle.current();
+    STORY.ensure(b);
+    var key = b === Kit.bundle.current() ? Kit.index(b) : null;
+    if (key && engIdx.key === key) return engIdx.idx;
+    var idx = ENGINE_STORY.index.build({ records: b.story.records, bindings: b.story.bindings }, STORY.engineExt(b));
+    if (key) { engIdx.key = key; engIdx.idx = idx; }
+    return idx;
+  };
+
   // ---------------------------------------------------------------- the world check behind the import gate
   // Day 148 refuses its own Final until every check passes, so a Final stamp says the world was clean when it was
   // exported. A bundle can still be edited afterward (a Day 146 re-export restamps the hash), and Day 148's page checks
