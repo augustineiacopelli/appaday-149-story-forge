@@ -227,6 +227,28 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
     trip). phase0 89, phase1 85, phase2 77. layout.js 34 of 34 views at 390 and 1280.
   Next: Phase 4 (dialogue graphs) on Sonnet; reuse STORY.condUI and STORY.setsUI.
 === END SESSION 3 ===
+=== SESSION 4 / PHASE 4 (2026-10-03, Sonnet) ===
+  Dialogue graphs. New: src/engine-dlg.js (engine section ENGINE_STORY.dlg, spliced between pages and save),
+    src/story-dialogue.js (STORY.dialogue), src/ws-dialogue.js and src/story-dialogue.css (the Dialogue tab).
+    src/engine-story.js (the frame) is unchanged; src/engine-index.js gained npcDialogue (in the digest only when non empty).
+  DECISION, one interpreter: a dialogue node compiles to ordinary commands (text, the node's cmds, then a choice) and runs
+    through the existing runner, through a play index that adds one synthetic event per node. No second interpreter.
+  DECISION, pages: story.npcDialogue maps npc_ to [{cond, dlg, node?, key?, origin}]. The rightmost passing page wins; node
+    (new, optional) opens the dialogue partway, so one quest dialogue serves every stage of its quest.
+  DECISION, shared greetings: one dialogue per (role, chapter), key dlg|role|<role>|<chp>, used by every person of that role
+    from their own chapter onward, each later chapter a page on the chapter gate. Fewer records, and editing one greeting
+    changes every person who says it. Quest dialogues: key dlg|quest|<qst>, speaker set to the giver; side quests offer,
+    accept, defer, progress, turn in, after; main quests one node per stage.
+  Scaffold: explicit (a button), idempotent, keeps edits, an edited generated page becomes origin user but keeps its key,
+    drops generated dialogues nothing asks for unless an author page uses one. Call STORY.flags.sync after it (the tab does).
+  Edit API refuses an edit that adds an error the dialogue did not have (a next cycle, a link to a missing node). Removing a
+    dialogue removes the pages that open it. The validator is story.dialogue; nodes reachable from a page's node count as reachable.
+  Preview runner: chapter and quest stage selectors, run from the start or from a node, talk to a person, driven by ES.dlg.
+  Drafting: Kit.claude on settings.draftTier (sonnet), Charter summary with canon and glossary, three drafts through
+    Kit.review; accepting replaces one node's lines only. Disabled with a hint and no call without a key.
+  Tests: test/phase4.js 70 of 70. phase0 89, phase1 85, phase2 77, phase3 95. layout.js 44 of 44 views at 390 and 1280.
+  Next: Phase 5 (events and cutscenes, the playtester).
+=== END SESSION 4 ===
 === END BUILD LOG ===
 -->
 <!doctype html>
@@ -643,6 +665,53 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
 .cu-rm { margin-left: auto; }
 .cu-sets { min-width: 0; }
 /* === STORY:QUESTS CSS END === */
+/* === STORY:DIALOGUE CSS BEGIN === */
+.dg-pick { max-width: 100%; white-space: normal; text-align: left; height: auto; min-height: 44px; overflow-wrap: anywhere; }
+.dg-empty { color: var(--ink2); font-style: italic; }
+.dg-pickrow, .dg-pvrow, .dg-addrow { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; min-width: 0; }
+.dg-pvrow .field { min-width: 0; flex: 1 1 11em; }
+.dg-notes { margin: 8px 0; overflow-wrap: anywhere; }
+.dg-keynote { margin: 8px 0 0; }
+.dg-probs { margin: 8px 0; padding-left: 1.2em; font-size: .88rem; overflow-wrap: anywhere; }
+.dg-err { color: var(--danger); }
+.dg-warn { color: var(--ink2); }
+.dg-nodes .btn { min-height: 44px; }
+.dg-scroll { overflow-x: auto; overflow-y: hidden; margin: 12px 0 6px; padding: 6px 0; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); max-width: 100%; }
+.dg-svg { display: block; max-width: none; font-family: inherit; }
+.dg-box { fill: var(--panel2); stroke: var(--line); stroke-width: 1.5; }
+.dg-node { cursor: pointer; outline: none; }
+.dg-node:hover .dg-box, .dg-node:focus .dg-box { stroke: var(--accent); }
+.dg-node.sel .dg-box { stroke: var(--accent); stroke-width: 3; fill: var(--accent-soft); }
+.dg-node.dead .dg-box { stroke-dasharray: 4 3; }
+.dg-key { fill: var(--ink); font-size: 12px; font-weight: 800; }
+.dg-line { fill: var(--ink2); font-size: 11px; }
+.dg-tail { fill: var(--ink2); font-size: 10px; font-weight: 700; }
+.dg-edge { fill: none; stroke: var(--ink2); stroke-width: 1.5; }
+.dg-edge-choice { stroke: var(--accent); }
+.dg-arrow { fill: var(--ink2); }
+.dg-edit, .dg-pv, .dg-page { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); min-width: 0; }
+.dg-edit-t { margin: 0 0 8px; font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+.dg-sub { margin: 12px 0 6px; font-size: .78rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
+.dg-lines { width: 100%; min-height: 5em; resize: vertical; }
+.dg-choice { margin: 10px 0; padding: 8px 10px; border: 1px dashed var(--line); border-radius: var(--radius-sm); min-width: 0; }
+.dg-choice-h, .dg-page-h { font-weight: 800; margin-bottom: 6px; }
+.dg-cmd { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed var(--line); }
+.dg-cmd-t { overflow-wrap: anywhere; min-width: 0; flex: 1 1 10em; }
+.dg-cmd-b { display: flex; gap: 4px; }
+.dg-mini { min-height: 44px; min-width: 44px; }
+.dg-add { margin: 8px 0; }
+.dg-add summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 700; }
+.dg-add-in { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; }
+.dg-num { width: 6.5em; }
+.dg-none { margin: 4px 0; }
+.dg-log { margin-top: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel2); max-height: 22em; overflow-y: auto; min-width: 0; }
+.dg-l { margin: 4px 0; overflow-wrap: anywhere; }
+.dg-l-fx { color: var(--ink2); font-style: italic; }
+.dg-l-err { color: var(--danger); font-weight: 700; }
+.dg-l-pick { color: var(--accent); font-weight: 700; }
+.dg-opts { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.dg-opt { text-align: left; white-space: normal; height: auto; min-height: 44px; overflow-wrap: anywhere; }
+/* === STORY:DIALOGUE CSS END === */
 </style>
 </head>
 <body>
@@ -3444,7 +3513,7 @@ var ENGINE_STORY = (function () {
   // and the few facts it needs from the rest of the bundle. The engine never reaches into a bundle itself, so Day 150 and
   // the page build the same index from the same data and get the same answers.
   //   build(story, ext)
-  //     story: {records {flg_ qst_ dlg_ evt_ end_}, bindings {gateKey: {flg, itm}}}
+  //     story: {records {flg_ qst_ dlg_ evt_ end_}, bindings {gateKey: {flg, itm}}, npcDialogue {npc_: [{cond, dlg}]}}
   //     ext:   {chapters [chp ids in Charter order], start [gate keys open at a new game, Day 148's graph.start],
   //             ids {prefix: [ids]} for the other namespaces a story may name (npc_ map_ trp_ itm_ eqp_ chr_ mus_ sfx_
   //             por_ chp_), roles [Day 147 music role keys without the 'music:' prefix, such as 'battle' or
@@ -3487,7 +3556,7 @@ var ENGINE_STORY = (function () {
     story = isObj(story) ? story : {};
     ext = isObj(ext) ? ext : {};
     var recs = isObj(story.records) ? story.records : {};
-    var I = { flags: {}, quests: {}, dialogues: {}, events: {}, endings: {}, known: {}, roles: {}, chapters: [], chapterAt: {}, chapterFlags: {}, gates: {}, start: [] };
+    var I = { flags: {}, quests: {}, dialogues: {}, npcDialogue: {}, events: {}, endings: {}, known: {}, roles: {}, chapters: [], chapterAt: {}, chapterFlags: {}, gates: {}, start: [] };
     for (var p = 0; p < REF_PREFIXES.length; p++) I.known[REF_PREFIXES[p]] = {};
     var ids = isObj(ext.ids) ? ext.ids : {};
     each(ids, function (list, prefix) {
@@ -3504,6 +3573,8 @@ var ENGINE_STORY = (function () {
     });
     each(recs.qst_, function (r, id) { if (isObj(r)) { I.quests[id] = questShape(r); I.known.qst_[id] = 1; } });
     each(recs.dlg_, function (r, id) { if (isObj(r)) { I.dialogues[id] = copy(r); I.known.dlg_[id] = 1; } });
+    // Phase 4: story.npcDialogue maps a person to pages [{cond, dlg}]; the highest passing page decides what they say.
+    each(story.npcDialogue, function (list, npc) { if (Array.isArray(list)) I.npcDialogue[npc] = copy(list); });
     each(recs.evt_, function (r, id) {
       if (!isObj(r)) return;
       var e = copy(r);
@@ -3527,7 +3598,10 @@ var ENGINE_STORY = (function () {
     var st = Array.isArray(ext.start) ? ext.start : [];
     for (var s = 0; s < st.length; s++) if (I.gates[st[s]] && I.start.indexOf(I.gates[st[s]].flg) < 0) I.start.push(I.gates[st[s]].flg);
     I.start.sort();
-    I.digest = digest(canon({ story: { records: recs, bindings: story.bindings || {} }, ext: ext }));
+    // npcDialogue joins the digest only when a person has pages, so a story without any keeps the digest it always had.
+    var dig = { records: recs, bindings: story.bindings || {} };
+    if (keys(I.npcDialogue).length) dig.npcDialogue = I.npcDialogue;
+    I.digest = digest(canon({ story: dig, ext: ext }));
     return I;
   }
 
@@ -4256,6 +4330,299 @@ var ENGINE_STORY = (function () {
     lint: lintEvent
   };
 
+  // ---------------------------------------------------------------- dialogue (Phase 4)
+  // A dlg_ record is a graph of nodes the player walks by talking to someone:
+  //   {speaker, por, start, nodes {key: {speaker, por, prompt, lines [string], cmds [cmd], next | choices [{text, cond, cmds, next}]}}}
+  // A node says its lines, runs its cmds (any command in the closed vocabulary), then either follows next, or shows its
+  // choices and follows the next of the one picked. A node with neither next nor a chosen next ends the conversation.
+  // Choices that fail their condition are hidden; if every choice is hidden the conversation ends there.
+  // The graph is the one place in the story that may loop back (ask again), so a cycle is allowed through a choice and is
+  // an error when it holds only next links, which would never wait for the player.
+  //   compile(rec, node)  the node as an ordinary command list: a text command, the node's cmds, then a choice command.
+  //                       Dialogue therefore runs through the same runner as an event; nothing else is interpreted.
+  //   playIndex(idx)      a copy of the index that also holds one synthetic event per dialogue node, so the runner can run it.
+  //   begin, step, choose, play, talk   drive a conversation. Each returns {state, effect, waiting, done, cursor}; the cursor is
+  //                       plain JSON ({dlg, node, then, quests, visits, path}) that the host hands back on the next call.
+  //   pick(pages, state, idx)  story.npcDialogue pages [{cond, dlg, node}] (node optional: where in the dialogue it opens): the highest page whose condition passes and whose
+  //                       dialogue exists wins, RPG Maker's rightmost rule again.
+  //   lint, lintPages, reach, edges, refs   checking and reading, for the tab, the validator, and Phase 7's walk.
+  var DL_KEY_RE = /^[a-z][a-z0-9_]{0,31}$/, DL_MAX_NODES = 200, DL_MAX_VISITS = 2000, DL_LONG_LINE = 140;
+  function dlNode(rec, key) { return isObj(rec) && isObj(rec.nodes) && typeof key === 'string' && isObj(rec.nodes[key]) ? rec.nodes[key] : null; }
+  function dlEventKey(dlg, node) { return 'dlg:' + dlg + ':' + node; }
+  function dlSpeaker(rec, n) {
+    var s = n.speaker !== undefined && n.speaker !== null && n.speaker !== '' ? n.speaker : rec.speaker;
+    return s === undefined || s === null || s === '' ? null : s;
+  }
+  function dlCompile(rec, key) {
+    var n = dlNode(rec, key);
+    if (!n) return null;
+    var cmds = [], lines = Array.isArray(n.lines) ? n.lines.filter(function (l) { return typeof l === 'string'; }) : [];
+    if (lines.length) {
+      var t = { op: 'text', lines: copy(lines) }, sp = dlSpeaker(rec, n), por = n.por || rec.por;
+      if (sp !== null) t.speaker = sp;
+      if (typeof por === 'string' && por) t.por = por;
+      cmds.push(t);
+    }
+    if (Array.isArray(n.cmds)) for (var i = 0; i < n.cmds.length; i++) cmds.push(copy(n.cmds[i]));
+    var next = null, choiceNext = [], hasChoice = false;
+    if (Array.isArray(n.choices) && n.choices.length) {
+      var opts = [];
+      for (var c = 0; c < n.choices.length; c++) {
+        var ch = n.choices[c];
+        if (!isObj(ch)) continue;
+        var o = { text: String(ch.text === undefined || ch.text === null ? '' : ch.text) };
+        if (ch.cond !== undefined && ch.cond !== null) o.cond = copy(ch.cond);
+        o.cmds = Array.isArray(ch.cmds) ? copy(ch.cmds) : [];
+        opts.push(o);
+        choiceNext.push(typeof ch.next === 'string' && ch.next ? ch.next : null);
+      }
+      var cc = { op: 'choice', options: opts };
+      if (typeof n.prompt === 'string' && n.prompt) cc.prompt = n.prompt;
+      cmds.push(cc);
+      hasChoice = true;
+    } else if (typeof n.next === 'string' && n.next) next = n.next;
+    return { cmds: cmds, next: next, choiceNext: choiceNext, hasChoice: hasChoice };
+  }
+  function dlPlayIndex(idx) {
+    var ev = {}, out = {};
+    each(idx.events, function (e, k) { ev[k] = e; });
+    each(idx.dialogues, function (rec, id) {
+      each(isObj(rec) && isObj(rec.nodes) ? rec.nodes : {}, function (n, k) {
+        var c = dlCompile(rec, k);
+        if (c) ev[dlEventKey(id, k)] = { trigger: 'talk', pages: [{ cmds: c.cmds }] };
+      });
+    });
+    each(idx, function (v, k) { out[k] = v; });
+    out.events = ev;
+    return out;
+  }
+  function dlEnter(rec, cur, node) {
+    var c = dlCompile(rec, node);
+    cur.node = node; cur.path.push(node); cur.visits++;
+    cur.then = c && !c.hasChoice ? c.next : null;
+  }
+  // Takes a runner result for the current node and carries the conversation on: a node that finished hands over to the
+  // next one without showing anything in between; everything else goes back to the host as it is.
+  function dlDrive(r, cur, idx) {
+    cur = copy(cur);
+    for (var guard = 0; guard < DL_MAX_VISITS + 4; guard++) {
+      var e = r.effect;
+      if (!(e && e.kind === 'end' && r.done)) return { state: r.state, effect: e, waiting: r.waiting, done: r.done, cursor: cur };
+      if (Array.isArray(e.quests)) for (var q = 0; q < e.quests.length; q++) cur.quests.push(e.quests[q]);
+      var rec = idx.dialogues[cur.dlg], next = r.state.ending ? null : cur.then;
+      if (!next) return { state: r.state, effect: { kind: 'end', dlg: cur.dlg, quests: cur.quests }, waiting: null, done: true, cursor: cur };
+      if (!dlNode(rec, next)) { var f = fault(r.state, 'node', 'Node ' + next + ' is not in dialogue ' + cur.dlg + '.', { dlg: cur.dlg }); return { state: f.state, effect: f.effect, waiting: null, done: true, cursor: cur }; }
+      if (cur.visits >= DL_MAX_VISITS) { var g = fault(r.state, 'runaway', 'The conversation visited ' + DL_MAX_VISITS + ' nodes without stopping.', { dlg: cur.dlg }); return { state: g.state, effect: g.effect, waiting: null, done: true, cursor: cur }; }
+      dlEnter(rec, cur, next);
+      r = start(r.state, dlEventKey(cur.dlg, next), idx);
+    }
+    var h = fault(r.state, 'runaway', 'The conversation did not settle.', { dlg: cur.dlg });
+    return { state: h.state, effect: h.effect, waiting: null, done: true, cursor: cur };
+  }
+  function dlBegin(state, dlg, idx, opts) {
+    opts = isObj(opts) ? opts : {};
+    var rec = idx.dialogues[dlg], st = copy(state);
+    var first = typeof opts.node === 'string' && opts.node ? opts.node : (rec && typeof rec.start === 'string' ? rec.start : null);
+    var cur = { dlg: dlg, node: null, then: null, quests: [], visits: 0, path: [] };
+    if (!rec) { var f0 = fault(st, 'ref', 'Dialogue ' + dlg + ' is not in this story.', { dlg: dlg }); return { state: f0.state, effect: f0.effect, waiting: null, done: !f0.state.run, cursor: cur }; }
+    if (!dlNode(rec, first)) { var f1 = fault(st, 'node', 'Dialogue ' + dlg + ' has no start node.', { dlg: dlg }); return { state: f1.state, effect: f1.effect, waiting: null, done: !f1.state.run, cursor: cur }; }
+    if (st.run) { var b0 = busy(st); return { state: b0.state, effect: b0.effect, waiting: b0.waiting, done: false, cursor: cur }; }
+    if (st.ending) { var f2 = fault(st, 'ended', 'The game has ended (' + st.ending + ').'); return { state: f2.state, effect: f2.effect, waiting: null, done: true, cursor: cur }; }
+    dlEnter(rec, cur, first);
+    return dlDrive(start(st, dlEventKey(dlg, first), idx), cur, idx);
+  }
+  function dlStep(state, cursor, idx) { return dlDrive(step(state, idx), cursor, idx); }
+  function dlChoose(state, cursor, option, idx) {
+    var cur = copy(cursor), rec = idx.dialogues[cur.dlg], c = dlCompile(rec, cur.node), r = choose(state, option, idx);
+    if (r.effect && r.effect.kind !== 'error') cur.then = c && c.choiceNext[option] ? c.choiceNext[option] : null;
+    return dlDrive(r, cur, idx);
+  }
+  // play(state, dlg, idx, answers): runs a whole conversation headlessly. answers {choices [option index], battles ['win'...],
+  // node (start elsewhere), max}. Stops at the first question it has no answer for.
+  function dlPlay(state, dlg, idx, answers) {
+    answers = isObj(answers) ? answers : {};
+    var cq = Array.isArray(answers.choices) ? answers.choices : [], bq = Array.isArray(answers.battles) ? answers.battles : [];
+    var ci = 0, bi = 0, max = intOr(answers.max, 10000), effects = [];
+    var r = dlBegin(state, dlg, idx, answers.node !== undefined ? { node: answers.node } : null);
+    for (var n = 0; n < max; n++) {
+      effects.push(r.effect);
+      if (r.done) break;
+      if (r.waiting === 'choice') { if (ci >= cq.length) break; r = dlChoose(r.state, r.cursor, cq[ci++], idx); continue; }
+      if (r.waiting === 'battle') {
+        if (bi >= bq.length) break;
+        var rr = resolve(r.state, bq[bi++], idx);
+        r = dlDrive(rr, r.cursor, idx);
+        continue;
+      }
+      r = dlStep(r.state, r.cursor, idx);
+    }
+    return { state: r.state, effects: effects, waiting: r.waiting, done: r.done, cursor: r.cursor, path: r.cursor.path.slice(), used: { choices: ci, battles: bi } };
+  }
+
+  // ---------------------------------------------------------------- who says what: the page list of a person
+  function dlOpen(p) { return !isObj(p) || p.cond === undefined || p.cond === null || (isObj(p.cond) && p.cond.op === 'true'); }
+  function dlPick(pages, state, idx) {
+    if (!Array.isArray(pages)) return -1;
+    for (var i = pages.length - 1; i >= 0; i--) {
+      var p = pages[i];
+      if (!isObj(p) || typeof p.dlg !== 'string' || !idx.dialogues[p.dlg]) continue;
+      if (evalCond(p.cond, state, idx)) return i;
+    }
+    return -1;
+  }
+  // talk(state, npc, idx, opts): the conversation the person would start now, or {effect {kind none}} when no page passes.
+  function dlTalk(state, npc, idx, opts) {
+    var pages = idx.npcDialogue && idx.npcDialogue[npc], at = dlPick(pages, state, idx);
+    if (at < 0) { var st = copy(state); return { state: st, effect: { kind: 'none', npc: npc }, waiting: null, done: true, cursor: null, page: -1 }; }
+    var o = isObj(opts) ? copy(opts) : {};
+    if (o.node === undefined && typeof pages[at].node === 'string' && pages[at].node) o.node = pages[at].node;
+    var r = dlBegin(state, pages[at].dlg, idx, o);
+    r.page = at;
+    return r;
+  }
+  function dlLintPages(pages, idx, path) {
+    var out = [];
+    path = path || 'pages';
+    if (!Array.isArray(pages)) { problem(out, path, 'error', 'not-list', 'A person\'s dialogue is a list of pages.'); return out; }
+    for (var i = 0; i < pages.length; i++) {
+      var p = pages[i], pp = path + '[' + i + ']';
+      if (!isObj(p)) { problem(out, pp, 'error', 'not-object', 'A page is {cond, dlg}.'); continue; }
+      noIdField(p, pp, out);
+      if (typeof p.dlg !== 'string' || !p.dlg) problem(out, pp + '.dlg', 'error', 'missing', 'A page needs dlg, a dialogue.');
+      else if (!refOk(idx, 'dlg_', p.dlg)) problem(out, pp + '.dlg', 'error', 'ref', p.dlg + ' is not a dialogue in this story.');
+      if (p.node !== undefined && p.node !== null && p.node !== '') {
+        var target = typeof p.dlg === 'string' && idx.dialogues ? idx.dialogues[p.dlg] : null;
+        if (typeof p.node !== 'string') problem(out, pp + '.node', 'error', 'type', 'node is the key of a node in the dialogue.');
+        else if (target && !dlNode(target, p.node)) problem(out, pp + '.node', 'error', 'ref', 'Node ' + p.node + ' is not a node of ' + p.dlg + '.');
+      }
+      lintCond(p.cond, idx, pp + '.cond', out, 0);
+      for (var j = i + 1; j < pages.length; j++) if (dlOpen(pages[j]) && isObj(pages[j]) && typeof pages[j].dlg === 'string' && refOk(idx, 'dlg_', pages[j].dlg)) { problem(out, pp, 'warning', 'shadowed', 'Page ' + (j + 1) + ' always passes and sits after this page, so this page is never shown.'); break; }
+    }
+    return out;
+  }
+
+  // ---------------------------------------------------------------- reading the graph
+  // Every link between nodes, in node key order: [{from, to, kind 'next' or 'choice', i (choice index), text}].
+  function dlEdges(rec) {
+    var out = [];
+    each(isObj(rec) && isObj(rec.nodes) ? rec.nodes : {}, function (n, k) {
+      if (!isObj(n)) return;
+      if (Array.isArray(n.choices) && n.choices.length) {
+        for (var i = 0; i < n.choices.length; i++) if (isObj(n.choices[i]) && typeof n.choices[i].next === 'string' && n.choices[i].next) out.push({ from: k, to: n.choices[i].next, kind: 'choice', i: i, text: String(n.choices[i].text || '') });
+      } else if (typeof n.next === 'string' && n.next) out.push({ from: k, to: n.next, kind: 'next', i: -1, text: '' });
+    });
+    return out;
+  }
+  // reach(rec): the nodes a conversation can visit from start, breadth first: {order [keys], unreachable [keys, sorted]}.
+  function dlReach(rec) {
+    var nodes = isObj(rec) && isObj(rec.nodes) ? rec.nodes : {}, edges = dlEdges(rec), from = {}, seen = {}, order = [], q = [];
+    for (var e = 0; e < edges.length; e++) (from[edges[e].from] = from[edges[e].from] || []).push(edges[e].to);
+    if (isObj(nodes[rec && rec.start])) { seen[rec.start] = 1; q.push(rec.start); }
+    for (var h = 0; h < q.length; h++) {
+      order.push(q[h]);
+      var outs = from[q[h]] || [];
+      for (var i = 0; i < outs.length; i++) if (isObj(nodes[outs[i]]) && !seen[outs[i]]) { seen[outs[i]] = 1; q.push(outs[i]); }
+    }
+    var un = [];
+    each(nodes, function (n, k) { if (!seen[k]) un.push(k); });
+    return { order: order, unreachable: un };
+  }
+  // A cycle made only of next links (no node on it asks the player anything), as a list of node keys, or null.
+  function dlLoop(rec) {
+    var nodes = isObj(rec) && isObj(rec.nodes) ? rec.nodes : {}, nxt = {}, color = {}, found = null;
+    each(nodes, function (n, k) { if (isObj(n) && !(Array.isArray(n.choices) && n.choices.length) && typeof n.next === 'string' && n.next && isObj(nodes[n.next])) nxt[k] = n.next; });
+    function walk(k, trail) {
+      if (found) return;
+      color[k] = 1; trail.push(k);
+      var t = nxt[k];
+      if (t !== undefined) {
+        if (color[t] === 1) found = trail.slice(trail.indexOf(t));
+        else if (!color[t]) walk(t, trail);
+      }
+      trail.pop(); color[k] = 2;
+    }
+    each(nxt, function (t, k) { if (!color[k]) walk(k, []); });
+    return found;
+  }
+  // Everything a conversation reads, sets, and names, in cmd.refs's shape, over every node's compiled command list.
+  function dlRefs(rec) {
+    var all = [];
+    each(isObj(rec) && isObj(rec.nodes) ? rec.nodes : {}, function (n, k) { var c = dlCompile(rec, k); if (c) for (var i = 0; i < c.cmds.length; i++) all.push(c.cmds[i]); });
+    return cmdRefs(all);
+  }
+
+  // ---------------------------------------------------------------- lint
+  function dlLint(rec, idx, path) {
+    var out = [];
+    path = path || 'dialogue';
+    if (!isObj(rec)) { problem(out, path, 'error', 'not-object', 'A dialogue is an object.'); return out; }
+    function who(v, p) {
+      if (v === undefined || v === null || v === '') return;
+      if (typeof v !== 'string') { problem(out, p, 'error', 'type', 'A speaker is a chr_, an npc_, or a plain name.'); return; }
+      if (/^(chr|npc)_/.test(v) && !refOk(idx, v.slice(0, 4), v)) problem(out, p, 'error', 'ref', v + ' does not resolve to a ' + (v.slice(0, 3) === 'chr' ? 'party character' : 'person') + '.');
+    }
+    function por(v, p) { if (v !== undefined && v !== null && v !== '' && !refOk(idx, 'por_', v)) problem(out, p, 'error', 'ref', String(v) + ' is not a portrait.'); }
+    who(rec.speaker, path + '.speaker');
+    por(rec.por, path + '.por');
+    if (!isObj(rec.nodes) || !keys(rec.nodes).length) { problem(out, path + '.nodes', 'error', 'missing', 'A dialogue needs at least one node.'); return out; }
+    var nk = keys(rec.nodes);
+    if (nk.length > DL_MAX_NODES) problem(out, path + '.nodes', 'error', 'too-many', 'A dialogue holds up to ' + DL_MAX_NODES + ' nodes; this one has ' + nk.length + '.');
+    if (typeof rec.start !== 'string' || !rec.start) problem(out, path + '.start', 'error', 'missing', 'A dialogue needs start, the node it opens with.');
+    else if (!isObj(rec.nodes[rec.start])) problem(out, path + '.start', 'error', 'ref', 'The start node ' + rec.start + ' is not a node of this dialogue.');
+    for (var i = 0; i < nk.length; i++) {
+      var k = nk[i], n = rec.nodes[k], p = path + '.nodes.' + k;
+      if (!DL_KEY_RE.test(k)) problem(out, p, 'error', 'node-key', 'A node key uses lowercase letters, digits, and underscores, starts with a letter, and holds up to 32 characters.');
+      if (!isObj(n)) { problem(out, p, 'error', 'not-object', 'A node is an object.'); continue; }
+      noIdField(n, p, out);
+      who(n.speaker, p + '.speaker');
+      por(n.por, p + '.por');
+      if (n.lines !== undefined) {
+        if (!Array.isArray(n.lines) || !n.lines.every(function (l) { return typeof l === 'string'; })) problem(out, p + '.lines', 'error', 'type', 'lines is a list of strings.');
+        else for (var l = 0; l < n.lines.length; l++) {
+          if (!n.lines[l].trim()) problem(out, p + '.lines[' + l + ']', 'warning', 'empty-line', 'This line is empty.');
+          else if (n.lines[l].length > DL_LONG_LINE) problem(out, p + '.lines[' + l + ']', 'warning', 'long-line', 'This line holds ' + n.lines[l].length + ' characters; more than ' + DL_LONG_LINE + ' will not fit a text box comfortably. Split it.');
+        }
+      }
+      if (n.prompt !== undefined && typeof n.prompt !== 'string') problem(out, p + '.prompt', 'error', 'type', 'prompt is text.');
+      if (n.cmds !== undefined) lintList(n.cmds, idx, p + '.cmds', out, 0, null);
+      var hasChoices = Array.isArray(n.choices) && n.choices.length > 0;
+      if (n.choices !== undefined && !Array.isArray(n.choices)) problem(out, p + '.choices', 'error', 'type', 'choices is a list.');
+      if (hasChoices && n.next !== undefined && n.next !== null && n.next !== '') problem(out, p, 'error', 'next-and-choices', 'A node follows next or shows choices, not both.');
+      if (n.next !== undefined && n.next !== null && n.next !== '' && !hasChoices && !isObj(rec.nodes[n.next])) problem(out, p + '.next', 'error', 'ref', 'Node ' + n.next + ' is not a node of this dialogue.');
+      if (hasChoices) {
+        if (n.choices.length < 2) problem(out, p + '.choices', 'warning', 'one-option', 'A single choice is not a choice. Use next instead.');
+        var open = 0;
+        for (var c = 0; c < n.choices.length; c++) {
+          var ch = n.choices[c], cp = p + '.choices[' + c + ']';
+          if (!isObj(ch)) { problem(out, cp, 'error', 'not-object', 'A choice is {text, cond, cmds, next}.'); continue; }
+          noIdField(ch, cp, out);
+          if (typeof ch.text !== 'string' || !ch.text.trim()) problem(out, cp + '.text', 'error', 'missing', 'Every choice needs text.');
+          lintCond(ch.cond, idx, cp + '.cond', out, 0);
+          if (ch.cmds !== undefined) lintList(ch.cmds, idx, cp + '.cmds', out, 0, null);
+          if (ch.next !== undefined && ch.next !== null && ch.next !== '' && !isObj(rec.nodes[ch.next])) problem(out, cp + '.next', 'error', 'ref', 'Node ' + ch.next + ' is not a node of this dialogue.');
+          if (ch.cond === undefined || ch.cond === null || (isObj(ch.cond) && ch.cond.op === 'true')) open++;
+        }
+        if (!open) problem(out, p + '.choices', 'warning', 'all-conditional', 'Every choice has a condition. If none passes the conversation ends here without showing anything.');
+      } else if (!Array.isArray(n.lines) || !n.lines.length) {
+        if (!(Array.isArray(n.cmds) && n.cmds.length) && !n.next) problem(out, p, 'warning', 'empty', 'This node says nothing, does nothing, and goes nowhere.');
+      }
+    }
+    var loop = dlLoop(rec);
+    if (loop) problem(out, path + '.nodes.' + loop[0] + '.next', 'error', 'loop', 'Nodes ' + loop.join(', ') + ' follow each other forever without asking the player anything.');
+    if (isObj(rec.nodes[rec.start])) {
+      var un = dlReach(rec).unreachable;
+      for (var u = 0; u < un.length; u++) problem(out, path + '.nodes.' + un[u], 'warning', 'unreachable', 'Nothing leads to node ' + un[u] + ', so nobody can ever see it.');
+    }
+    return out;
+  }
+  S.dlg = {
+    KEY_RE: DL_KEY_RE, MAX_NODES: DL_MAX_NODES, MAX_VISITS: DL_MAX_VISITS, LONG_LINE: DL_LONG_LINE,
+    eventKey: dlEventKey, compile: dlCompile, playIndex: dlPlayIndex,
+    begin: dlBegin, step: dlStep, choose: dlChoose, play: dlPlay, talk: dlTalk,
+    pick: dlPick, lintPages: dlLintPages, lint: dlLint,
+    edges: dlEdges, reach: dlReach, loop: dlLoop, refs: dlRefs
+  };
+
   // ---------------------------------------------------------------- saves (Phase 1)
   // Day 146's save schema keeps story progress only as flags: [{flg, value}], whole numbers, beside party, inventory,
   // gil, location, and slotMeta.chapter. So everything a story state holds that is not a plain flag is packed into
@@ -4557,7 +4924,7 @@ var ENGINE_STORY = (function () {
     STORY.ensure(b);
     var key = b === Kit.bundle.current() ? Kit.index(b) : null;
     if (key && engIdx.key === key) return engIdx.idx;
-    var idx = ENGINE_STORY.index.build({ records: b.story.records, bindings: b.story.bindings }, STORY.engineExt(b));
+    var idx = ENGINE_STORY.index.build({ records: b.story.records, bindings: b.story.bindings, npcDialogue: b.story.npcDialogue }, STORY.engineExt(b));
     if (key) { engIdx.key = key; engIdx.idx = idx; }
     return idx;
   };
@@ -5940,6 +6307,738 @@ var ENGINE_STORY = (function () {
   };
 })();
 // === STORY:QUESTS END ===
+// === STORY:DIALOGUE BEGIN ===
+(function () {
+  'use strict';
+  // Phase 4: dialogue graphs. A dlg_ record is the shape ENGINE_STORY.dlg reads (src/engine-dlg.js):
+  //   kind role | quest | custom, role (a Day 148 npc role), qst (a quest), chapter, speaker (chr_, npc_, or a name), por (por_)
+  //   start (a node key)   nodes {key: {speaker, por, prompt, lines [string], cmds [cmd], next | choices [{text, cond, cmds, next}]}}
+  // story.npcDialogue maps each npc_ to pages [{cond, dlg, node, key, origin}]: the highest page whose condition passes wins, so
+  // the same townsperson says different things by chapter without a world record changing. node (optional) is where in the
+  // dialogue the page opens, which lets one quest dialogue serve every stage of the quest.
+  // The scaffold builds, from the world and the quests that exist, with structural IDs (so a rerun renames nothing):
+  //   one dialogue per (role, chapter) the world's people need, a default greeting keyed by role and chapter, shared by every
+  //     person of that role; each person's pages run from their own chapter onward, a later chapter overriding an earlier one
+  //   one dialogue per quest that has a giver: offer, progress, and turn in tied to the quest's stages, and a page for each
+  //     stage on the giver
+  // It never edits a world record, never overwrites a dialogue that exists, keeps an author's pages (origin user) in place
+  // and after the generated ones (the rightmost page wins), and drops a generated dialogue only when nothing asks for it.
+  var U = Kit.util, ES = ENGINE_STORY, F = STORY.flags, Q = STORY.quests;
+  function cur() { return Kit.bundle.current(); }
+  var D = STORY.dialogue = {};
+  D.KINDS = ['role', 'quest', 'custom'];
+  D.KIND_LABEL = { role: 'Greeting', quest: 'Quest', custom: 'Yours' };
+  D.KEY_RE = /^[a-z][a-z0-9_]{0,31}$/;
+  D.MAX_NODES = ES.dlg.MAX_NODES;
+  D.LONG_LINE = ES.dlg.LONG_LINE;
+  D.ROLE_LABEL = { innkeeper: 'Innkeeper', 'shop:item': 'Item shop', 'shop:weapon': 'Weapon shop', 'shop:armor': 'Armor shop', priest: 'Priest', guard: 'Guard', resident: 'Resident' };
+  function trim(s) { return String(s === undefined || s === null ? '' : s).trim(); }
+  function cut(s, n) { s = trim(s); if (s.length <= n) return s; return s.slice(0, n - 3).replace(/\s+\S*$/, '') + '...'; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  function sortedObj(o) { var r = {}; Object.keys(o || {}).sort().forEach(function (k) { r[k] = o[k]; }); return r; }
+  function nameOf(id, fb) { return STORY.nameOf ? STORY.nameOf(id, fb) : (fb || id || ''); }
+  function chapterName(id, b) { var c = STORY.chapters(b).filter(function (x) { return x.id === id; })[0]; return c ? (c.name || id) : id; }
+  function canon(v) { return U.canonical(v); }
+  D.roleLabel = function (role) {
+    if (D.ROLE_LABEL[role]) return D.ROLE_LABEL[role];
+    var t = String(role || 'person').replace(/[:_]+/g, ' ').trim();
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  };
+
+  // ---------------------------------------------------------------- the Codex type
+  var DIALOGUE_FIELDS = [
+    { key: 'kind', label: 'Kind', type: 'enum', values: D.KINDS, help: 'role: a greeting shared by every person of one role in one chapter. quest: what a quest giver says as the quest moves. custom: yours.' },
+    { key: 'role', label: 'Role', type: 'text', max: 40, help: 'The Day 148 person role a greeting is for.' },
+    { key: 'qst', label: 'Quest', type: 'ref', refPrefix: 'qst_', help: 'The quest a quest dialogue belongs to.' },
+    { key: 'speaker', label: 'Default speaker', type: 'text', max: 160, help: 'A chr_, an npc_, or a plain name. Left empty, the host shows the person being talked to.' },
+    { key: 'por', label: 'Default portrait', type: 'ref', refPrefix: 'por_' },
+    { key: 'start', label: 'Start node', type: 'text', max: 32 },
+    { key: 'nodes', label: 'Nodes', type: 'object', help: 'Each node: lines, commands, then next or choices. Edited in the Dialogue tab.' },
+    { key: 'notes', label: 'Note', type: 'longtext', max: 1200 }
+  ];
+  Kit.codex.register({ name: STORY.TYPES['dlg_'].name, prefix: 'dlg_', label: STORY.TYPES['dlg_'].label, ns: 'story', forge: STORY.FORGE, group: 'story', dependsOn: [], fields: U.clone(STORY.ENVELOPE_FIELDS).concat(DIALOGUE_FIELDS) });
+
+  // ---------------------------------------------------------------- ids
+  D.idFor = function (key) { return ES.ids.structural('dlg_', key); };
+  D.roleKey = function (role, chp) { return 'dlg|role|' + role + '|' + chp; };
+  D.questKey = function (qst) { return 'dlg|quest|' + qst; };
+  D.pageKey = {
+    role: function (chp) { return 'role|' + chp; },
+    quest: function (qst, node) { return 'quest|' + qst + '|' + node; }
+  };
+
+  // ---------------------------------------------------------------- the words the scaffold uses
+  var GREETINGS = {
+    resident: ['Welcome, traveler. Folk in {c} keep to themselves, but we look after our own.', 'The roads around {c} have been strange lately. Keep your wits about you.', 'I have lived near {c} all my life, and I have never known a season like this one.'],
+    innkeeper: ['Rest your feet, traveler. A bed in {c} is never turned away.', 'You look worn from the road. Stay a while and be warm.', 'Every traveler through {c} stops here sooner or later. What can I do for you?'],
+    'shop:item': ['Potions and remedies, fresh for the road through {c}.', 'Stock up before you go. {c} is no place to run short.', 'Everything an honest traveler needs, and a little more.'],
+    'shop:weapon': ['Good steel for hard roads. Take a look.', 'Blades and bows from the best smiths in {c}.', 'You will want something sharper for what lies ahead.'],
+    'shop:armor': ['A good coat of mail has saved more lives than any sword.', 'Armor fitted for the roads of {c}. Try something on.', 'Keep your guard up out there, and your plate sound.'],
+    priest: ['May the light keep you on the road through {c}.', 'The faithful of {c} will pray for your journey.', 'Troubled times test us all. Be steady, traveler.'],
+    guard: ['Halt. State your business in {c}. Ah, carry on, traveler.', 'Keep to the road and you will come to no harm in {c}.', 'We have our eyes open. Trouble will not catch {c} sleeping.']
+  };
+  D.greeting = function (role, chpName, chapterIndex) {
+    var list = GREETINGS[role] || GREETINGS.resident, i = Math.max(0, chapterIndex | 0) % list.length;
+    return list[i].replace(/\{c\}/g, chpName || 'these lands');
+  };
+  function roleBody(role, chp, i, b) {
+    var cn = chapterName(chp, b);
+    return { kind: 'role', role: role, chapter: chp, start: 'hello', nodes: { hello: { lines: [D.greeting(role, cn, i)] } }, notes: 'What every ' + D.roleLabel(role).toLowerCase() + ' says in ' + cn + ' unless a page of their own says otherwise.' };
+  }
+  function giveCmds(q) {
+    var out = [];
+    (Array.isArray(q.rewards) ? q.rewards : []).forEach(function (r) { if (U.isObj(r) && typeof r.item === 'string') out.push({ op: 'giveItem', itm: r.item, qty: Q.KEY_RE && r.qty > 0 ? r.qty : 1 }); });
+    return out;
+  }
+  function uniqueNodeKey(base, used) {
+    var k = base, n = 2;
+    while (used[k]) { k = base.slice(0, 29) + '_' + n; n++; }
+    used[k] = 1;
+    return k;
+  }
+  // Nodes and pages for one quest with a giver. Returns {nodes, start, pages [{cond, node}]}.
+  function questParts(q, b) {
+    var st = (Array.isArray(q.stages) ? q.stages : []).filter(function (x) { return U.isObj(x) && typeof x.key === 'string'; });
+    var n = st.length, nodes = {}, pages = [], used = {}, last = st[n - 1], big = q.kind === 'side' && n >= 3;
+    function at(stage) { return { op: 'quest', qst: q.id, is: 'at', stage: stage }; }
+    function lab(s) { return trim(s && s.label) || (s && s.key) || 'the task'; }
+    if (!n) return { nodes: {}, start: null, pages: [] };
+    if (big) {
+      var s1 = st[1], notes = trim(q.notes);
+      var offerLines = ['I need a favor, traveler.'];
+      if (notes) offerLines.push(cut(notes, 140));
+      nodes.offer = { lines: offerLines, choices: [
+        { text: 'I will help.', cmds: [{ op: 'questStage', qst: q.id, stage: s1.key }], next: 'accept' },
+        { text: 'Not right now.', next: 'later' }] };
+      nodes.accept = { lines: ['Thank you. Come back when it is done.'] };
+      nodes.later = { lines: ['I understand. Come back if you change your mind.'] };
+      nodes.progress = { lines: ['Any word on ' + lab(s1) + '?'], choices: [
+        { text: 'It is done.', next: 'turnin' },
+        { text: 'Not yet.', next: 'wait' }] };
+      nodes.wait = { lines: ['Take your time. I will be here.'] };
+      nodes.turnin = { lines: ['You have my thanks, traveler. I will not forget this.'], cmds: giveCmds(q).concat([{ op: 'questStage', qst: q.id, stage: last.key }]) };
+      nodes.after = { lines: ['Thank you again for all your help.'] };
+      ['offer', 'accept', 'later', 'progress', 'wait', 'turnin', 'after'].forEach(function (k) { used[k] = 1; });
+      pages.push({ node: 'offer', cond: { op: 'not', of: { op: 'quest', qst: q.id, is: 'started' } } });
+      pages.push({ node: 'progress', cond: at(s1.key) });
+      for (var m = 2; m < n - 1; m++) {
+        var mk = uniqueNodeKey('progress_' + st[m].key.slice(0, 23), used);
+        nodes[mk] = { lines: ['Your task is not over yet: ' + lab(st[m]) + '.'] };
+        pages.push({ node: mk, cond: at(st[m].key) });
+      }
+      pages.push({ node: 'after', cond: { op: 'quest', qst: q.id, is: 'done' } });
+      return { nodes: nodes, start: 'offer', pages: pages };
+    }
+    for (var i = 0; i < n; i++) {
+      var s = st[i], key = i === 0 ? 'offer' : (i === n - 1 ? 'turnin' : uniqueNodeKey('progress_' + s.key.slice(0, 23), used));
+      if (i === 0) used.offer = 1;
+      if (i === n - 1 && n > 1) used.turnin = 1;
+      var last0 = i === n - 1 && n > 1, finale = last0 && /finale|won/i.test(lab(s));
+      nodes[key] = { lines: last0 ? [finale ? 'It is done. The land will remember what you did.' : 'Well done, traveler. Your work here is finished, and the road onward is open.'] : (i === 0 ? ['Welcome, traveler. Your next task: ' + lab(s) + '.'] : ['Remember your purpose. Your next task: ' + lab(s) + '.']) };
+      pages.push({ node: key, cond: at(s.key) });
+    }
+    return { nodes: nodes, start: 'offer', pages: pages };
+  }
+  function questBody(q, b) {
+    var p = questParts(q, b), body = { kind: 'quest', qst: q.id, speaker: q.giver, start: p.start || 'offer', nodes: p.nodes, notes: 'What ' + nameOf(q.giver, 'the giver') + ' says as ' + (q.name || 'the quest') + ' moves. ' + (q.kind === 'side' ? 'The turn in choice does not check that the task is done; give it a condition, for example an item the task hands over.' : 'Each page opens the node for the stage the quest is at.') };
+    if (typeof q.chapter === 'string' && q.chapter) body.chapter = q.chapter;
+    return body;
+  }
+
+  // ---------------------------------------------------------------- what the world and the quests ask for
+  function ownIndex(npc, chapters) {
+    var i = -1;
+    chapters.forEach(function (c, k) { if (c.id === npc.chapter) i = k; });
+    return i < 0 ? 0 : i;
+  }
+  // {dialogues [{key, id, name, kind, body}], pages {npc: [page]}}: every dialogue and every generated page, in a stable order.
+  D.wanted = function (b) {
+    b = b || cur();
+    var out = { dialogues: [], pages: {} }, s = b && b.story;
+    if (!b || !s) return out;
+    var chapters = STORY.chapters(b).filter(function (c) { return typeof c.id === 'string'; }), npcs = STORY.world.list('npc_', b), want = {};
+    function addDlg(w) { if (!want[w.key]) { want[w.key] = 1; out.dialogues.push(w); } }
+    npcs.forEach(function (n) {
+      var role = typeof n.role === 'string' && n.role ? n.role : 'resident', own = ownIndex(n, chapters), pages = [];
+      for (var j = own; j < chapters.length; j++) {
+        var chp = chapters[j].id, key = D.roleKey(role, chp);
+        addDlg({ key: key, id: D.idFor(key), name: D.roleLabel(role) + ' in ' + (chapters[j].name || chp), kind: 'role', body: roleBody(role, chp, j, b) });
+        var pg = { key: D.pageKey.role(chp), origin: 'generated', dlg: D.idFor(key) };
+        if (j > own) pg.cond = { op: 'chapter', chp: chp, cmp: 'gte' };
+        pages.push(pg);
+      }
+      out.pages[n.id] = pages;
+    });
+    var known = {};
+    npcs.forEach(function (n) { known[n.id] = 1; });
+    STORY.records.list('qst_', b).forEach(function (q) {
+      if (!q.giver || !known[q.giver] || (q.kind !== 'main' && q.kind !== 'side') || !Array.isArray(q.stages) || !q.stages.length) return;
+      var key = D.questKey(q.id), id = D.idFor(key), parts = questParts(q, b);
+      addDlg({ key: key, id: id, name: 'Quest: ' + (q.name || q.id), kind: 'quest', body: questBody(q, b) });
+      parts.pages.forEach(function (p) { out.pages[q.giver].push({ key: D.pageKey.quest(q.id, p.node), origin: 'generated', cond: p.cond, dlg: id, node: p.node }); });
+    });
+    return out;
+  };
+  // Generated pages in canonical order, an author's page standing in for the generated page with its key, then the pages the
+  // author made by hand.
+  function mergePages(existing, gen) {
+    var ex = Array.isArray(existing) ? existing.filter(U.isObj) : [], byKey = {}, used = [];
+    ex.forEach(function (p) { if (p.origin !== 'generated' && typeof p.key === 'string') byKey[p.key] = p; });
+    var out = gen.map(function (g) { if (byKey[g.key]) { used.push(byKey[g.key]); return byKey[g.key]; } return g; });
+    ex.forEach(function (p) { if (p.origin !== 'generated' && used.indexOf(p) < 0) out.push(p); });
+    return out;
+  }
+  D.mergePages = mergePages;
+
+  // ---------------------------------------------------------------- the scaffold
+  // Idempotent: a second run changes nothing and does not touch the bundle. Returns a report.
+  D.scaffold = function (b) {
+    b = b || cur();
+    var rep = { created: [], removed: [], kept: [], pages: 0, people: 0, changed: false, skipped: null };
+    if (!b) { rep.skipped = 'No bundle is open.'; return rep; }
+    var ready = STORY.readiness(b);
+    if (ready !== true) { rep.skipped = ready; return rep; }
+    STORY.ensure(b);
+    var s = b.story, R = s.records.dlg_, scaf = s.scaffold, ND = s.npcDialogue, W = D.wanted(b), want = {};
+    W.dialogues.forEach(function (w) {
+      want[w.key] = w;
+      if (!R[w.id]) { R[w.id] = STORY.envelope('dlg_', w.key, w.name, w.body); rep.created.push(w.id); }
+      if (scaf[w.key] !== w.id) { scaf[w.key] = w.id; rep.changed = true; }
+    });
+    var npcs = STORY.world.list('npc_', b), seen = {};
+    npcs.forEach(function (n) {
+      seen[n.id] = 1;
+      var next = mergePages(ND[n.id], W.pages[n.id] || []);
+      if (canon(next) !== canon(Array.isArray(ND[n.id]) ? ND[n.id] : [])) {
+        if (next.length) ND[n.id] = next; else delete ND[n.id];
+        rep.pages++; rep.changed = true;
+      }
+    });
+    Object.keys(ND).sort().forEach(function (npc) {
+      if (seen[npc]) return;
+      var keep = (Array.isArray(ND[npc]) ? ND[npc] : []).filter(function (p) { return U.isObj(p) && p.origin !== 'generated'; });
+      if (keep.length !== (Array.isArray(ND[npc]) ? ND[npc].length : 0)) { if (keep.length) ND[npc] = keep; else delete ND[npc]; rep.changed = true; }
+    });
+    var byUser = {};
+    Object.keys(ND).forEach(function (npc) { ND[npc].forEach(function (p) { if (U.isObj(p) && p.origin !== 'generated' && typeof p.dlg === 'string') byUser[p.dlg] = 1; }); });
+    Object.keys(scaf).sort().forEach(function (k) {
+      if (k.indexOf('dlg|') !== 0 || want[k]) return;
+      var id = scaf[k], r = R[id];
+      if (r && r.origin === 'generated') {
+        if (byUser[id]) { r.origin = 'user'; rep.kept.push(id); } else { delete R[id]; rep.removed.push(id); }
+      }
+      delete scaf[k]; rep.changed = true;
+    });
+    rep.people = Object.keys(ND).length;
+    if (rep.created.length || rep.removed.length || rep.kept.length || rep.pages || rep.changed) {
+      s.records.dlg_ = sortedObj(R); s.npcDialogue = sortedObj(ND); s.scaffold = sortedObj(scaf);
+      rep.changed = true;
+      if (b === cur()) { Kit.index.invalidate(); Kit.bundle.touch('story-dialogue'); }
+    }
+    return rep;
+  };
+  D.reportText = function (rep) {
+    if (rep.skipped) return 'Nothing to build: ' + rep.skipped;
+    if (!rep.changed) return 'Every dialogue the world and the quests ask for is already built.';
+    var bits = [];
+    if (rep.created.length) bits.push(plural(rep.created.length, 'dialogue') + ' built');
+    if (rep.removed.length) bits.push(plural(rep.removed.length, 'dialogue') + ' dropped');
+    if (rep.kept.length) bits.push(plural(rep.kept.length, 'dialogue') + ' kept for your own pages');
+    if (rep.pages) bits.push(plural(rep.pages, 'person', 'people') + ' brought up to date');
+    return (bits.join(', ') || 'Dialogue brought up to date') + '.';
+  };
+  D.expected = function (b) {
+    b = b || cur();
+    var s = b && b.story, W = D.wanted(b), by = { role: { want: 0, have: 0 }, quest: { want: 0, have: 0 } }, pagesTodo = 0;
+    W.dialogues.forEach(function (w) { by[w.kind].want++; if (s && s.records.dlg_[w.id]) by[w.kind].have++; });
+    if (s) STORY.world.list('npc_', b).forEach(function (n) { if (canon(mergePages(s.npcDialogue[n.id], W.pages[n.id] || [])) !== canon(Array.isArray(s.npcDialogue[n.id]) ? s.npcDialogue[n.id] : [])) pagesTodo++; });
+    var missing = W.dialogues.filter(function (w) { return !(s && s.records.dlg_[w.id]); }).length;
+    return { by: by, total: W.dialogues.length, missing: missing, pagesTodo: pagesTodo };
+  };
+
+  // ---------------------------------------------------------------- checks
+  // Cross field mistakes and everything ENGINE_STORY.dlg.lint finds: [{level, code, path, message}]. idx holds the record.
+  D.check = function (rec, b, idx) {
+    b = b || cur(); idx = idx || STORY.engineIndex(b);
+    var out = [];
+    function add(level, code, path, message) { out.push({ level: level, code: code, path: path, message: message }); }
+    if (!U.isObj(rec)) { add('error', 'shape', '', 'A dialogue must be an object.'); return out; }
+    if (typeof rec.name !== 'string' || !rec.name.trim()) add('error', 'name', 'name', 'A dialogue needs a name.');
+    if (rec.kind !== undefined && D.KINDS.indexOf(rec.kind) < 0) add('error', 'kind', 'kind', 'Kind must be role, quest, or custom.');
+    if (rec.qst !== undefined && rec.qst !== null && rec.qst !== '' && !(b.story.records.qst_ && b.story.records.qst_[rec.qst])) add('error', 'ref', 'qst', 'The quest ' + rec.qst + ' is not a quest in this story.');
+    if (rec.chapter !== undefined && rec.chapter !== null && rec.chapter !== '' && !STORY.chapters(b).some(function (c) { return c.id === rec.chapter; })) add('error', 'ref', 'chapter', 'The chapter ' + rec.chapter + ' is not in the Charter.');
+    var entry = {};
+    Object.keys(b.story.npcDialogue || {}).forEach(function (npc) { (Array.isArray(b.story.npcDialogue[npc]) ? b.story.npcDialogue[npc] : []).forEach(function (p) { if (U.isObj(p) && p.dlg === rec.id && typeof p.node === 'string') entry[p.node] = 1; }); });
+    Object.keys(entry).forEach(function (k) {
+      if (!U.isObj(rec.nodes) || !rec.nodes[k]) return;
+      var cp = U.clone(rec); cp.start = k;
+      ES.dlg.reach(cp).order.forEach(function (r) { entry[r] = 1; });
+    });
+    ES.dlg.lint(rec, idx, '').forEach(function (p) {
+      var m = /^(?:dialogue)?\.?nodes\.([a-z0-9_]+)$/.exec(String(p.path));
+      if (p.code === 'unreachable' && m && entry[m[1]]) return;
+      add(p.level, p.code, String(p.path).replace(/^\./, ''), p.message);
+    });
+    return out;
+  };
+  D.checkPages = function (npc, pages, b, idx) {
+    b = b || cur(); idx = idx || STORY.engineIndex(b);
+    return ES.dlg.lintPages(pages, idx, 'npcDialogue.' + npc);
+  };
+  Kit.validate.register('story.dialogue', function (b, ctx) {
+    var s = b.story;
+    if (!s || !U.isObj(s.records)) return;
+    var ids = Object.keys(s.records.dlg_ || {}).sort(), pages = Object.keys(s.npcDialogue || {}).sort();
+    if (!ids.length && !pages.length) return;
+    var idx = STORY.engineIndex(b);
+    ids.forEach(function (id) {
+      var rec = s.records.dlg_[id];
+      if (!U.isObj(rec)) return;
+      D.check(rec, b, idx).forEach(function (p) { ctx.add({ recordId: id, fieldPath: p.path, message: p.message, level: p.level }); });
+    });
+    pages.forEach(function (npc) {
+      if (!STORY.world.get(npc, b)) { ctx.add({ recordId: 'story', fieldPath: 'npcDialogue.' + npc, message: 'Pages for ' + npc + ', a person the world does not have.', level: 'error' }); return; }
+      D.checkPages(npc, s.npcDialogue[npc], b, idx).forEach(function (p) { ctx.add({ recordId: 'story', fieldPath: p.path, message: p.message, level: p.level }); });
+    });
+  });
+
+  // ---------------------------------------------------------------- editing
+  function sameProblem(a, z) { return a.code === z.code && a.path === z.path && a.message === z.message; }
+  function indexWith(rec, b) {
+    var recs = {};
+    Object.keys(b.story.records).forEach(function (p) { recs[p] = b.story.records[p]; });
+    recs.dlg_ = {};
+    Object.keys(b.story.records.dlg_).forEach(function (k) { recs.dlg_[k] = b.story.records.dlg_[k]; });
+    recs.dlg_[rec.id] = rec;
+    return ES.index.build({ records: recs, bindings: b.story.bindings, npcDialogue: b.story.npcDialogue }, STORY.engineExt(b));
+  }
+  D.indexWith = indexWith;
+  function touch(why, b) { if (b === cur()) { Kit.index.invalidate(); Kit.bundle.touch(why); } }
+  // Applies fn to a copy of the dialogue. A result with an error string refuses the edit, and so does an edit that would add
+  // an error the dialogue did not already have. Nothing is written then. Returns {ok, record} or {ok: false, problems}.
+  D.edit = function (id, fn, b) {
+    b = b || cur();
+    var R = b && b.story && b.story.records.dlg_, rec = R && R[id];
+    if (!rec) return { ok: false, problems: [{ level: 'error', code: 'missing', path: 'id', message: 'That dialogue does not exist.' }] };
+    var before = D.check(rec, b, STORY.engineIndex(b)).filter(function (p) { return p.level === 'error'; });
+    var next = U.clone(rec), r = fn(next);
+    if (r && r.error) return { ok: false, problems: [{ level: 'error', code: 'edit', path: '', message: r.error }] };
+    var fresh = D.check(next, b, indexWith(next, b)).filter(function (p) { return p.level === 'error' && !before.some(function (x) { return sameProblem(x, p); }); });
+    if (fresh.length) return { ok: false, problems: fresh };
+    R[id] = next;
+    touch('story-dialogue', b);
+    return { ok: true, record: next };
+  };
+  D.update = function (id, patch, b) {
+    patch = patch || {};
+    return D.edit(id, function (rec) {
+      ['name', 'speaker', 'por', 'chapter', 'notes'].forEach(function (k) {
+        if (patch[k] === undefined) return;
+        var v = typeof patch[k] === 'string' ? patch[k].trim() : patch[k];
+        if (v === '' || v === null) { if (k !== 'name') delete rec[k]; else return; } else rec[k] = v;
+      });
+    }, b);
+  };
+  D.freeNodeKey = function (rec, base) {
+    var used = U.isObj(rec && rec.nodes) ? rec.nodes : {}, n = 1;
+    base = base || 'node';
+    while (used[base + n]) n++;
+    return base + n;
+  };
+  function cleanNode(n) {
+    var o = {};
+    ['speaker', 'por', 'prompt'].forEach(function (k) { if (typeof n[k] === 'string' && n[k].trim()) o[k] = n[k].trim(); });
+    if (Array.isArray(n.lines)) o.lines = n.lines.map(function (l) { return String(l); });
+    if (Array.isArray(n.cmds) && n.cmds.length) o.cmds = n.cmds;
+    if (Array.isArray(n.choices) && n.choices.length) o.choices = n.choices;
+    else if (typeof n.next === 'string' && n.next) o.next = n.next;
+    return o;
+  }
+  D.addNode = function (id, spec, b) {
+    spec = spec || {};
+    var made = null;
+    var res = D.edit(id, function (rec) {
+      if (!U.isObj(rec.nodes)) rec.nodes = {};
+      if (Object.keys(rec.nodes).length >= D.MAX_NODES) return { error: 'A dialogue holds up to ' + D.MAX_NODES + ' nodes.' };
+      var key = spec.key ? String(spec.key).trim() : D.freeNodeKey(rec);
+      if (!D.KEY_RE.test(key)) return { error: 'A node key uses lowercase letters, digits, and underscores, starts with a letter, and holds up to 32 characters.' };
+      if (rec.nodes[key]) return { error: 'This dialogue already has a node ' + key + '.' };
+      rec.nodes[key] = { lines: Array.isArray(spec.lines) && spec.lines.length ? spec.lines.slice() : ['Say something here.'] };
+      rec.nodes = sortedObj(rec.nodes);
+      if (!rec.start) rec.start = key;
+      made = key;
+    }, b);
+    if (res.ok) res.key = made;
+    return res;
+  };
+  // patch: any of speaker, por, prompt, lines, cmds, next, choices; null or '' removes a field. Setting next removes choices
+  // unless the patch gives them, and giving choices removes next.
+  D.updateNode = function (id, key, patch, b) {
+    patch = patch || {};
+    return D.edit(id, function (rec) {
+      var n = U.isObj(rec.nodes) && rec.nodes[key];
+      if (!n) return { error: 'That node does not exist.' };
+      ['speaker', 'por', 'prompt', 'lines', 'cmds', 'next', 'choices'].forEach(function (k) {
+        if (patch[k] === undefined) return;
+        if (patch[k] === null || patch[k] === '' || (Array.isArray(patch[k]) && !patch[k].length && k !== 'lines')) delete n[k]; else n[k] = patch[k];
+      });
+      if (patch.next && patch.choices === undefined) delete n.choices;
+      if (Array.isArray(patch.choices) && patch.choices.length) delete n.next;
+      rec.nodes[key] = cleanNode(n);
+    }, b);
+  };
+  D.replaceNode = function (id, key, node, b) {
+    return D.edit(id, function (rec) {
+      if (!U.isObj(rec.nodes) || !rec.nodes[key]) return { error: 'That node does not exist.' };
+      rec.nodes[key] = cleanNode(U.isObj(node) ? node : {});
+    }, b);
+  };
+  D.setStart = function (id, key, b) {
+    return D.edit(id, function (rec) { if (!U.isObj(rec.nodes) || !rec.nodes[key]) return { error: 'That node does not exist.' }; rec.start = key; }, b);
+  };
+  function pagesOnDialogue(id, b, fn) {
+    var ND = b.story.npcDialogue, n = 0;
+    Object.keys(ND).sort().forEach(function (npc) { (Array.isArray(ND[npc]) ? ND[npc] : []).forEach(function (p) { if (U.isObj(p) && p.dlg === id && fn(p, npc)) n++; }); });
+    return n;
+  }
+  D.renameNode = function (id, from, to, b) {
+    b = b || cur();
+    to = String(to || '').trim();
+    if (!D.KEY_RE.test(to)) return { ok: false, problems: [{ level: 'error', code: 'node-key', path: '', message: 'A node key uses lowercase letters, digits, and underscores, starts with a letter, and holds up to 32 characters.' }] };
+    var res = D.edit(id, function (rec) {
+      if (!U.isObj(rec.nodes) || !rec.nodes[from]) return { error: 'That node does not exist.' };
+      if (from === to) return;
+      if (rec.nodes[to]) return { error: 'This dialogue already has a node ' + to + '.' };
+      rec.nodes[to] = rec.nodes[from]; delete rec.nodes[from]; rec.nodes = sortedObj(rec.nodes);
+      if (rec.start === from) rec.start = to;
+      Object.keys(rec.nodes).forEach(function (k) {
+        var n = rec.nodes[k];
+        if (n.next === from) n.next = to;
+        (Array.isArray(n.choices) ? n.choices : []).forEach(function (c) { if (U.isObj(c) && c.next === from) c.next = to; });
+      });
+    }, b);
+    if (res.ok && from !== to && pagesOnDialogue(id, b, function (p) { if (p.node === from) { p.node = to; return true; } return false; })) touch('story-dialogue', b);
+    return res;
+  };
+  // Removes a node and every link to it (a next or a choice that led there leads nowhere afterward). The start node, and the
+  // last node, stay. A page that opened at the node opens at the start instead.
+  D.removeNode = function (id, key, b) {
+    b = b || cur();
+    var unlinked = 0;
+    var res = D.edit(id, function (rec) {
+      if (!U.isObj(rec.nodes) || !rec.nodes[key]) return { error: 'That node does not exist.' };
+      if (rec.start === key) return { error: 'That is the start node. Make another node the start first.' };
+      delete rec.nodes[key];
+      Object.keys(rec.nodes).forEach(function (k) {
+        var n = rec.nodes[k];
+        if (n.next === key) { delete n.next; unlinked++; }
+        (Array.isArray(n.choices) ? n.choices : []).forEach(function (c) { if (U.isObj(c) && c.next === key) { delete c.next; unlinked++; } });
+      });
+    }, b);
+    if (!res.ok) return res;
+    res.unlinked = unlinked;
+    res.pages = pagesOnDialogue(id, b, function (p) { if (p.node === key) { delete p.node; return true; } return false; });
+    if (res.pages) touch('story-dialogue', b);
+    return res;
+  };
+  D.addChoice = function (id, key, spec, b) {
+    spec = spec || {};
+    return D.edit(id, function (rec) {
+      var n = U.isObj(rec.nodes) && rec.nodes[key];
+      if (!n) return { error: 'That node does not exist.' };
+      var list = Array.isArray(n.choices) ? n.choices.slice() : [];
+      if (!list.length && n.next) list.push({ text: 'Continue', next: n.next });
+      var c = { text: trim(spec.text) || 'A choice' };
+      if (spec.next) c.next = spec.next;
+      list.push(c);
+      n.choices = list; delete n.next;
+    }, b);
+  };
+  D.updateChoice = function (id, key, i, patch, b) {
+    patch = patch || {};
+    return D.edit(id, function (rec) {
+      var n = U.isObj(rec.nodes) && rec.nodes[key], c = n && Array.isArray(n.choices) && n.choices[i];
+      if (!c) return { error: 'That choice does not exist.' };
+      ['text', 'cond', 'cmds', 'next'].forEach(function (k) {
+        if (patch[k] === undefined) return;
+        if (patch[k] === null || patch[k] === '' || (k === 'cmds' && Array.isArray(patch[k]) && !patch[k].length)) delete c[k]; else c[k] = patch[k];
+      });
+    }, b);
+  };
+  D.removeChoice = function (id, key, i, b) {
+    return D.edit(id, function (rec) {
+      var n = U.isObj(rec.nodes) && rec.nodes[key];
+      if (!n || !Array.isArray(n.choices) || !n.choices[i]) return { error: 'That choice does not exist.' };
+      n.choices.splice(i, 1);
+      if (!n.choices.length) delete n.choices;
+    }, b);
+  };
+  D.moveChoice = function (id, key, i, delta, b) {
+    return D.edit(id, function (rec) {
+      var n = U.isObj(rec.nodes) && rec.nodes[key], list = n && n.choices, j = i + delta;
+      if (!Array.isArray(list) || !list[i] || j < 0 || j >= list.length) return { error: 'That choice cannot move there.' };
+      var t = list[i]; list[i] = list[j]; list[j] = t;
+    }, b);
+  };
+  // A dialogue an author makes by hand: spec {name, speaker, chapter}. One node, a minted ID, origin user.
+  D.add = function (spec, b) {
+    b = b || cur();
+    spec = spec || {};
+    if (!b) return { ok: false, problems: [{ level: 'error', code: 'none', path: '', message: 'No bundle is open.' }] };
+    STORY.ensure(b);
+    var name = trim(spec.name);
+    if (!name) return { ok: false, problems: [{ level: 'error', code: 'name', path: 'name', message: 'A dialogue needs a name.' }] };
+    var body = { kind: 'custom', start: 'hello', nodes: { hello: { lines: ['Say something here.'] } } };
+    if (trim(spec.speaker)) body.speaker = trim(spec.speaker);
+    if (spec.chapter) body.chapter = spec.chapter;
+    var rec = STORY.authored('dlg_', name, body);
+    var probs = D.check(rec, b, indexWith(rec, b)).filter(function (p) { return p.level === 'error'; });
+    if (probs.length) return { ok: false, problems: probs };
+    b.story.records.dlg_[rec.id] = rec;
+    b.story.records.dlg_ = sortedObj(b.story.records.dlg_);
+    touch('story-dialogue', b);
+    return { ok: true, record: rec };
+  };
+  // Who opens this dialogue: [{npc, name, page}] (page is 1 based), sorted.
+  D.usedBy = function (id, b) {
+    b = b || cur();
+    var out = [];
+    if (!b || !b.story) return out;
+    Object.keys(b.story.npcDialogue || {}).sort().forEach(function (npc) {
+      (Array.isArray(b.story.npcDialogue[npc]) ? b.story.npcDialogue[npc] : []).forEach(function (p, i) { if (U.isObj(p) && p.dlg === id) out.push({ npc: npc, name: nameOf(npc, npc), page: i + 1 }); });
+    });
+    return out;
+  };
+  // Removes a dialogue, and the pages that opened it (a page without its dialogue is meaningless). A generated dialogue
+  // comes back with the next build.
+  D.remove = function (id, b) {
+    b = b || cur();
+    var R = b && b.story && b.story.records.dlg_, rec = R && R[id];
+    if (!rec) return { ok: false, message: 'That dialogue does not exist.' };
+    var users = D.usedBy(id, b), scaf = b.story.scaffold, ND = b.story.npcDialogue;
+    delete R[id];
+    Object.keys(scaf).forEach(function (k) { if (scaf[k] === id && k.indexOf('dlg|') === 0) delete scaf[k]; });
+    Object.keys(ND).forEach(function (npc) {
+      var keep = (Array.isArray(ND[npc]) ? ND[npc] : []).filter(function (p) { return !(U.isObj(p) && p.dlg === id); });
+      if (keep.length) ND[npc] = keep; else delete ND[npc];
+    });
+    touch('story-dialogue', b);
+    return { ok: true, usedBy: users };
+  };
+  D.reset = function (id, b) {
+    b = b || cur();
+    var R = b && b.story && b.story.records.dlg_, rec = R && R[id];
+    if (!rec) return { ok: false, message: 'That dialogue does not exist.' };
+    if (rec.origin !== 'generated') return { ok: false, message: 'Only a generated dialogue can be set back to what the world asks for.' };
+    var w = D.wanted(b).dialogues.filter(function (x) { return x.id === id; })[0];
+    if (!w) return { ok: false, message: 'The world and the quests no longer ask for this dialogue.' };
+    R[id] = STORY.envelope('dlg_', w.key, w.name, w.body);
+    touch('story-dialogue', b);
+    return { ok: true, record: R[id] };
+  };
+
+  // ---------------------------------------------------------------- a person's pages
+  D.pagesOf = function (npc, b) { b = b || cur(); var l = b && b.story && b.story.npcDialogue[npc]; return Array.isArray(l) ? l : []; };
+  // Replaces a person's page list. Refused when it adds an error the list did not have.
+  D.setPages = function (npc, pages, b) {
+    b = b || cur();
+    if (!b) return { ok: false, problems: [{ level: 'error', code: 'none', path: '', message: 'No bundle is open.' }] };
+    if (!STORY.world.get(npc, b)) return { ok: false, problems: [{ level: 'error', code: 'ref', path: 'npc', message: 'That person is not in the world.' }] };
+    var idx = STORY.engineIndex(b), errs = function (list) { return D.checkPages(npc, list, b, idx).filter(function (p) { return p.level === 'error'; }); };
+    var before = errs(D.pagesOf(npc, b)), fresh = errs(pages).filter(function (p) { return !before.some(function (x) { return sameProblem(x, p); }); });
+    if (fresh.length) return { ok: false, problems: fresh };
+    if (pages.length) b.story.npcDialogue[npc] = pages; else delete b.story.npcDialogue[npc];
+    b.story.npcDialogue = sortedObj(b.story.npcDialogue);
+    touch('story-dialogue', b);
+    return { ok: true, pages: pages };
+  };
+  D.addPage = function (npc, spec, b) {
+    spec = spec || {};
+    var p = { origin: 'user', dlg: spec.dlg };
+    if (spec.node) p.node = spec.node;
+    if (spec.cond !== undefined && spec.cond !== null) p.cond = spec.cond;
+    return D.setPages(npc, D.pagesOf(npc, b).concat([p]), b);
+  };
+  // patch: any of dlg, node, cond (null removes). Editing a generated page makes it the author's (the key stays, so a rebuild
+  // leaves it where it is).
+  D.updatePage = function (npc, i, patch, b) {
+    patch = patch || {};
+    var list = U.clone(D.pagesOf(npc, b)), p = list[i];
+    if (!U.isObj(p)) return { ok: false, problems: [{ level: 'error', code: 'missing', path: '', message: 'That page does not exist.' }] };
+    ['dlg', 'node', 'cond'].forEach(function (k) {
+      if (patch[k] === undefined) return;
+      if (patch[k] === null || patch[k] === '') delete p[k]; else p[k] = patch[k];
+    });
+    p.origin = 'user';
+    return D.setPages(npc, list, b);
+  };
+  D.removePage = function (npc, i, b) {
+    var list = U.clone(D.pagesOf(npc, b));
+    if (!list[i]) return { ok: false, problems: [{ level: 'error', code: 'missing', path: '', message: 'That page does not exist.' }] };
+    list.splice(i, 1);
+    return D.setPages(npc, list, b);
+  };
+  D.movePage = function (npc, i, delta, b) {
+    var list = U.clone(D.pagesOf(npc, b)), j = i + delta;
+    if (!list[i] || j < 0 || j >= list.length) return { ok: false, problems: [{ level: 'error', code: 'range', path: '', message: 'That page cannot move there.' }] };
+    var t = list[i]; list[i] = list[j]; list[j] = t;
+    return D.setPages(npc, list, b);
+  };
+  // Back to the generated pages only: the author's pages for this person go.
+  D.resetPages = function (npc, b) {
+    b = b || cur();
+    var gen = D.wanted(b).pages[npc];
+    if (!gen) return { ok: false, problems: [{ level: 'error', code: 'ref', path: 'npc', message: 'That person is not in the world.' }] };
+    var res = D.setPages(npc, U.clone(gen), b);
+    return res;
+  };
+
+  // ---------------------------------------------------------------- reading
+  D.list = function (b) {
+    b = b || cur();
+    var order = {}, kind = { quest: 0, role: 1, custom: 2 };
+    STORY.chapters(b).forEach(function (c, i) { order[c.id] = i; });
+    return STORY.records.list('dlg_', b).slice().sort(function (x, y) {
+      var kx = kind[x.kind] === undefined ? 3 : kind[x.kind], ky = kind[y.kind] === undefined ? 3 : kind[y.kind];
+      if (kx !== ky) return kx - ky;
+      var ox = order[x.chapter] === undefined ? 99 : order[x.chapter], oy = order[y.chapter] === undefined ? 99 : order[y.chapter];
+      return ox - oy || ((x.name || '') < (y.name || '') ? -1 : (x.name || '') > (y.name || '') ? 1 : 0);
+    });
+  };
+  D.stats = function (rec) {
+    var nodes = U.isObj(rec && rec.nodes) ? Object.keys(rec.nodes) : [], lines = 0, choices = 0;
+    nodes.forEach(function (k) { var n = rec.nodes[k]; if (U.isObj(n)) { lines += Array.isArray(n.lines) ? n.lines.length : 0; choices += Array.isArray(n.choices) ? n.choices.length : 0; } });
+    return { nodes: nodes.length, lines: lines, choices: choices };
+  };
+  // Every person of the world with their page counts: [{id, name, role, chapter, town, pages, generated, yours, dialogues}].
+  D.people = function (b) {
+    b = b || cur();
+    var rows = [], towns = {};
+    STORY.world.list('twn_', b).forEach(function (t) { (Array.isArray(t.people) ? t.people : []).forEach(function (p) { towns[p] = t.name || t.id; }); });
+    var order = {};
+    STORY.chapters(b).forEach(function (c, i) { order[c.id] = i; });
+    STORY.world.list('npc_', b).forEach(function (n) {
+      var pages = D.pagesOf(n.id, b), seen = {};
+      pages.forEach(function (p) { if (U.isObj(p) && p.dlg) seen[p.dlg] = 1; });
+      rows.push({ id: n.id, name: n.name || n.id, role: n.role || 'resident', chapter: n.chapter || null, town: towns[n.id] || '', pages: pages.length,
+        generated: pages.filter(function (p) { return U.isObj(p) && p.origin === 'generated'; }).length, yours: pages.filter(function (p) { return U.isObj(p) && p.origin !== 'generated'; }).length, dialogues: Object.keys(seen).sort() });
+    });
+    rows.sort(function (x, y) { var ox = order[x.chapter] === undefined ? 99 : order[x.chapter], oy = order[y.chapter] === undefined ? 99 : order[y.chapter]; return ox - oy || (x.town < y.town ? -1 : x.town > y.town ? 1 : 0) || (x.name < y.name ? -1 : x.name > y.name ? 1 : 0); });
+    return rows;
+  };
+  D.summary = function (b) {
+    b = b || cur();
+    var recs = STORY.records.list('dlg_', b), by = { role: 0, quest: 0, custom: 0 }, nodes = 0, lines = 0, choices = 0, authored = 0, used = {}, unused = 0;
+    var ND = b && b.story ? b.story.npcDialogue : {};
+    Object.keys(ND).forEach(function (npc) { (Array.isArray(ND[npc]) ? ND[npc] : []).forEach(function (p) { if (U.isObj(p) && p.dlg) used[p.dlg] = 1; }); });
+    recs.forEach(function (d) {
+      if (by[d.kind] !== undefined) by[d.kind]++;
+      var st = D.stats(d); nodes += st.nodes; lines += st.lines; choices += st.choices;
+      if (d.origin === 'user') authored++;
+      if (!used[d.id]) unused++;
+    });
+    var people = STORY.world.list('npc_', b), covered = people.filter(function (n) { return Array.isArray(ND[n.id]) && ND[n.id].length; }).length;
+    var givers = {}, quests = STORY.records.list('qst_', b).filter(function (q) { return q.giver && (q.kind === 'main' || q.kind === 'side'); });
+    quests.forEach(function (q) { givers[q.id] = !!(b.story.records.dlg_[D.idFor(D.questKey(q.id))] || recs.some(function (d) { return d.qst === q.id; })); });
+    var ex = D.expected(b);
+    return { total: recs.length, byKind: by, nodes: nodes, lines: lines, choices: choices, authored: authored, unused: unused, people: people.length, covered: covered,
+      questsWithGiver: quests.length, questsCovered: Object.keys(givers).filter(function (k) { return givers[k]; }).length, missing: ex.missing, pagesTodo: ex.pagesTodo, expected: ex.total };
+  };
+
+  // ---------------------------------------------------------------- the preview runner's index and state
+  // A copy of the engine's index that also holds one synthetic event per dialogue node, memoized on KIT:CORE's index identity.
+  var pvIdx = { key: null, idx: null };
+  D.playIndex = function (b) {
+    b = b || cur();
+    var key = b === cur() ? Kit.index(b) : null;
+    if (key && pvIdx.key === key) return pvIdx.idx;
+    var idx = ES.dlg.playIndex(STORY.engineIndex(b));
+    if (key) { pvIdx.key = key; pvIdx.idx = idx; }
+    return idx;
+  };
+  // A story state for the previewer: a new game, then the chapter (its gate flag and every earlier one set), and quest stages.
+  // opts {chapter: chp, quests: {qst: stage key or ''}, flags: {flg: int}}.
+  D.previewState = function (b, opts) {
+    b = b || cur();
+    opts = opts || {};
+    var idx = D.playIndex(b), st = ES.state.create(idx, {});
+    var ci = opts.chapter ? idx.chapters.indexOf(opts.chapter) : -1;
+    for (var i = 0; i <= ci; i++) { var f = idx.chapterFlags[idx.chapters[i]]; if (f) st.flags[f] = 1; }
+    Object.keys(opts.flags || {}).sort().forEach(function (f) { if (idx.flags[f]) st.flags[f] = Math.round(Number(opts.flags[f]) || 0); });
+    Object.keys(opts.quests || {}).sort().forEach(function (q) {
+      var def = idx.quests[q], stage = opts.quests[q];
+      if (!def) return;
+      if (stage === 'failed') st.quests[q] = { stage: st.quests[q].stage, failed: true, closed: [] };
+      else if (stage && def.stageAt[stage] !== undefined) st.quests[q] = { stage: stage, failed: false, closed: [] };
+      else st.quests[q] = { stage: null, failed: false, closed: [] };
+    });
+    st.chapter = ES.state.chapterOf(st, idx);
+    return st;
+  };
+
+  // ---------------------------------------------------------------- drafting lines with Claude
+  // The prompt is built here so a test can read it; D.draft sends it. Needs a Claude key (Settings); without one the Dialogue
+  // tab disables the button and says so, the Day 147 pattern.
+  D.cleanLine = function (s) {
+    return String(s === undefined || s === null ? '' : s).replace(/\s*[\u2013\u2014]\s*/g, ', ').replace(/\s+-\s+/g, ', ').replace(/\s+/g, ' ').trim();
+  };
+  D.draftContext = function (rec, nodeKey, b) {
+    b = b || cur();
+    var n = U.isObj(rec.nodes) && rec.nodes[nodeKey] || {}, sp = n.speaker || rec.speaker || '', ed = ES.dlg.edges(rec);
+    var q = rec.qst && b.story.records.qst_[rec.qst];
+    var npcs = D.usedBy(rec.id, b).map(function (u) { return u.name; }).slice(0, 6);
+    var ctx = {
+      charter: Kit.ai.charterSummary(b),
+      dialogue: { name: rec.name, kind: rec.kind || 'custom', role: rec.role || null, chapter: rec.chapter ? chapterName(rec.chapter, b) : null, speaker: sp ? nameOf(sp, sp) : null, peopleWhoSayIt: npcs },
+      node: { key: nodeKey, lines: Array.isArray(n.lines) ? n.lines : [], choices: (Array.isArray(n.choices) ? n.choices : []).map(function (c) { return c && c.text; }), leadsHereFrom: ed.filter(function (e) { return e.to === nodeKey; }).map(function (e) { return e.from + (e.text ? ' (choice: ' + e.text + ')' : ''); }) }
+    };
+    if (q) ctx.quest = { name: q.name, kind: q.kind, notes: q.notes || '', stages: (q.stages || []).map(function (s) { return s.label; }) };
+    return ctx;
+  };
+  D.draftPrompt = function (rec, nodeKey, b, wish) {
+    var system = [
+      'You write dialogue for a classic 16 bit style JRPG, in a tool called Story Forge.',
+      'Stay consistent with the Charter summary: its canon, glossary, tone, and names. Never contradict canon.',
+      'Write what the character says, in their voice, in short lines a text box can show. Each line is one or two sentences, under ' + D.LONG_LINE + ' characters.',
+      'Give each option 1 to 4 lines. Do not use dashes or hyphens as punctuation. Use plain ASCII punctuation.',
+      'Do not change the choices or the story. Only write the lines the character says at this node.',
+      'Return ONLY JSON of the form {"drafts":[{"name":"a short label","lines":["..."]}]} with exactly 3 drafts that differ in tone or content.'
+    ].join(' ');
+    var user = 'Context:\n' + JSON.stringify(D.draftContext(rec, nodeKey, b)) + '\n\nRequest: ' + (trim(wish) || 'Write fresh lines for this node.');
+    return { system: system, user: user };
+  };
+  // Asks Claude for three versions of a node's lines and opens them in Kit.review. Accepting one replaces the node's lines.
+  // Returns the drafts, or null when no key is saved or nothing usable came back.
+  D.draft = async function (id, nodeKey, opts) {
+    opts = opts || {};
+    var b = opts.bundle || cur(), rec = b && b.story.records.dlg_[id];
+    if (!rec || !U.isObj(rec.nodes) || !rec.nodes[nodeKey]) return null;
+    if (!Kit.ai.hasKey()) { Kit.ui.toast(Kit.claude.NO_KEY_MSG, 'warn'); return null; }
+    var p = D.draftPrompt(rec, nodeKey, b, opts.wish);
+    Kit.ui.busy.show('Drafting lines with Claude...');
+    var out;
+    try {
+      out = await Kit.claude({ tier: (b.story.settings && b.story.settings.draftTier) || 'sonnet', system: p.system, messages: [{ role: 'user', content: p.user }], maxTokens: 1500, expectJson: true });
+    } finally { Kit.ui.busy.hide(); }
+    var j = out && out.json, list = Array.isArray(j) ? j : j && Array.isArray(j.drafts) ? j.drafts : [];
+    var drafts = list.filter(U.isObj).map(function (d, i) {
+      var lines = (Array.isArray(d.lines) ? d.lines : []).filter(function (l) { return typeof l === 'string'; }).map(D.cleanLine).filter(Boolean).slice(0, 4);
+      if (!lines.length) return null;
+      var o = { name: D.cleanLine(d.name) || ('Version ' + (i + 1)), kind: 'custom', nodes: {} };
+      o.nodes[nodeKey] = { lines: lines };
+      return o;
+    }).filter(Boolean).slice(0, 3);
+    if (!drafts.length) { Kit.ui.toast('Claude returned no usable lines.', 'warn'); return null; }
+    Kit.review.open(drafts, STORY.TYPES['dlg_'].name, function (rec2) {
+      var lines = rec2 && rec2.nodes && rec2.nodes[nodeKey] && rec2.nodes[nodeKey].lines;
+      var r = Array.isArray(lines) ? D.updateNode(id, nodeKey, { lines: lines }, b) : { ok: false };
+      if (r.ok && typeof opts.onAccept === 'function') opts.onAccept(r);
+      return r.ok;
+    }, { note: 'Accepting a version replaces the lines of this node. Nothing else changes.' });
+    return drafts;
+  };
+})();
+// === STORY:DIALOGUE END ===
 // === WS:FLAGS BEGIN ===
 (function () {
   'use strict';
@@ -6858,6 +7957,580 @@ var ENGINE_STORY = (function () {
   Kit.jump.register({ test: function (rid) { return Kit.ids.prefixOf(rid) === 'qst_'; }, name: function (rid) { return nameOf(rid, rid); }, go: function (rid) { if (!Kit.go('quests')) return false; focus(rid); return true; } });
 })();
 // === WS:QUESTS END ===
+// === WS:DIALOGUE BEGIN ===
+(function () {
+  'use strict';
+  // The Dialogue tab. Two views: Dialogues (every dlg_ record: a node list, a hand built SVG graph, a line editor, and a preview
+  // runner that drives the real engine) and People (the page list that picks which dialogue each townsperson says, by condition).
+  // Logic lives in STORY.dialogue (src/story-dialogue.js) and ENGINE_STORY.dlg; conditions use STORY.condUI (src/ws-cond.js).
+  var U = Kit.util, el = U.el, esc = U.esc, D = STORY.dialogue, ES = ENGINE_STORY, SVGNS = 'http://www.w3.org/2000/svg';
+  function cur() { return Kit.bundle.current(); }
+  function UI() { return STORY.ui; }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  function nameOf(id, fb) { return STORY.nameOf ? STORY.nameOf(id, fb) : (fb || id || ''); }
+  function chName(id) { var c = STORY.chapters().filter(function (x) { return x.id === id; })[0]; return c ? c.name || id : id; }
+  function clone(v) { return v === undefined ? v : JSON.parse(JSON.stringify(v)); }
+  function cut(s, n) { s = String(s || ''); return s.length > n ? s.slice(0, n - 3) + '...' : s; }
+  var st = STORY.dialogueUi = { view: 'dialogues', filter: 'all', open: {}, node: {}, focus: null, people: '', pOpen: {}, pv: { chapter: '', quests: {}, from: 'start', log: [], run: null } };
+  var FILTERS = [['all', 'All'], ['quest', 'Quests'], ['role', 'Greetings'], ['custom', 'Yours']];
+
+  function redraw() {
+    var host = document.getElementById('ws'), top = host ? host.scrollTop : 0, win = window.pageYOffset || 0;
+    Kit.rerender();
+    var h2 = document.getElementById('ws');
+    if (h2) h2.scrollTop = top;
+    if (win > 0) window.scrollTo(0, win);
+  }
+  function problemText(res) { return (res.problems || []).map(function (p) { return p.message; }).join(' ') || res.message || 'That change was not saved.'; }
+  function done(res, ok) { if (!res.ok) { Kit.ui.toast(problemText(res), 'warn', 5000); return false; } if (ok) Kit.ui.toast(ok, 'ok'); return true; }
+  function field(label, input, help) {
+    var f = el('div', 'field'), l = el('label', 'field-label', esc(label));
+    f.appendChild(l); f.appendChild(input);
+    if (help) f.appendChild(el('div', 'field-help', esc(help)));
+    return f;
+  }
+  function textInput(value, label, max) {
+    var i = el('input', 'inp'); i.type = 'text'; i.value = value || ''; i.maxLength = max || 160; i.setAttribute('aria-label', label);
+    return i;
+  }
+  function selectOf(options, value, label) {
+    var s = el('select', 'inp'); s.setAttribute('aria-label', label);
+    options.forEach(function (o) { var op = el('option', null, esc(o[1])); op.value = o[0]; s.appendChild(op); });
+    s.value = value;
+    return s;
+  }
+  function pickBtn(label, id, empty, prefix, title, onPick) {
+    var b = el('button', 'btn dg-pick' + (id ? '' : ' dg-empty'), esc(id ? nameOf(id, id) : empty)); b.type = 'button';
+    b.addEventListener('click', function () { Kit.ui.pickRef({ prefix: prefix, title: title, current: id }).then(function (v) { if (v) { onPick(v); b.textContent = nameOf(v, v); b.classList.remove('dg-empty'); } }); });
+    b.setAttribute('aria-label', label);
+    return b;
+  }
+  // Commits a text field when it loses focus or Enter is pressed, and only when the value changed.
+  function onCommit(inp, was, fn) {
+    var last = was;
+    function go() { if (inp.value !== last) { last = inp.value; fn(inp.value); } }
+    inp.addEventListener('change', go);
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && inp.tagName !== 'TEXTAREA') { e.preventDefault(); go(); } });
+  }
+
+  // ---------------------------------------------------------------- the node graph
+  function s(tag, attrs, text) {
+    var n = document.createElementNS(SVGNS, tag);
+    Object.keys(attrs || {}).forEach(function (k) { n.setAttribute(k, String(attrs[k])); });
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+  var NW = 150, NH = 54, GX = 40, GY = 34, PAD = 16;
+  // Layers by breadth first distance from start; unreachable nodes go in a last row. Returns {pos {key: {x, y}}, w, h}.
+  function layout(rec) {
+    var keys = Object.keys(rec.nodes || {}).sort(), edges = ES.dlg.edges(rec), depth = {}, q = [], pos = {};
+    if (rec.nodes && rec.nodes[rec.start]) { depth[rec.start] = 0; q.push(rec.start); }
+    var from = {};
+    edges.forEach(function (e) { (from[e.from] = from[e.from] || []).push(e.to); });
+    while (q.length) { var k = q.shift(); (from[k] || []).forEach(function (t) { if (depth[t] === undefined && rec.nodes[t]) { depth[t] = depth[k] + 1; q.push(t); } }); }
+    var maxD = 0; Object.keys(depth).forEach(function (k) { if (depth[k] > maxD) maxD = depth[k]; });
+    keys.forEach(function (k) { if (depth[k] === undefined) depth[k] = maxD + 1; });
+    var cols = {}; keys.forEach(function (k) { (cols[depth[k]] = cols[depth[k]] || []).push(k); });
+    var w = PAD, h = PAD, tall = 0;
+    Object.keys(cols).forEach(function (d) {
+      cols[d].forEach(function (k, i) { pos[k] = { x: PAD + Number(d) * (NW + GX), y: PAD + i * (NH + GY) }; });
+      tall = Math.max(tall, cols[d].length);
+      w = Math.max(w, PAD + (Number(d) + 1) * (NW + GX));
+    });
+    h = PAD * 2 + tall * (NH + GY) - GY;
+    return { pos: pos, w: Math.max(w, 200), h: Math.max(h, NH + PAD * 2) };
+  }
+  function graph(rec, selKey, onPick) {
+    var L = layout(rec), svg = s('svg', { 'class': 'dg-svg', width: L.w, height: L.h, viewBox: '0 0 ' + L.w + ' ' + L.h, role: 'img', 'aria-label': 'Graph of ' + (rec.name || 'dialogue') + ' with ' + plural(Object.keys(rec.nodes || {}).length, 'node') });
+    var defs = s('defs'), mk = s('marker', { id: 'dgA', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
+    mk.appendChild(s('path', { d: 'M0 0L10 5L0 10z', 'class': 'dg-arrow' })); defs.appendChild(mk); svg.appendChild(defs);
+    var reach = ES.dlg.reach(rec), dead = {}; reach.unreachable.forEach(function (k) { dead[k] = 1; });
+    ES.dlg.edges(rec).forEach(function (e) {
+      var a = L.pos[e.from], z = L.pos[e.to];
+      if (!a || !z) return;
+      var x1 = a.x + NW, y1 = a.y + NH / 2, x2 = z.x, y2 = z.y + NH / 2, back = z.x <= a.x;
+      var d;
+      if (e.from === e.to) d = 'M' + (a.x + NW - 10) + ' ' + a.y + ' C' + (a.x + NW - 10) + ' ' + (a.y - 22) + ' ' + (a.x + 10) + ' ' + (a.y - 22) + ' ' + (a.x + 10) + ' ' + a.y;
+      else if (back) { var my = Math.max(a.y, z.y) + NH + 14; d = 'M' + (a.x + NW / 2) + ' ' + (a.y + NH) + ' C' + (a.x + NW / 2) + ' ' + my + ' ' + (z.x + NW / 2) + ' ' + my + ' ' + (z.x + NW / 2) + ' ' + (z.y + NH); }
+      else { var mx = (x1 + x2) / 2; d = 'M' + x1 + ' ' + y1 + ' C' + mx + ' ' + y1 + ' ' + mx + ' ' + y2 + ' ' + x2 + ' ' + y2; }
+      svg.appendChild(s('path', { d: d, 'class': 'dg-edge' + (e.kind === 'choice' ? ' dg-edge-choice' : ''), 'marker-end': 'url(#dgA)' }));
+    });
+    Object.keys(L.pos).forEach(function (k) {
+      var p = L.pos[k], n = rec.nodes[k] || {}, g = s('g', { 'class': 'dg-node' + (k === selKey ? ' sel' : '') + (dead[k] ? ' dead' : ''), tabindex: 0, role: 'button', 'aria-label': 'Node ' + k + (k === rec.start ? ', start' : '') + (dead[k] ? ', unreachable' : '') });
+      g.appendChild(s('rect', { x: p.x, y: p.y, width: NW, height: NH, rx: 8, 'class': 'dg-box' }));
+      g.appendChild(s('text', { x: p.x + 10, y: p.y + 18, 'class': 'dg-key' }, (k === rec.start ? '> ' : '') + cut(k, 20)));
+      g.appendChild(s('text', { x: p.x + 10, y: p.y + 34, 'class': 'dg-line' }, cut(Array.isArray(n.lines) && n.lines.length ? n.lines[0] : '(no lines)', 22)));
+      var tail = Array.isArray(n.choices) && n.choices.length ? plural(n.choices.length, 'choice') : n.next ? 'next: ' + cut(n.next, 14) : 'ends';
+      g.appendChild(s('text', { x: p.x + 10, y: p.y + 48, 'class': 'dg-tail' }, tail));
+      function pick() { onPick(k); }
+      g.addEventListener('click', pick);
+      g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+      svg.appendChild(g);
+    });
+    var sc = el('div', 'dg-scroll'); sc.appendChild(svg);
+    return sc;
+  }
+
+  // ---------------------------------------------------------------- effects (the commands on a node or choice)
+  var OPS = [['setFlag', 'Set a flag'], ['addFlag', 'Add to a flag'], ['giveItem', 'Give an item'], ['takeItem', 'Take an item'], ['gil', 'Gil'], ['questStage', 'Quest stage'], ['party', 'Party member']];
+  var EDITABLE = {}; OPS.forEach(function (o) { EDITABLE[o[0]] = 1; });
+  function cmdText(c) {
+    if (!U.isObj(c)) return 'Unreadable command';
+    switch (c.op) {
+      case 'setFlag': return 'Set ' + nameOf(c.flg, c.flg || '?') + ' to ' + (c.value === undefined ? 1 : c.value);
+      case 'addFlag': return 'Add ' + (c.by === undefined ? 1 : c.by) + ' to ' + nameOf(c.flg, c.flg || '?');
+      case 'giveItem': return 'Give ' + (c.qty || 1) + ' ' + nameOf(c.itm, c.itm || '?');
+      case 'takeItem': return 'Take ' + (c.qty || 1) + ' ' + nameOf(c.itm, c.itm || '?');
+      case 'gil': return (c.by < 0 ? 'Take ' + (-c.by) : 'Give ' + c.by) + ' gil';
+      case 'questStage': return c.fail ? 'Fail ' + nameOf(c.qst, c.qst || '?') : c.stage !== undefined ? nameOf(c.qst, c.qst || '?') + ' moves to stage ' + c.stage : nameOf(c.qst, c.qst || '?') + ' branch ' + c.branch;
+      case 'party': return nameOf(c.chr, c.chr || '?') + (c.act === 'leave' ? ' leaves the party' : ' joins the party');
+      default: return 'Command ' + c.op + ' (edit it in Events, Phase 5)';
+    }
+  }
+  function newCmd(op, pick) {
+    switch (op) {
+      case 'setFlag': return { op: op, flg: pick.ref, value: Math.round(Number(pick.num)) || 1 };
+      case 'addFlag': return { op: op, flg: pick.ref, by: Math.round(Number(pick.num)) || 1 };
+      case 'giveItem': case 'takeItem': return { op: op, itm: pick.ref, qty: Math.max(1, Math.round(Number(pick.num)) || 1) };
+      case 'gil': return { op: op, by: Math.round(Number(pick.num)) || 100 };
+      case 'questStage': return { op: op, qst: pick.ref, stage: pick.stage };
+      case 'party': return { op: op, chr: pick.ref, act: pick.act || 'join' };
+    }
+    return null;
+  }
+  var PFX = { setFlag: 'flg_', addFlag: 'flg_', giveItem: ['itm_', 'eqp_'], takeItem: ['itm_', 'eqp_'], questStage: 'qst_', party: 'chr_' };
+  function addCmdForm(host, onAdd) {
+    var op = selectOf(OPS, 'setFlag', 'Kind of effect'), box = el('div', 'dg-addrow'), pick = { ref: null, num: 1, stage: null, act: 'join' };
+    function paint() {
+      U.clear(box);
+      var o = op.value;
+      if (PFX[o]) {
+        box.appendChild(pickBtn('Choose', pick.ref, 'Choose...', PFX[o], 'Choose', function (v) { pick.ref = v; pick.stage = null; if (o === 'questStage') paint(); }));
+      }
+      if (o === 'questStage' && pick.ref) {
+        var def = STORY.records.get ? STORY.records.get(pick.ref) : null, stages = def && Array.isArray(def.stages) ? def.stages : [];
+        var sel = selectOf(stages.map(function (x) { return [x.key, x.label || x.key]; }), pick.stage || (stages[0] && stages[0].key) || '', 'Stage');
+        pick.stage = sel.value; sel.addEventListener('change', function () { pick.stage = sel.value; });
+        box.appendChild(sel);
+      }
+      if (o === 'party') { var a = selectOf([['join', 'Joins'], ['leave', 'Leaves']], pick.act, 'Joins or leaves'); a.addEventListener('change', function () { pick.act = a.value; }); box.appendChild(a); }
+      if (o === 'setFlag' || o === 'addFlag' || o === 'giveItem' || o === 'takeItem' || o === 'gil') {
+        var n = el('input', 'inp dg-num'); n.type = 'number'; n.value = pick.num; n.setAttribute('aria-label', 'Amount'); n.addEventListener('input', function () { pick.num = n.value; });
+        box.appendChild(n);
+      }
+      box.appendChild(UI().button('Add', 'plus', '', function () {
+        if (PFX[o] && !pick.ref) { Kit.ui.toast('Choose what the effect applies to first.', 'warn'); return; }
+        var c = newCmd(o, pick); if (c) onAdd(c);
+      }));
+    }
+    op.addEventListener('change', function () { pick.ref = null; pick.stage = null; paint(); });
+    host.appendChild(op); host.appendChild(box); paint();
+  }
+  // A list of commands: each shown as a sentence with remove and move. Commands the tab cannot edit stay as they are.
+  function cmdList(cmds, onChange) {
+    var wrap = el('div', 'dg-cmds'), list = Array.isArray(cmds) ? cmds : [];
+    if (!list.length) wrap.appendChild(el('p', 'muted dg-none', 'No effects.'));
+    list.forEach(function (c, i) {
+      var row = el('div', 'dg-cmd'), t = el('span', 'dg-cmd-t' + (U.isObj(c) && EDITABLE[c.op] ? '' : ' muted'), esc(cmdText(c)));
+      row.appendChild(t);
+      var bar = el('span', 'dg-cmd-b');
+      [['Up', -1], ['Down', 1]].forEach(function (m) {
+        var b = el('button', 'btn btn-ghost dg-mini', esc(m[0])); b.type = 'button'; b.disabled = i + m[1] < 0 || i + m[1] >= list.length;
+        b.setAttribute('aria-label', 'Move effect ' + m[0].toLowerCase());
+        b.addEventListener('click', function () { var n = clone(list), t2 = n[i]; n[i] = n[i + m[1]]; n[i + m[1]] = t2; onChange(n); });
+        bar.appendChild(b);
+      });
+      var rm = el('button', 'btn btn-ghost dg-mini', 'Remove'); rm.type = 'button'; rm.setAttribute('aria-label', 'Remove effect');
+      rm.addEventListener('click', function () { var n = clone(list); n.splice(i, 1); onChange(n); });
+      bar.appendChild(rm); row.appendChild(bar); wrap.appendChild(row);
+    });
+    var add = el('details', 'dg-add'); add.appendChild(el('summary', null, 'Add an effect'));
+    var inner = el('div', 'dg-add-in'); add.appendChild(inner);
+    addCmdForm(inner, function (c) { var n = clone(list); n.push(c); onChange(n); });
+    wrap.appendChild(add);
+    return wrap;
+  }
+
+  // ---------------------------------------------------------------- the node editor
+  function nodeOptions(rec, withNone) {
+    var o = withNone ? [['', 'Ends here']] : [];
+    Object.keys(rec.nodes || {}).sort().forEach(function (k) { o.push([k, k]); });
+    return o;
+  }
+  function speakerRow(rec, key, n) {
+    var row = el('div', 'dg-pickrow');
+    row.appendChild(pickBtn('Speaker of this node', n.speaker && /^[a-z]{3}_/.test(n.speaker) ? n.speaker : '', n.speaker && !/^[a-z]{3}_/.test(n.speaker) ? n.speaker : (rec.speaker ? 'Dialogue speaker' : 'The person talked to'), ['chr_', 'npc_'], 'Who speaks', function (v) { done(D.updateNode(rec.id, key, { speaker: v }), null); }));
+    if (n.speaker) row.appendChild(UI().button('Use default', null, 'btn-ghost', function () { if (done(D.updateNode(rec.id, key, { speaker: null }))) redraw(); }));
+    return row;
+  }
+  function nodeEditor(rec, key) {
+    var n = rec.nodes[key], box = el('div', 'dg-edit');
+    var head = el('div', 'dg-edit-h'); head.appendChild(el('h4', 'dg-edit-t', 'Node ' + esc(key) + (rec.start === key ? ' (start)' : '')));
+    box.appendChild(head);
+    var kb = el('div', 'btn-row');
+    kb.appendChild(UI().button('Rename', 'edit', 'btn-ghost', function () {
+      Kit.ui.prompt({ title: 'Rename node', label: 'Node key', value: key, okLabel: 'Rename', validate: function (v) { return D.KEY_RE.test(v.trim()) ? null : 'Lowercase letters, digits, and underscores, starting with a letter.'; } }).then(function (v) {
+        if (v === null || v === undefined) return;
+        var r = D.renameNode(rec.id, key, v.trim()); if (done(r)) { st.node[rec.id] = v.trim(); redraw(); }
+      });
+    }));
+    if (rec.start !== key) kb.appendChild(UI().button('Make start', null, 'btn-ghost', function () { if (done(D.setStart(rec.id, key))) redraw(); }));
+    if (rec.start !== key) kb.appendChild(UI().button('Delete node', 'trash', 'btn-danger', function () {
+      Kit.ui.confirm({ title: 'Delete node ' + key + '?', okLabel: 'Delete node', message: 'Links that led here are cut.' }).then(function (ok) { if (!ok) return; var r = D.removeNode(rec.id, key); if (done(r)) { st.node[rec.id] = rec.start; redraw(); } });
+    }));
+    box.appendChild(kb);
+    box.appendChild(field('Speaker', speakerRow(rec, key, n), 'Left alone, the node uses the dialogue speaker, or the person being talked to.'));
+    var ta = el('textarea', 'inp dg-lines'); ta.rows = Math.max(3, (n.lines || []).length + 1); ta.value = (n.lines || []).join('\n'); ta.setAttribute('aria-label', 'Lines');
+    onCommit(ta, ta.value, function (v) { var lines = v.split('\n').map(function (l) { return l.trim(); }).filter(Boolean); if (done(D.updateNode(rec.id, key, { lines: lines }))) redraw(); });
+    var lf = field('Lines (one text box each)', ta, 'Keep a line under ' + D.LONG_LINE + ' characters so it fits the box.');
+    var dr = UI().button('Draft with Claude', 'spark', 'btn-ghost', function () { D.draft(rec.id, key, { onAccept: redraw }); });
+    if (!Kit.ai.hasKey()) { dr.disabled = true; dr.title = 'Add your Claude API key in Settings to draft lines.'; }
+    lf.appendChild(dr);
+    if (!Kit.ai.hasKey()) lf.appendChild(el('div', 'field-help', 'Drafting needs a Claude API key. Add one in Settings.'));
+    box.appendChild(lf);
+    var pr = textInput(n.prompt || '', 'Prompt shown above the choices', 160); onCommit(pr, pr.value, function (v) { if (done(D.updateNode(rec.id, key, { prompt: v.trim() || null }))) redraw(); });
+    var hasCh = Array.isArray(n.choices) && n.choices.length;
+    if (hasCh) box.appendChild(field('Question above the choices', pr));
+    box.appendChild(el('h5', 'dg-sub', 'Effects when the node runs'));
+    box.appendChild(cmdList(n.cmds, function (c) { if (done(D.updateNode(rec.id, key, { cmds: c }))) redraw(); }));
+    box.appendChild(el('h5', 'dg-sub', 'What comes next'));
+    var mode = selectOf([['end', 'Ends here'], ['next', 'Goes to another node'], ['choices', 'Offers choices']], hasCh ? 'choices' : n.next ? 'next' : 'end', 'What comes next');
+    mode.addEventListener('change', function () {
+      var r;
+      if (mode.value === 'end') r = D.updateNode(rec.id, key, { next: null, choices: [] });
+      else if (mode.value === 'next') { var o = nodeOptions(rec).filter(function (x) { return x[0] !== key; })[0]; r = o ? D.updateNode(rec.id, key, { next: o[0], choices: [] }) : { ok: false, message: 'Add another node first.' }; }
+      else r = D.addChoice(rec.id, key, { text: 'Continue' });
+      if (done(r)) redraw(); else mode.value = hasCh ? 'choices' : n.next ? 'next' : 'end';
+    });
+    box.appendChild(mode);
+    if (n.next && !hasCh) {
+      var ns = selectOf(nodeOptions(rec), n.next, 'Next node'); ns.addEventListener('change', function () { if (done(D.updateNode(rec.id, key, { next: ns.value }))) redraw(); });
+      box.appendChild(field('Next node', ns));
+    }
+    if (hasCh) {
+      n.choices.forEach(function (c, i) {
+        var cb = el('div', 'dg-choice'), top = el('div', 'dg-choice-h', 'Choice ' + (i + 1));
+        cb.appendChild(top);
+        var tx = textInput(c.text || '', 'Choice text', 80); onCommit(tx, tx.value, function (v) { if (done(D.updateChoice(rec.id, key, i, { text: v.trim() || 'A choice' }))) redraw(); });
+        cb.appendChild(field('Text', tx));
+        var nx = selectOf(nodeOptions(rec, true), c.next || '', 'Where this choice leads'); nx.addEventListener('change', function () { if (done(D.updateChoice(rec.id, key, i, { next: nx.value || null }))) redraw(); });
+        cb.appendChild(field('Leads to', nx));
+        var ch = el('div', 'dg-cond'); cb.appendChild(field('Only shown when', ch, 'No condition means the choice always shows.'));
+        STORY.condUI.mount(ch, c.cond === undefined ? null : c.cond, function (t) { var r = D.updateChoice(rec.id, key, i, { cond: t === null ? null : t }); if (!r.ok) done(r); }, { nullable: true, emptyText: 'Always shown.', addLabel: 'Add a condition' });
+        cb.appendChild(el('h5', 'dg-sub', 'Effects when chosen'));
+        cb.appendChild(cmdList(c.cmds, function (cm) { if (done(D.updateChoice(rec.id, key, i, { cmds: cm }))) redraw(); }));
+        var rb = el('div', 'btn-row');
+        rb.appendChild(UI().button('Move up', null, 'btn-ghost', function () { if (done(D.moveChoice(rec.id, key, i, -1))) redraw(); }));
+        rb.appendChild(UI().button('Move down', null, 'btn-ghost', function () { if (done(D.moveChoice(rec.id, key, i, 1))) redraw(); }));
+        rb.appendChild(UI().button('Remove choice', 'trash', 'btn-danger', function () { if (done(D.removeChoice(rec.id, key, i))) redraw(); }));
+        cb.appendChild(rb);
+        box.appendChild(cb);
+      });
+      box.appendChild(UI().button('Add a choice', 'plus', '', function () { if (done(D.addChoice(rec.id, key, { text: 'Another choice' }))) redraw(); }));
+    }
+    return box;
+  }
+
+  // ---------------------------------------------------------------- the preview runner
+  function chapterOptions() { return [['', 'Start of the game']].concat(STORY.chapters().map(function (c) { return [c.id, c.name || c.id]; })); }
+  function pvOpts() { var o = { chapter: st.pv.chapter || null, quests: {} }; Object.keys(st.pv.quests).forEach(function (q) { o.quests[q] = st.pv.quests[q]; }); return o; }
+  function effectLine(e) {
+    if (!e) return null;
+    switch (e.kind) {
+      case 'text': return { cls: 'say', who: e.speaker ? nameOf(e.speaker, e.speaker) : '', text: (e.lines || []).join(' ') };
+      case 'questStage': return { cls: 'fx', text: e.fail ? 'Quest failed: ' + nameOf(e.qst, e.qst) : 'Quest ' + nameOf(e.qst, e.qst) + (e.label ? ' now at ' + e.label : '') + (e.changed ? '' : ' (no change)') };
+      case 'gil': return { cls: 'fx', text: 'Gil ' + (e.by >= 0 ? '+' : '') + e.by };
+      case 'party': return { cls: 'fx', text: nameOf(e.chr, e.chr) + (e.act === 'leave' ? ' left the party' : ' joined the party') };
+      case 'item': case 'giveItem': case 'takeItem': return { cls: 'fx', text: (e.kind === 'takeItem' ? 'Lost ' : 'Got ') + (e.qty || 1) + ' ' + nameOf(e.itm, e.itm || 'an item') };
+      case 'error': return { cls: 'err', text: 'Error: ' + (e.message || e.code) };
+      case 'end': return { cls: 'fx', text: 'End of conversation.' + (Array.isArray(e.quests) && e.quests.length ? ' Quests settled: ' + e.quests.length : '') };
+      case 'none': return { cls: 'fx', text: 'Nothing to say yet: no page passes for this person right now.' };
+      case 'idle': return null;
+      default: return { cls: 'fx', text: 'Effect: ' + e.kind };
+    }
+  }
+  // Runs from a result r until it needs the reader (a choice), appending to the log.
+  function advance(r, idx) {
+    var pv = st.pv;
+    for (var n = 0; n < 400; n++) {
+      var ln = effectLine(r.effect); if (ln) pv.log.push(ln);
+      pv.run = { state: r.state, cursor: r.cursor, idx: idx, waiting: r.waiting, options: r.waiting === 'choice' && r.effect ? r.effect.options : null, prompt: r.effect && r.effect.prompt, done: !!r.done };
+      if (r.done) return;
+      if (r.waiting === 'choice') return;
+      if (r.waiting === 'battle') { pv.log.push({ cls: 'fx', text: 'A battle starts here (not played in the previewer).' }); pv.run.done = true; return; }
+      r = ES.dlg.step(r.state, r.cursor, idx);
+    }
+    pv.log.push({ cls: 'err', text: 'Stopped after 400 steps.' }); pv.run.done = true;
+  }
+  function startPreview(dlgId, node) {
+    var pv = st.pv, b = cur(), idx = D.playIndex(b), state = D.previewState(b, pvOpts());
+    pv.log = []; pv.run = null;
+    advance(ES.dlg.begin(state, dlgId, idx, node ? { node: node } : null), idx);
+  }
+  function talkPreview(npc) {
+    var pv = st.pv, b = cur(), idx = D.playIndex(b), state = D.previewState(b, pvOpts());
+    pv.log = []; pv.run = null;
+    var r = ES.dlg.talk(state, npc, idx);
+    if (r.page >= 0) pv.log.push({ cls: 'fx', text: 'Page ' + (r.page + 1) + ' was picked.' });
+    advance(r, idx);
+  }
+  function previewPanel(host, subject) {
+    var pv = st.pv, b = cur(), box = el('div', 'dg-pv');
+    box.appendChild(el('h4', 'dg-edit-t', 'Preview'));
+    var row = el('div', 'dg-pvrow');
+    var ch = selectOf(chapterOptions(), pv.chapter, 'Chapter to preview in'); ch.addEventListener('change', function () { pv.chapter = ch.value; });
+    row.appendChild(field('Chapter', ch));
+    var qs = STORY.records.list('qst_', b).filter(function (q) { return Array.isArray(q.stages) && q.stages.length && (!subject.qst || q.id === subject.qst); });
+    qs.forEach(function (q) {
+      var opts = [['', 'Not started']].concat(q.stages.map(function (x) { return [x.key, x.label || x.key]; })).concat([['failed', 'Failed']]);
+      var sel = selectOf(opts, pv.quests[q.id] || '', 'Stage of ' + q.name); sel.addEventListener('change', function () { pv.quests[q.id] = sel.value; });
+      row.appendChild(field(q.name, sel));
+    });
+    box.appendChild(row);
+    var bar = el('div', 'btn-row');
+    subject.starts.forEach(function (s0) { bar.appendChild(UI().button(s0.label, 'play', s0.primary ? 'btn-primary' : '', function () { s0.go(); paintLog(); })); });
+    box.appendChild(bar);
+    var log = el('div', 'dg-log'); log.setAttribute('role', 'log'); log.setAttribute('aria-live', 'polite');
+    box.appendChild(log);
+    function paintLog() {
+      U.clear(log);
+      if (!pv.log.length) { log.appendChild(el('p', 'muted dg-none', 'Press a button to run the conversation through the real engine.')); return; }
+      pv.log.forEach(function (l) { log.appendChild(el('p', 'dg-l dg-l-' + l.cls, (l.who ? '<strong>' + esc(l.who) + ':</strong> ' : '') + esc(l.text))); });
+      var run = pv.run;
+      if (run && !run.done && run.waiting === 'choice' && run.options) {
+        if (run.prompt) log.appendChild(el('p', 'dg-l dg-l-fx', esc(run.prompt)));
+        var cb = el('div', 'dg-opts');
+        run.options.forEach(function (o) {
+          var b2 = el('button', 'btn dg-opt', esc(o.text)); b2.type = 'button';
+          b2.addEventListener('click', function () { pv.log.push({ cls: 'pick', text: '> ' + o.text }); advance(ES.dlg.choose(run.state, run.cursor, o.index, run.idx), run.idx); paintLog(); });
+          cb.appendChild(b2);
+        });
+        log.appendChild(cb);
+      } else if (run && !run.done && run.waiting !== 'choice') {
+        log.appendChild(UI().button('Continue', 'play', '', function () { advance(ES.dlg.step(run.state, run.cursor, run.idx), run.idx); paintLog(); }));
+      }
+    }
+    paintLog();
+    host.appendChild(box);
+    return paintLog;
+  }
+
+  // ---------------------------------------------------------------- one dialogue
+  function dialogueSettings(rec) {
+    var body = el('div'), nm = textInput(rec.name, 'Name', 120), sp = el('div'), kb = el('div');
+    var spv = rec.speaker || '';
+    sp.appendChild(pickBtn('Default speaker', /^[a-z]{3}_/.test(spv) ? spv : '', spv && !/^[a-z]{3}_/.test(spv) ? spv : 'The person talked to', ['chr_', 'npc_'], 'Default speaker', function (v) { spv = v; }));
+    var pv = rec.por || ''; kb.appendChild(pickBtn('Default portrait', pv, 'No portrait', 'por_', 'Default portrait', function (v) { pv = v; }));
+    var chs = selectOf([['', 'Any chapter']].concat(STORY.chapters().map(function (c) { return [c.id, c.name || c.id]; })), rec.chapter || '', 'Chapter');
+    body.appendChild(field('Name', nm)); body.appendChild(field('Default speaker', sp)); body.appendChild(field('Default portrait', kb)); body.appendChild(field('Chapter', chs));
+    var msg = el('div', 'field-msg');
+    body.appendChild(msg);
+    Kit.ui.dialog({ title: 'Dialogue settings', body: body, actions: [
+      { label: 'Cancel', kind: 'ghost', value: null },
+      { label: 'Save', kind: 'primary', onClick: function () {
+        var r = D.update(rec.id, { name: nm.value, speaker: spv, por: pv, chapter: chs.value || null });
+        if (!r.ok) { msg.innerHTML = '<span class="msg msg-error">' + esc(problemText(r)) + '</span>'; return false; }
+        Kit.ui.toast('Dialogue saved.', 'ok');
+        redraw();
+      } }] });
+  }
+  function fillDialogue(body, rec, b) {
+    var users = D.usedBy(rec.id, b), sel = st.node[rec.id];
+    if (!rec.nodes || !rec.nodes[sel]) sel = st.node[rec.id] = rec.start && rec.nodes && rec.nodes[rec.start] ? rec.start : Object.keys(rec.nodes || {}).sort()[0];
+    var kvp = [['ID', '<code class="id">' + esc(rec.id) + '</code>']];
+    if (rec.speaker) kvp.push(['Speaker', esc(nameOf(rec.speaker, rec.speaker))]);
+    if (rec.qst) kvp.push(['Quest', esc(nameOf(rec.qst, rec.qst))]);
+    kvp.push(['Said by', users.length ? esc(users.slice(0, 6).map(function (u) { return u.name; }).join(', ')) + (users.length > 6 ? esc(' and ' + (users.length - 6) + ' more') : '') : '<span class="muted">nobody yet</span>']);
+    body.appendChild(el('div', null, UI().kv(kvp)));
+    if (rec.notes) body.appendChild(el('p', 'muted dg-notes', esc(rec.notes)));
+    var probs = D.check(rec, b).filter(function (p) { return p.level === 'error' || p.level === 'warning'; });
+    if (probs.length) { var pl = el('ul', 'dg-probs'); probs.slice(0, 6).forEach(function (p) { pl.appendChild(el('li', p.level === 'error' ? 'dg-err' : 'dg-warn', esc(p.message))); }); body.appendChild(pl); }
+    var nk = Object.keys(rec.nodes || {}).sort(), chips = el('div', 'fg-filter dg-nodes');
+    nk.forEach(function (k) {
+      var bt = el('button', 'btn', esc(k + (k === rec.start ? ' (start)' : ''))); bt.type = 'button'; bt.setAttribute('aria-pressed', k === sel ? 'true' : 'false');
+      bt.addEventListener('click', function () { st.node[rec.id] = k; redraw(); });
+      chips.appendChild(bt);
+    });
+    var addn = el('button', 'btn btn-ghost', '+ Node'); addn.type = 'button'; addn.setAttribute('aria-label', 'Add a node');
+    addn.addEventListener('click', function () { var r = D.addNode(rec.id, {}); if (done(r)) { st.node[rec.id] = r.key; redraw(); } });
+    chips.appendChild(addn);
+    body.appendChild(chips);
+    if (nk.length) body.appendChild(graph(rec, sel, function (k) { st.node[rec.id] = k; redraw(); }));
+    if (sel) body.appendChild(nodeEditor(rec, sel));
+    previewPanel(body, { qst: rec.qst, starts: [
+      { label: 'Run from the start', primary: true, go: function () { startPreview(rec.id, null); } },
+      { label: 'Run from node ' + (sel || ''), go: function () { startPreview(rec.id, sel); } }] });
+    var acts = el('div', 'btn-row fg-bacts');
+    acts.appendChild(UI().button('Settings', 'edit', '', function () { dialogueSettings(rec); }));
+    if (rec.origin === 'generated') acts.appendChild(UI().button('Reset to generated', null, 'btn-ghost', function () {
+      Kit.ui.confirm({ title: 'Reset this dialogue?', okLabel: 'Reset dialogue', message: 'Your edits to "' + rec.name + '" are replaced by what the world asks for.' }).then(function (ok) { if (!ok) return; var r = D.reset(rec.id); if (r.ok) { Kit.ui.toast('Dialogue reset.', 'ok'); redraw(); } else Kit.ui.toast(r.message, 'warn'); });
+    }));
+    acts.appendChild(UI().button('Delete', 'trash', 'btn-danger', function () {
+      Kit.ui.confirm({ title: 'Delete ' + rec.name + '?', okLabel: 'Delete dialogue', message: users.length ? 'The ' + plural(users.length, 'page') + ' that open it are removed too.' : 'Nothing opens it.' }).then(function (ok) { if (!ok) return; if (D.remove(rec.id).ok) { Kit.ui.toast('Dialogue deleted.', 'ok'); redraw(); } });
+    }));
+    body.appendChild(acts);
+  }
+  function dialogueItem(rec, b) {
+    var wrap = el('div', 'fg-item dg-item'), open = !!st.open[rec.id], stt = D.stats(rec);
+    wrap.dataset.dlg = rec.id;
+    var meta = UI().chip('chip-accent', D.KIND_LABEL[rec.kind] || 'Yours') + (rec.chapter ? ' ' + UI().chip('chip-muted', chName(rec.chapter)) : '') + ' ' + UI().chip('chip-muted', plural(stt.nodes, 'node')) + ' ' + UI().chip('chip-muted', plural(stt.lines, 'line')) + (rec.origin === 'user' ? ' ' + UI().chip('chip-muted', 'yours') : '');
+    var head = el('button', 'btn fg-head', '<span class="fg-name">' + esc(rec.name) + '</span><span class="fg-meta">' + meta + '</span>');
+    head.type = 'button'; head.setAttribute('aria-expanded', open ? 'true' : 'false');
+    var body = el('div', 'fg-body'); body.hidden = !open;
+    if (open) fillDialogue(body, rec, b);
+    head.addEventListener('click', function () {
+      st.open[rec.id] = body.hidden;
+      if (body.hidden && !body.firstChild) fillDialogue(body, rec, b);
+      body.hidden = !body.hidden; head.setAttribute('aria-expanded', body.hidden ? 'false' : 'true');
+    });
+    wrap.appendChild(head); wrap.appendChild(body);
+    return wrap;
+  }
+
+  // ---------------------------------------------------------------- people
+  function dlgOptions(b) { return [['', 'Choose a dialogue']].concat(D.list(b).map(function (d) { return [d.id, d.name]; })); }
+  function pageEditor(npc, p, i, total, b) {
+    var box = el('div', 'dg-page'), gen = U.isObj(p) && p.origin === 'generated';
+    box.appendChild(el('div', 'dg-page-h', 'Page ' + (i + 1) + (gen ? ' ' + UI().chip('chip-muted', 'generated') : ' ' + UI().chip('chip-accent', 'yours')) + (i === total - 1 ? ' ' + UI().chip('chip-muted', 'wins when it passes') : '')));
+    var ds = selectOf(dlgOptions(b), p.dlg || '', 'Dialogue for page ' + (i + 1));
+    ds.addEventListener('change', function () { if (done(D.updatePage(npc, i, { dlg: ds.value || null, node: null }))) redraw(); });
+    box.appendChild(field('Says', ds));
+    var rec = b.story.records.dlg_[p.dlg], nodes = rec && rec.nodes ? Object.keys(rec.nodes).sort() : [];
+    if (nodes.length) {
+      var ns = selectOf([['', 'The start']].concat(nodes.map(function (k) { return [k, k]; })), p.node || '', 'Opens at');
+      ns.addEventListener('change', function () { if (done(D.updatePage(npc, i, { node: ns.value || null }))) redraw(); });
+      box.appendChild(field('Opens at', ns));
+    }
+    var ch = el('div', 'dg-cond'); box.appendChild(field('Shown when', ch, 'The rightmost page that passes is the one said. No condition always passes.'));
+    STORY.condUI.mount(ch, p.cond === undefined ? null : p.cond, function (t) { var r = D.updatePage(npc, i, { cond: t === null ? null : t }); if (!r.ok) done(r); }, { nullable: true, emptyText: 'Always passes.', addLabel: 'Add a condition' });
+    var bar = el('div', 'btn-row');
+    bar.appendChild(UI().button('Up', null, 'btn-ghost', function () { if (done(D.movePage(npc, i, -1))) redraw(); }));
+    bar.appendChild(UI().button('Down', null, 'btn-ghost', function () { if (done(D.movePage(npc, i, 1))) redraw(); }));
+    bar.appendChild(UI().button('Remove page', 'trash', 'btn-danger', function () { if (done(D.removePage(npc, i))) redraw(); }));
+    box.appendChild(bar);
+    return box;
+  }
+  function personBody(body, row, b) {
+    var pages = D.pagesOf(row.id, b);
+    body.appendChild(el('div', null, UI().kv([['ID', '<code class="id">' + esc(row.id) + '</code>'], ['Role', esc(D.roleLabel(row.role))], ['Chapter', row.chapter ? esc(chName(row.chapter)) : '<span class="muted">none</span>'], ['Town', row.town ? esc(row.town) : '<span class="muted">none</span>']])));
+    var probs = D.checkPages(row.id, pages, b).filter(function (p) { return p.level === 'error' || p.level === 'warning'; });
+    if (probs.length) { var pl = el('ul', 'dg-probs'); probs.slice(0, 5).forEach(function (p) { pl.appendChild(el('li', p.level === 'error' ? 'dg-err' : 'dg-warn', esc(p.message))); }); body.appendChild(pl); }
+    if (!pages.length) body.appendChild(el('p', 'muted dg-none', 'This person says nothing yet. Build dialogue, or add a page.'));
+    pages.forEach(function (p, i) { body.appendChild(pageEditor(row.id, p, i, pages.length, b)); });
+    var acts = el('div', 'btn-row fg-bacts');
+    acts.appendChild(UI().button('Add page', 'plus', '', function () {
+      var first = D.list(b)[0];
+      if (!first) { Kit.ui.toast('There is no dialogue to open yet. Build dialogue first.', 'warn'); return; }
+      if (done(D.addPage(row.id, { dlg: first.id }))) redraw();
+    }));
+    acts.appendChild(UI().button('Back to generated pages', null, 'btn-ghost', function () {
+      Kit.ui.confirm({ title: 'Reset the pages for ' + row.name + '?', okLabel: 'Reset pages', message: 'Pages you made or edited for this person are replaced by the generated ones.' }).then(function (ok) { if (!ok) return; if (done(D.resetPages(row.id), 'Pages reset.')) redraw(); });
+    }));
+    body.appendChild(acts);
+    previewPanel(body, { qst: null, starts: [{ label: 'Talk to ' + row.name, primary: true, go: function () { talkPreview(row.id); } }] });
+  }
+  function peoplePanel(host, b) {
+    var list = el('section', 'panel fg-card'), rows = D.people(b);
+    list.appendChild(el('h3', 'section-h', 'People'));
+    var q = textInput(st.people, 'Search people', 60); q.placeholder = 'Search by name, role, or town'; q.type = 'search';
+    list.appendChild(q);
+    var count = el('p', 'muted fg-count'), items = el('div', 'fg-list');
+    list.appendChild(count); list.appendChild(items);
+    function paint() {
+      U.clear(items);
+      var t = st.people.trim().toLowerCase();
+      var shown = rows.filter(function (r) { return !t || (r.name + ' ' + r.role + ' ' + r.town).toLowerCase().indexOf(t) >= 0; });
+      count.textContent = shown.length === rows.length ? plural(rows.length, 'person', 'people') : shown.length + ' of ' + plural(rows.length, 'person', 'people');
+      if (!shown.length) items.appendChild(el('div', 'empty-line', rows.length ? 'No one matches.' : 'The world has no people yet.'));
+      shown.slice(0, 60).forEach(function (r) {
+        var wrap = el('div', 'fg-item dg-item'), open = !!st.pOpen[r.id]; wrap.dataset.npc = r.id;
+        var meta = UI().chip('chip-muted', D.roleLabel(r.role)) + ' ' + UI().chip(r.pages ? 'chip-accent' : 'chip-warning', plural(r.pages, 'page')) + (r.yours ? ' ' + UI().chip('chip-muted', r.yours + ' yours') : '');
+        var head = el('button', 'btn fg-head', '<span class="fg-name">' + esc(r.name) + '</span><span class="fg-meta">' + meta + '</span>');
+        head.type = 'button'; head.setAttribute('aria-expanded', open ? 'true' : 'false');
+        var body = el('div', 'fg-body'); body.hidden = !open;
+        if (open) personBody(body, r, b);
+        head.addEventListener('click', function () {
+          st.pOpen[r.id] = body.hidden;
+          if (body.hidden && !body.firstChild) personBody(body, r, b);
+          body.hidden = !body.hidden; head.setAttribute('aria-expanded', body.hidden ? 'false' : 'true');
+        });
+        wrap.appendChild(head); wrap.appendChild(body); items.appendChild(wrap);
+      });
+      if (shown.length > 60) items.appendChild(el('p', 'muted fg-count', 'Showing the first 60. Search to narrow the list.'));
+    }
+    q.addEventListener('input', function () { st.people = q.value; paint(); });
+    paint();
+    host.appendChild(list);
+  }
+
+  // ---------------------------------------------------------------- the tab
+  function render(host) {
+    var b = cur(), sum = D.summary(b);
+    var head = el('section', 'panel');
+    head.innerHTML = '<h2 class="panel-title">Dialogue</h2><p class="muted fg-lead">A dialogue is a small graph of nodes: each says its lines, runs its effects, then goes on or offers choices. Each person has a list of pages, and the rightmost page whose condition passes is the one they say, so the same townsperson speaks differently by chapter without the world changing. Build dialogue from the world, then edit any of it.</p>';
+    head.appendChild(el('div', 'fg-stats', UI().chip('chip-accent', plural(sum.total, 'dialogue')) + ' ' + UI().chip('chip-muted', sum.byKind.quest + ' quest') + ' ' + UI().chip('chip-muted', sum.byKind.role + ' greeting') + ' ' + UI().chip('chip-muted', plural(sum.lines, 'line')) + ' ' + UI().chip('chip-muted', sum.covered + ' of ' + plural(sum.people, 'person', 'people') + ' with pages') +
+      (sum.authored ? ' ' + UI().chip('chip-muted', sum.authored + ' made by hand') : '') + ((sum.missing || sum.pagesTodo) ? ' ' + UI().chip('chip-warning', 'not built yet', 'The world and the quests ask for dialogue or pages that do not exist yet.') : sum.total ? ' ' + UI().chip('chip-ok', 'up to date') : '')));
+    var row = el('div', 'btn-row');
+    row.appendChild(UI().button(sum.total ? 'Update dialogue' : 'Build dialogue from the world', 'check', sum.missing || sum.pagesTodo || !sum.total ? 'btn-primary' : '', function () {
+      var rep = D.scaffold();
+      if (!rep.skipped && STORY.flags && STORY.flags.sync) STORY.flags.sync();
+      Kit.ui.toast(D.reportText(rep), rep.skipped ? 'warn' : 'ok', 5000);
+      redraw();
+    }));
+    row.appendChild(UI().button('Add dialogue', 'plus', '', function () {
+      Kit.ui.prompt({ title: 'New dialogue', label: 'Name', okLabel: 'Add', validate: function (v) { return v.trim() ? null : 'Enter a name.'; } }).then(function (v) {
+        if (v === null || v === undefined) return;
+        var r = D.add({ name: v }); if (done(r)) { st.open[r.record.id] = true; st.view = 'dialogues'; st.filter = 'all'; redraw(); }
+      });
+    }));
+    head.appendChild(row);
+    if (!Kit.ai.hasKey()) head.appendChild(el('p', 'muted dg-keynote', 'Drafting lines with Claude is off until you add a Claude API key in Settings. Everything else works without one.'));
+    var tabs = el('div', 'fg-filter dg-views');
+    [['dialogues', 'Dialogues'], ['people', 'People']].forEach(function (v) {
+      var bt = el('button', 'btn', esc(v[1])); bt.type = 'button'; bt.setAttribute('aria-pressed', st.view === v[0] ? 'true' : 'false');
+      bt.addEventListener('click', function () { st.view = v[0]; redraw(); });
+      tabs.appendChild(bt);
+    });
+    head.appendChild(tabs);
+    host.appendChild(head);
+    if (st.view === 'people') { peoplePanel(host, b); } else {
+      var list = el('section', 'panel fg-card'), recs = D.list(b);
+      list.appendChild(el('h3', 'section-h', 'All dialogues'));
+      var bar = el('div', 'fg-filter');
+      FILTERS.forEach(function (f) {
+        var bt = el('button', 'btn', esc(f[1])); bt.type = 'button'; bt.setAttribute('aria-pressed', st.filter === f[0] ? 'true' : 'false');
+        bt.addEventListener('click', function () { st.filter = f[0]; Array.prototype.forEach.call(bar.children, function (c, i) { c.setAttribute('aria-pressed', FILTERS[i][0] === st.filter ? 'true' : 'false'); }); paint(); });
+        bar.appendChild(bt);
+      });
+      list.appendChild(bar);
+      var items = el('div', 'fg-list'), count = el('p', 'muted fg-count');
+      list.appendChild(count); list.appendChild(items);
+      var paint = function () {
+        U.clear(items);
+        var shown = recs.filter(function (d) { return st.filter === 'all' ? true : (d.kind || 'custom') === st.filter; });
+        count.textContent = shown.length === recs.length ? plural(recs.length, 'dialogue') : shown.length + ' of ' + plural(recs.length, 'dialogue');
+        if (!shown.length) items.appendChild(el('div', 'empty-line', recs.length ? 'No dialogue matches.' : 'No dialogue yet. Build dialogue from the world to give every person something to say.'));
+        shown.forEach(function (d) { items.appendChild(dialogueItem(d, b)); });
+      };
+      paint();
+      host.appendChild(list);
+    }
+    if (st.focus) {
+      var id = st.focus, node = host.querySelector('[data-dlg="' + id + '"]');
+      st.focus = null;
+      if (node) { if (typeof node.scrollIntoView === 'function') node.scrollIntoView({ block: 'center' }); var hb = node.querySelector('.fg-head'); if (hb) try { hb.focus({ preventScroll: true }); } catch (e) { /* no focus */ } }
+    }
+  }
+  function focus(rid) {
+    if (!rid) return;
+    if (Kit.ids.prefixOf(rid) === 'npc_') { st.view = 'people'; st.pOpen[rid] = true; st.people = ''; } else { st.view = 'dialogues'; st.open[rid] = true; st.filter = 'all'; st.focus = rid; }
+    Kit.rerender();
+  }
+  STORY.WS = STORY.WS || {};
+  STORY.WS.dialogue = { render: render, focus: focus };
+  Kit.jump.register({ test: function (rid) { return Kit.ids.prefixOf(rid) === 'dlg_'; }, name: function (rid) { return nameOf(rid, rid); }, go: function (rid) { if (!Kit.go('dialogue')) return false; focus(rid); return true; } });
+})();
+// === WS:DIALOGUE END ===
 // === WS:STORY149 BEGIN ===
 (function () {
   'use strict';

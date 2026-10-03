@@ -1,0 +1,399 @@
+{
+ "passed": 70,
+ "total": 70,
+ "results": [
+  {
+   "name": "the four new sources exist and are pure ASCII",
+   "ok": true
+  },
+  {
+   "name": "no forbidden APIs in the new JavaScript",
+   "ok": true
+  },
+  {
+   "name": "no dashes used as punctuation in the new prose (the ASCII cleaner in cleanLine is the one place that names them)",
+   "ok": true,
+   "detail": "checked"
+  },
+  {
+   "name": "index.html carries the engine dlg section, STORY:DIALOGUE, WS:DIALOGUE and the dialogue CSS fences, in order",
+   "ok": true
+  },
+  {
+   "name": "src/engine-story.js (the frame) is unchanged by Phase 4",
+   "ok": true
+  },
+  {
+   "name": "the standalone engine-story.js holds the dlg section and stays free of for-in and host globals",
+   "ok": true
+  },
+  {
+   "name": "ENGINE_STORY.dlg exposes the dialogue API and is deep frozen",
+   "ok": true
+  },
+  {
+   "name": "compile turns a node into ordinary commands: text, effects, then a choice",
+   "ok": true,
+   "detail": {
+    "cmds": [
+     {
+      "op": "text",
+      "lines": [
+       "Hello there."
+      ],
+      "speaker": "chr_x"
+     },
+     {
+      "flg": "flg_none",
+      "op": "setFlag",
+      "value": 1
+     },
+     {
+      "op": "choice",
+      "options": [
+       {
+        "text": "Yes",
+        "cmds": []
+       },
+       {
+        "text": "No",
+        "cmds": []
+       }
+      ]
+     }
+    ],
+    "next": null,
+    "choiceNext": [
+     "b",
+     "c"
+    ],
+    "hasChoice": true
+   }
+  },
+  {
+   "name": "edges, reach, and loop read the graph",
+   "ok": true
+  },
+  {
+   "name": "a cycle of only next links is a loop error",
+   "ok": true
+  },
+  {
+   "name": "lint reports a start that is not a node, an empty line, and next together with choices",
+   "ok": true,
+   "detail": [
+    "ref",
+    "empty-line",
+    "next-and-choices",
+    "one-option"
+   ]
+  },
+  {
+   "name": "play runs a conversation to its end through the real runner: lines, a choice, the final end effect",
+   "ok": true,
+   "detail": [
+    "text",
+    "choice",
+    "text",
+    "text",
+    "end"
+   ]
+  },
+  {
+   "name": "the node effects change the state (setFlag ran)",
+   "ok": true
+  },
+  {
+   "name": "a second engine instance replays byte for byte (same effects, same state hash)",
+   "ok": true
+  },
+  {
+   "name": "talk picks the rightmost passing page: the first dialogue at first, the second once the flag is set",
+   "ok": true,
+   "detail": [
+    0,
+    1
+   ]
+  },
+  {
+   "name": "a person with no pages says nothing (kind none)",
+   "ok": true
+  },
+  {
+   "name": "boots with no page errors and STORY.dialogue is the Phase 4 API",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "dlg_ is the StoryDialogue Codex type and carries kind, role, qst, start, and nodes fields",
+   "ok": true
+  },
+  {
+   "name": "opening a Final does not build dialogue by itself",
+   "ok": true
+  },
+  {
+   "name": "expected: 42 role greetings and 8 quest dialogues, none built yet",
+   "ok": true,
+   "detail": {
+    "by": {
+     "role": {
+      "want": 42,
+      "have": 0
+     },
+     "quest": {
+      "want": 8,
+      "have": 0
+     }
+    },
+    "total": 50,
+    "missing": 50,
+    "pagesTodo": 87
+   }
+  },
+  {
+   "name": "the scaffold builds 50 dialogues and gives all 87 people pages",
+   "ok": true,
+   "detail": {
+    "c": 50,
+    "n": 87
+   }
+  },
+  {
+   "name": "every Day 148 role has a greeting in its own chapter, shared by everyone of that role",
+   "ok": true
+  },
+  {
+   "name": "a person gets pages from their own chapter onward: the first always open, later ones on a chapter gate",
+   "ok": true,
+   "detail": "[{\"key\":\"role|chp_the_lowlands_auem\",\"origin\":\"generated\",\"dlg\":\"dlg_dlg_role_guard_chp_the_lowlands_auem_brsk\"},{\"key\":\"role|chp_the_marches_m4r2\",\"origin\":\"generated\",\"dlg\":\"dlg_dlg_role_guard_chp_the_marches_m4r2_l9tr\",\"cond\":{\"op\":\"chapter\",\"chp\":\"chp_the_marches_m4r2\",\"cmp\":\"gte\"}},{\"key\":\"role"
+  },
+  {
+   "name": "every quest with a giver has a quest dialogue, pages on the giver tied to its stages",
+   "ok": true
+  },
+  {
+   "name": "a side quest dialogue offers, accepts, defers, asks for progress, and turns in: choices that move the quest",
+   "ok": true
+  },
+  {
+   "name": "structural IDs: the same key always gives the same ID, and records are sorted",
+   "ok": true
+  },
+  {
+   "name": "idempotent: a second run builds nothing and changes nothing",
+   "ok": true
+  },
+  {
+   "name": "the validator finds no problem in the built dialogue",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "the flag cross reference sees the dialogue (F.xref reads node effects and page conditions)",
+   "ok": true
+  },
+  {
+   "name": "the engine plays the side quest dialogue: accepting moves the quest to its accept stage",
+   "ok": true,
+   "detail": {
+    "closed": [],
+    "failed": false,
+    "stage": "accept"
+   }
+  },
+  {
+   "name": "after accepting, talking to the giver opens the progress node (page by stage)",
+   "ok": true,
+   "detail": {
+    "kind": "text",
+    "speaker": "npc_npc_twn_chp_the_lowlands_auem_start_resi_ia27",
+    "por": null,
+    "lines": [
+     "Any word on The lost ring?"
+    ]
+   }
+  },
+  {
+   "name": "the Demo story builds 16 dialogues for 35 people with no problems, and a second run is a no op",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "editing a node keeps the dialogue and survives a rebuild",
+   "ok": true
+  },
+  {
+   "name": "addNode adds a node; an existing key and a bad key are refused",
+   "ok": true
+  },
+  {
+   "name": "a node can go to another node, and next to a missing node is refused",
+   "ok": true
+  },
+  {
+   "name": "a cycle of next links is refused",
+   "ok": true
+  },
+  {
+   "name": "renameNode moves links with it",
+   "ok": true
+  },
+  {
+   "name": "addChoice turns next into a choice list (next removed, the old link kept as a choice)",
+   "ok": true
+  },
+  {
+   "name": "updateChoice, moveChoice, and removeChoice work and refuse out of range",
+   "ok": true
+  },
+  {
+   "name": "removeNode cuts the links to it and refuses the start node",
+   "ok": true
+  },
+  {
+   "name": "a dialogue made by hand is kept: minted ID, origin user, one node",
+   "ok": true
+  },
+  {
+   "name": "addPage appends a page the author owns",
+   "ok": true
+  },
+  {
+   "name": "a page that names a missing dialogue is refused, and so is a missing node",
+   "ok": true
+  },
+  {
+   "name": "a rebuild keeps the author page after the generated ones",
+   "ok": true
+  },
+  {
+   "name": "editing a generated page makes it the author's and keeps its key, so a rebuild leaves it",
+   "ok": true
+  },
+  {
+   "name": "movePage and removePage work",
+   "ok": true
+  },
+  {
+   "name": "resetPages goes back to the generated list",
+   "ok": true
+  },
+  {
+   "name": "removing a dialogue removes the pages that opened it",
+   "ok": true
+  },
+  {
+   "name": "a generated dialogue comes back with the next build, and reset restores its words",
+   "ok": true
+  },
+  {
+   "name": "a quest that loses its giver drops its generated dialogue and pages",
+   "ok": true
+  },
+  {
+   "name": "the tab mounts the real Dialogue tab (not the Phase 4 stub) and the jump handler opens a dialogue",
+   "ok": true
+  },
+  {
+   "name": "before building, the tab offers the build button and says there is no dialogue yet",
+   "ok": true
+  },
+  {
+   "name": "the build button builds 50 dialogues and 87 people, with the stats chips showing it",
+   "ok": true
+  },
+  {
+   "name": "an open dialogue shows its node list, an SVG graph with one node per node, and the line editor",
+   "ok": true
+  },
+  {
+   "name": "the preview runs the real engine: the first line shows and the conversation ends",
+   "ok": true
+  },
+  {
+   "name": "a node with choices shows each as a button; picking \"I will help\" continues the conversation",
+   "ok": true
+  },
+  {
+   "name": "after the choice the preview shows the answer and the quest stage effect",
+   "ok": true,
+   "detail": " lost his late wife's ring near the river.Effect: choice> I will help.Quest The lost ring now at The lost ringThe Lowlands: Start town: Elder: Thank you. Come back when it is done.End of conversation."
+  },
+  {
+   "name": "the People view lists people with page editors and a Talk button that picks a page",
+   "ok": true
+  },
+  {
+   "name": "Talk to a person runs their picked page",
+   "ok": true
+  },
+  {
+   "name": "without an API key drafting is disabled with a hint and D.draft returns null without calling Claude",
+   "ok": true
+  },
+  {
+   "name": "the draft button is disabled and draft() makes no call without a key",
+   "ok": true,
+   "detail": {
+    "dbtn": true,
+    "dis": true
+   }
+  },
+  {
+   "name": "the drafting prompt carries the Charter summary, the node, the request, and the plain punctuation rules",
+   "ok": true
+  },
+  {
+   "name": "cleanLine strips dashes and tidies spaces",
+   "ok": true
+  },
+  {
+   "name": "with a key, drafting asks Claude once and opens two usable drafts in Kit.review (the empty one is dropped)",
+   "ok": true
+  },
+  {
+   "name": "accepting a draft replaces the lines of that node and nothing else",
+   "ok": true
+  },
+  {
+   "name": "the page raised no errors through all of it",
+   "ok": true,
+   "detail": []
+  },
+  {
+   "name": "the Draft carries 50 dialogues and every person's pages",
+   "ok": true
+  },
+  {
+   "name": "Day 146 opens the Draft with the dialogue: hash verified, no errors, no broken references",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "e": [],
+    "br": [],
+    "err": null
+   }
+  },
+  {
+   "name": "Day 147 opens the Draft with the dialogue: hash verified, no errors, no broken references",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "e": [],
+    "br": [],
+    "err": null
+   }
+  },
+  {
+   "name": "Day 148 opens the Draft with the dialogue: hash verified, no errors, no broken references",
+   "ok": true,
+   "detail": {
+    "m": true,
+    "e": [],
+    "br": [],
+    "err": null
+   }
+  }
+ ]
+}

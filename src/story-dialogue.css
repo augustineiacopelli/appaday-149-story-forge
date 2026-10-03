@@ -1,0 +1,47 @@
+/* === STORY:DIALOGUE CSS BEGIN === */
+.dg-pick { max-width: 100%; white-space: normal; text-align: left; height: auto; min-height: 44px; overflow-wrap: anywhere; }
+.dg-empty { color: var(--ink2); font-style: italic; }
+.dg-pickrow, .dg-pvrow, .dg-addrow { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; min-width: 0; }
+.dg-pvrow .field { min-width: 0; flex: 1 1 11em; }
+.dg-notes { margin: 8px 0; overflow-wrap: anywhere; }
+.dg-keynote { margin: 8px 0 0; }
+.dg-probs { margin: 8px 0; padding-left: 1.2em; font-size: .88rem; overflow-wrap: anywhere; }
+.dg-err { color: var(--danger); }
+.dg-warn { color: var(--ink2); }
+.dg-nodes .btn { min-height: 44px; }
+.dg-scroll { overflow-x: auto; overflow-y: hidden; margin: 12px 0 6px; padding: 6px 0; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); max-width: 100%; }
+.dg-svg { display: block; max-width: none; font-family: inherit; }
+.dg-box { fill: var(--panel2); stroke: var(--line); stroke-width: 1.5; }
+.dg-node { cursor: pointer; outline: none; }
+.dg-node:hover .dg-box, .dg-node:focus .dg-box { stroke: var(--accent); }
+.dg-node.sel .dg-box { stroke: var(--accent); stroke-width: 3; fill: var(--accent-soft); }
+.dg-node.dead .dg-box { stroke-dasharray: 4 3; }
+.dg-key { fill: var(--ink); font-size: 12px; font-weight: 800; }
+.dg-line { fill: var(--ink2); font-size: 11px; }
+.dg-tail { fill: var(--ink2); font-size: 10px; font-weight: 700; }
+.dg-edge { fill: none; stroke: var(--ink2); stroke-width: 1.5; }
+.dg-edge-choice { stroke: var(--accent); }
+.dg-arrow { fill: var(--ink2); }
+.dg-edit, .dg-pv, .dg-page { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel); min-width: 0; }
+.dg-edit-t { margin: 0 0 8px; font-size: .8rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+.dg-sub { margin: 12px 0 6px; font-size: .78rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
+.dg-lines { width: 100%; min-height: 5em; resize: vertical; }
+.dg-choice { margin: 10px 0; padding: 8px 10px; border: 1px dashed var(--line); border-radius: var(--radius-sm); min-width: 0; }
+.dg-choice-h, .dg-page-h { font-weight: 800; margin-bottom: 6px; }
+.dg-cmd { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed var(--line); }
+.dg-cmd-t { overflow-wrap: anywhere; min-width: 0; flex: 1 1 10em; }
+.dg-cmd-b { display: flex; gap: 4px; }
+.dg-mini { min-height: 44px; min-width: 44px; }
+.dg-add { margin: 8px 0; }
+.dg-add summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 700; }
+.dg-add-in { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-end; }
+.dg-num { width: 6.5em; }
+.dg-none { margin: 4px 0; }
+.dg-log { margin-top: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--panel2); max-height: 22em; overflow-y: auto; min-width: 0; }
+.dg-l { margin: 4px 0; overflow-wrap: anywhere; }
+.dg-l-fx { color: var(--ink2); font-style: italic; }
+.dg-l-err { color: var(--danger); font-weight: 700; }
+.dg-l-pick { color: var(--accent); font-weight: 700; }
+.dg-opts { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.dg-opt { text-align: left; white-space: normal; height: auto; min-height: 44px; overflow-wrap: anywhere; }
+/* === STORY:DIALOGUE CSS END === */

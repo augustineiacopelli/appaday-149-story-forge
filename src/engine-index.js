@@ -3,7 +3,7 @@
   // and the few facts it needs from the rest of the bundle. The engine never reaches into a bundle itself, so Day 150 and
   // the page build the same index from the same data and get the same answers.
   //   build(story, ext)
-  //     story: {records {flg_ qst_ dlg_ evt_ end_}, bindings {gateKey: {flg, itm}}}
+  //     story: {records {flg_ qst_ dlg_ evt_ end_}, bindings {gateKey: {flg, itm}}, npcDialogue {npc_: [{cond, dlg}]}}
   //     ext:   {chapters [chp ids in Charter order], start [gate keys open at a new game, Day 148's graph.start],
   //             ids {prefix: [ids]} for the other namespaces a story may name (npc_ map_ trp_ itm_ eqp_ chr_ mus_ sfx_
   //             por_ chp_), roles [Day 147 music role keys without the 'music:' prefix, such as 'battle' or
@@ -46,7 +46,7 @@
     story = isObj(story) ? story : {};
     ext = isObj(ext) ? ext : {};
     var recs = isObj(story.records) ? story.records : {};
-    var I = { flags: {}, quests: {}, dialogues: {}, events: {}, endings: {}, known: {}, roles: {}, chapters: [], chapterAt: {}, chapterFlags: {}, gates: {}, start: [] };
+    var I = { flags: {}, quests: {}, dialogues: {}, npcDialogue: {}, events: {}, endings: {}, known: {}, roles: {}, chapters: [], chapterAt: {}, chapterFlags: {}, gates: {}, start: [] };
     for (var p = 0; p < REF_PREFIXES.length; p++) I.known[REF_PREFIXES[p]] = {};
     var ids = isObj(ext.ids) ? ext.ids : {};
     each(ids, function (list, prefix) {
@@ -63,6 +63,8 @@
     });
     each(recs.qst_, function (r, id) { if (isObj(r)) { I.quests[id] = questShape(r); I.known.qst_[id] = 1; } });
     each(recs.dlg_, function (r, id) { if (isObj(r)) { I.dialogues[id] = copy(r); I.known.dlg_[id] = 1; } });
+    // Phase 4: story.npcDialogue maps a person to pages [{cond, dlg}]; the highest passing page decides what they say.
+    each(story.npcDialogue, function (list, npc) { if (Array.isArray(list)) I.npcDialogue[npc] = copy(list); });
     each(recs.evt_, function (r, id) {
       if (!isObj(r)) return;
       var e = copy(r);
@@ -86,7 +88,10 @@
     var st = Array.isArray(ext.start) ? ext.start : [];
     for (var s = 0; s < st.length; s++) if (I.gates[st[s]] && I.start.indexOf(I.gates[st[s]].flg) < 0) I.start.push(I.gates[st[s]].flg);
     I.start.sort();
-    I.digest = digest(canon({ story: { records: recs, bindings: story.bindings || {} }, ext: ext }));
+    // npcDialogue joins the digest only when a person has pages, so a story without any keeps the digest it always had.
+    var dig = { records: recs, bindings: story.bindings || {} };
+    if (keys(I.npcDialogue).length) dig.npcDialogue = I.npcDialogue;
+    I.digest = digest(canon({ story: dig, ext: ext }));
     return I;
   }
 

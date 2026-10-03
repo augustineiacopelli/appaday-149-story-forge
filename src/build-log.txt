@@ -226,4 +226,26 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
     trip). phase0 89, phase1 85, phase2 77. layout.js 34 of 34 views at 390 and 1280.
   Next: Phase 4 (dialogue graphs) on Sonnet; reuse STORY.condUI and STORY.setsUI.
 === END SESSION 3 ===
+=== SESSION 4 / PHASE 4 (2026-10-03, Sonnet) ===
+  Dialogue graphs. New: src/engine-dlg.js (engine section ENGINE_STORY.dlg, spliced between pages and save),
+    src/story-dialogue.js (STORY.dialogue), src/ws-dialogue.js and src/story-dialogue.css (the Dialogue tab).
+    src/engine-story.js (the frame) is unchanged; src/engine-index.js gained npcDialogue (in the digest only when non empty).
+  DECISION, one interpreter: a dialogue node compiles to ordinary commands (text, the node's cmds, then a choice) and runs
+    through the existing runner, through a play index that adds one synthetic event per node. No second interpreter.
+  DECISION, pages: story.npcDialogue maps npc_ to [{cond, dlg, node?, key?, origin}]. The rightmost passing page wins; node
+    (new, optional) opens the dialogue partway, so one quest dialogue serves every stage of its quest.
+  DECISION, shared greetings: one dialogue per (role, chapter), key dlg|role|<role>|<chp>, used by every person of that role
+    from their own chapter onward, each later chapter a page on the chapter gate. Fewer records, and editing one greeting
+    changes every person who says it. Quest dialogues: key dlg|quest|<qst>, speaker set to the giver; side quests offer,
+    accept, defer, progress, turn in, after; main quests one node per stage.
+  Scaffold: explicit (a button), idempotent, keeps edits, an edited generated page becomes origin user but keeps its key,
+    drops generated dialogues nothing asks for unless an author page uses one. Call STORY.flags.sync after it (the tab does).
+  Edit API refuses an edit that adds an error the dialogue did not have (a next cycle, a link to a missing node). Removing a
+    dialogue removes the pages that open it. The validator is story.dialogue; nodes reachable from a page's node count as reachable.
+  Preview runner: chapter and quest stage selectors, run from the start or from a node, talk to a person, driven by ES.dlg.
+  Drafting: Kit.claude on settings.draftTier (sonnet), Charter summary with canon and glossary, three drafts through
+    Kit.review; accepting replaces one node's lines only. Disabled with a hint and no call without a key.
+  Tests: test/phase4.js 70 of 70. phase0 89, phase1 85, phase2 77, phase3 95. layout.js 44 of 44 views at 390 and 1280.
+  Next: Phase 5 (events and cutscenes, the playtester).
+=== END SESSION 4 ===
 === END BUILD LOG ===

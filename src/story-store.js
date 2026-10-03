@@ -193,7 +193,7 @@
     STORY.ensure(b);
     var key = b === Kit.bundle.current() ? Kit.index(b) : null;
     if (key && engIdx.key === key) return engIdx.idx;
-    var idx = ENGINE_STORY.index.build({ records: b.story.records, bindings: b.story.bindings }, STORY.engineExt(b));
+    var idx = ENGINE_STORY.index.build({ records: b.story.records, bindings: b.story.bindings, npcDialogue: b.story.npcDialogue }, STORY.engineExt(b));
     if (key) { engIdx.key = key; engIdx.idx = idx; }
     return idx;
   };
