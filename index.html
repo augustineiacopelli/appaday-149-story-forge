@@ -520,11 +520,6 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<link rel="apple-touch-icon" href="https://augustineiacopelli.github.io/appaday/icons/149.png">
-<meta name="apple-mobile-web-app-title" content="Story Forge">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <title>Story Forge | AppADay 149</title>
 <meta name="description" content="Story Forge: bind a finished World Forge world to flags, quests, dialogue, events, and endings, and prove the story can always be finished. AppADay 149.">
 <meta name="theme-color" content="#10121a">
@@ -12445,7 +12440,7 @@ var ENGINE_STORY = (function () {
   // are built from parts so this fence never finds itself.
   // FILES is the game kit, written in by build.js: every engine a game loads, in load order, with its owner, version,
   // size, and sha256 (over the file with any bundle hash line removed).
-  var ENG = STORY.engines = { FILE: 'engine-story.js', GLOBAL: 'ENGINE_STORY', FILES: [{"key":"render","file":"engine-render.js","global":"ENGINE_RENDER","owner":147,"version":"1.0.0","bytes":222033,"sha256":"1ad0fc0d07fcb10a4917cc5550822860c6e3aac4a0414d050625ba906fad3281"},{"key":"audio","file":"engine-audio.js","global":"ENGINE_AUDIO","owner":147,"version":"1.0.0","bytes":52509,"sha256":"4b77f7e557628e21330c7ca742cfb6664f0fd615f33bb40a9e5b16fb6751207a"},{"key":"world","file":"engine-world.js","global":"ENGINE_WORLD","owner":148,"version":"1.0.0","bytes":170257,"sha256":"146dcdad83307655b3e28288078dfb6fca7de86842ed9ecd13c6f3a61b39180f"},{"key":"battle","file":"engine-battle.js","global":"ENGINE_BATTLE","owner":146,"version":"1.0.0","bytes":64214,"sha256":"cc091bedd5acb06baf6cf5ef39ce8f3a3a9d02275bb479f4e24b8cde2b80177e"},{"key":"story","file":"engine-story.js","global":"ENGINE_STORY","owner":149,"version":"1.0.0","bytes":136967,"sha256":"75451b0ee690b40fdc5658d4f0dfc29c572788d2262622bbff3f1b40284c3786"}] };
+  var ENG = STORY.engines = { FILE: 'engine-story.js', GLOBAL: 'ENGINE_STORY', FILES: [{"key":"render","file":"engine-render.js","global":"ENGINE_RENDER","owner":147,"version":"1.0.0","bytes":222033,"sha256":"1ad0fc0d07fcb10a4917cc5550822860c6e3aac4a0414d050625ba906fad3281"},{"key":"audio","file":"engine-audio.js","global":"ENGINE_AUDIO","owner":147,"version":"1.0.0","bytes":52509,"sha256":"4b77f7e557628e21330c7ca742cfb6664f0fd615f33bb40a9e5b16fb6751207a"},{"key":"world","file":"engine-world.js","global":"ENGINE_WORLD","owner":148,"version":"1.0.0","bytes":170257,"sha256":"146dcdad83307655b3e28288078dfb6fca7de86842ed9ecd13c6f3a61b39180f"},{"key":"battle","file":"engine-battle.js","global":"ENGINE_BATTLE","owner":146,"version":"1.0.0","bytes":64358,"sha256":"2f522032c65afb8b9497a4d79b388766a42e0691fd612a2e3ce835caf46b67fa"},{"key":"story","file":"engine-story.js","global":"ENGINE_STORY","owner":149,"version":"1.0.0","bytes":136967,"sha256":"75451b0ee690b40fdc5658d4f0dfc29c572788d2262622bbff3f1b40284c3786"}] };
   ENG.LOAD_ORDER = (ENG.FILES || []).map(function (f) { return f.file; });
   ENG.markers = function () { var f = '// === ENGINE:' + 'STORY '; return [f + 'BEGIN ===', f + 'END ===']; };
   ENG.cut = function (text) {
