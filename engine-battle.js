@@ -757,7 +757,7 @@ var ENGINE_BATTLE = (function () {
     }
     if (role) {
       var fid = a.fx || roleFx(S, role);
-      var base = evalF(S, fid, scopeOf(actor), scopeOf(u), a.power, null, a.power);
+      var base = evalF(S, fid, scopeOf(actor), scopeOf(u), a.power, { allies: sideOf(S, actor.side, true).length }, a.power);
       var variance = roleFx(S, 'var') ? evalF(S, roleFx(S, 'var'), scopeOf(actor), scopeOf(u), a.power, { roll: rnd(S) }, 1) : 1;
       var crit = false;
       if (phys && a.kind !== 'limit') crit = rnd(S) < clampN(0.03 + num(actor.stats.luck) / 512, 0, 0.5);
@@ -797,7 +797,7 @@ var ENGINE_BATTLE = (function () {
     }
     emit(S, 'action', { actor: actor.uid, abl: a.id, name: a.name, element: a.id === '_attack' ? actor.attackElement : a.element, targets: list.map(function (x) { return x.uid; }), value: isCounter ? 'counter' : null });
     list.forEach(function (u) { resolveOne(S, actor, u, a); });
-    if (a.kind === 'limit' && actor.limit && !isCounter) {
+    if (actor.limit && !isCounter && (a.kind === 'limit' || actor.limits.some(function (l) { return l.abl === a.id; }))) {
       actor.limit.gauge = 0; actor.limit.uses++; actor.limit.usesAtLevel++;
       unlockLimits(S, actor);
     }
@@ -867,7 +867,7 @@ var ENGINE_BATTLE = (function () {
   function estimate(S, u, a, t) {
     var role = ABL_ROLE[a.kind];
     if (!role || a.kind === 'heal') return 0;
-    var v = num(evalF(S, a.fx || roleFx(S, role), scopeOf(u), scopeOf(t), a.power, null, a.power));
+    var v = num(evalF(S, a.fx || roleFx(S, role), scopeOf(u), scopeOf(t), a.power, { allies: sideOf(S, u.side, true).length }, a.power));
     var m = elementMult(S, t, a.id === '_attack' ? u.attackElement : a.element);
     var n = (a.targeting.scope === 'all' || (u.mods[a.id] && u.mods[a.id].all)) ? sideOf(S, t.side, true).length : 1;
     return v * Math.max(0, m) * n;
