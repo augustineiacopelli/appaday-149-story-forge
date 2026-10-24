@@ -527,6 +527,7 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="https://augustineiacopelli.github.io/appaday/manifests/149.webmanifest">
 <script src="https://augustineiacopelli.github.io/appaday/save.js" defer></script>
+<script src="https://augustineiacopelli.github.io/appaday/keys.js" data-app="149" data-legacy-key="kit:settings:key" data-accent="#A63D9E" defer></script>
 <title>Story Forge | AppADay 149</title>
 <meta name="description" content="Story Forge: bind a finished World Forge world to flags, quests, dialogue, events, and endings, and prove the story can always be finished. AppADay 149.">
 <meta name="theme-color" content="#10121a">
@@ -1381,21 +1382,20 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
         var s = Kit.store.get(SETTINGS_KEY, {});
         if (!U.isObj(s)) s = {};
         var tiers = U.isObj(s.tiers) ? s.tiers : {};
-        settingsCache = { key: typeof s.key === 'string' ? s.key : '', session: typeof s.session === 'string' ? s.session : '', tiers: {} };
+        settingsCache = { key: '', session: typeof s.session === 'string' ? s.session : '', tiers: {} };
         TIERS.forEach(function (t) { settingsCache.tiers[t] = typeof tiers[t] === 'string' ? tiers[t] : ''; });
       }
       return settingsCache;
     },
     set: function (patch) {
       var s = Kit.settings.get();
-      if (patch.key !== undefined) s.key = String(patch.key).trim();
       if (patch.session !== undefined) s.session = String(patch.session).trim();
       if (U.isObj(patch.tiers)) TIERS.forEach(function (t) { if (patch.tiers[t] !== undefined) s.tiers[t] = String(patch.tiers[t]).trim(); });
       Kit.store.set(SETTINGS_KEY, s);
       Kit.emit('settings', s);
       return s;
     },
-    hasKey: function () { return !!Kit.settings.get().key; },
+    hasKey: function () { return !!(window.AppKeys && window.AppKeys.has()); },
     open: function () { openSettings(); }
   };
 
@@ -1516,7 +1516,8 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
 
   Kit.claude = async function (opts) {
     opts = opts || {};
-    var key = Kit.settings.get().key;
+    var key = null;
+    if (window.AppKeys) key = (opts.silent && !window.AppKeys.has()) ? null : await window.AppKeys.get();
     if (!key) {
       var nk = new Error(NO_KEY_MSG); nk.code = 'NO_KEY';
       if (!opts.silent) Kit.ui.toast(NO_KEY_MSG, 'warn');
@@ -3178,10 +3179,7 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
       body: function (b) {
         b.innerHTML =
           '<div class="form-grid">' +
-          '<div class="field span-all"><label class="field-label" for="setKey">Claude API key</label>' +
-          '<div class="ref-row"><input class="inp mono" id="setKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-...">' +
-          '<button class="btn btn-icon" type="button" id="setKeyShow" aria-label="Show or hide key" title="Show or hide">' + Kit.icon('key') + '</button></div>' +
-          '<div class="field-help">Stored only in this browser. AI features are optional; everything else works without a key.</div></div>' +
+          '<div class="field span-all" id="setKeyMount"></div>' +
           '<div class="field span-all"><div class="btn-row"><button class="btn" type="button" id="setTest">' + Kit.icon('spark') + '<span>Test Key</span></button><span class="settings-test" id="setTestOut" aria-live="polite"></span></div></div>' +
           '<div class="field span-all"><label class="field-label" for="setSession">Session name</label><input class="inp" id="setSession" type="text" placeholder="e.g. Saga weekend build"><div class="field-help">A label for your own reference, kept with your settings.</div></div>' +
           '<div class="field"><label class="field-label" for="setTheme">Theme</label><select class="inp" id="setTheme"><option value="system">Match system</option><option value="night">Night</option><option value="parchment">Parchment</option></select></div>' +
@@ -3189,11 +3187,10 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
           '<h3 class="section-h">Model tiers</h3><p class="field-help">Leave blank to use the portfolio config.json, then the built-in default.</p>' +
           '<div class="form-grid" id="setTiers"></div>' +
           '<h3 class="section-h">Storage</h3><p class="muted" id="setUsage"></p>';
-        refs.key = b.querySelector('#setKey'); refs.key.value = s.key;
+        if (window.AppKeys) window.AppKeys.mountSettings(b.querySelector('#setKeyMount'));
         refs.session = b.querySelector('#setSession'); refs.session.value = s.session;
         refs.theme = b.querySelector('#setTheme'); refs.theme.value = ui.theme || 'system';
         refs.out = b.querySelector('#setTestOut');
-        b.querySelector('#setKeyShow').addEventListener('click', function () { refs.key.type = refs.key.type === 'password' ? 'text' : 'password'; });
         refs.theme.addEventListener('change', function () { Kit.theme.set(refs.theme.value); });
         var tg = b.querySelector('#setTiers');
         refs.tiers = {};
@@ -3219,14 +3216,13 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
         });
       },
       actions: [
-        { label: 'Clear key', kind: 'ghost', onClick: function () { refs.key.value = ''; save(); Kit.ui.toast('API key removed from this browser.', 'ok'); return false; } },
         { label: 'Save', kind: 'primary', onClick: function () { save(); Kit.ui.toast('Settings saved.', 'ok'); } }
       ]
     });
     function save() {
       var tiers = {};
       TIERS.forEach(function (t) { tiers[t] = refs.tiers[t].value; });
-      Kit.settings.set({ key: refs.key.value, session: refs.session.value, tiers: tiers });
+      Kit.settings.set({ session: refs.session.value, tiers: tiers });
     }
   }
 
