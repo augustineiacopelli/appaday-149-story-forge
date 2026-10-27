@@ -106,6 +106,15 @@ ${buildLog.trim()}
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="apple-touch-icon" href="https://augustineiacopelli.github.io/appaday/icons/149.png">
+<meta name="apple-mobile-web-app-title" content="Story Forge">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="https://augustineiacopelli.github.io/appaday/manifests/149.webmanifest">
+<script src="https://augustineiacopelli.github.io/appaday/save.js" defer></script>
+<script src="https://augustineiacopelli.github.io/appaday/models.js"></script>
+<script src="https://augustineiacopelli.github.io/appaday/keys.js" data-app="149" data-legacy-key="kit:settings:key" data-accent="#A63D9E" defer></script>
 <title>Story Forge | AppADay 149</title>
 <meta name="description" content="Story Forge: bind a finished World Forge world to flags, quests, dialogue, events, and endings, and prove the story can always be finished. AppADay 149.">
 <meta name="theme-color" content="#10121a">

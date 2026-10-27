@@ -527,6 +527,7 @@ Edited: story-store.js (exports ENVELOPE_FIELDS), ws-story149.js (Start cards, j
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="manifest" href="https://augustineiacopelli.github.io/appaday/manifests/149.webmanifest">
 <script src="https://augustineiacopelli.github.io/appaday/save.js" defer></script>
+<script src="https://augustineiacopelli.github.io/appaday/models.js"></script>
 <script src="https://augustineiacopelli.github.io/appaday/keys.js" data-app="149" data-legacy-key="kit:settings:key" data-accent="#A63D9E" defer></script>
 <title>Story Forge | AppADay 149</title>
 <meta name="description" content="Story Forge: bind a finished World Forge world to flags, quests, dialogue, events, and endings, and prove the story can always be finished. AppADay 149.">
@@ -1400,32 +1401,12 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
   };
 
   // ---------------------------------------------------------------- models
-  var MODEL_FALLBACK = { haiku: 'claude-haiku-4-5-20251001', sonnet: 'claude-sonnet-5-5', opus: 'claude-opus-5-5', fable: 'claude-fable-5-1' };
-  var configPromise = null;
-  function loadConfig() {
-    if (!configPromise) {
-      configPromise = (async function () {
-        var urls = ['../config.json', 'https://augustineiacopelli.github.io/appaday/config.json'];
-        for (var i = 0; i < urls.length; i++) {
-          try {
-            var r = await fetch(urls[i], { cache: 'no-cache' });
-            if (!r.ok) continue;
-            var c = await r.json();
-            if (c && c.models) return c;
-          } catch (e) { /* try next */ }
-        }
-        return null;
-      })();
-    }
-    return configPromise;
-  }
-  // Standard AppADay getModel(tier): Settings override, then ../config.json, then fallback.
+  // Standard AppADay getModel(tier): Settings override, then the portal models.js (config.json).
   async function getModel(tier) {
     tier = tier || 'sonnet';
     var override = Kit.settings.get().tiers[tier];
     if (override) return override;
-    try { var c = await loadConfig(); if (c && c.models && c.models[tier]) return c.models[tier]; } catch (e) {}
-    return MODEL_FALLBACK[tier] || MODEL_FALLBACK.sonnet;
+    return window.AppModels ? window.AppModels.get(tier) : '';
   }
   Kit.getModel = getModel;
 
@@ -3184,7 +3165,7 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
           '<div class="field span-all"><label class="field-label" for="setSession">Session name</label><input class="inp" id="setSession" type="text" placeholder="e.g. Saga weekend build"><div class="field-help">A label for your own reference, kept with your settings.</div></div>' +
           '<div class="field"><label class="field-label" for="setTheme">Theme</label><select class="inp" id="setTheme"><option value="system">Match system</option><option value="night">Night</option><option value="parchment">Parchment</option></select></div>' +
           '</div>' +
-          '<h3 class="section-h">Model tiers</h3><p class="field-help">Leave blank to use the portfolio config.json, then the built-in default.</p>' +
+          '<h3 class="section-h">Model tiers</h3><p class="field-help">Leave blank to use the portfolio default for that tier.</p>' +
           '<div class="form-grid" id="setTiers"></div>' +
           '<h3 class="section-h">Storage</h3><p class="muted" id="setUsage"></p>';
         if (window.AppKeys) window.AppKeys.mountSettings(b.querySelector('#setKeyMount'));
@@ -3196,7 +3177,7 @@ code.id { color: var(--muted); background: var(--accent-soft); padding: 1px 6px;
         refs.tiers = {};
         TIERS.forEach(function (t) {
           var f = U.el('div', 'field');
-          f.innerHTML = '<label class="field-label" for="setTier_' + t + '">' + t + '</label><input class="inp mono" id="setTier_' + t + '" type="text" spellcheck="false" placeholder="' + MODEL_FALLBACK[t] + '">';
+          f.innerHTML = '<label class="field-label" for="setTier_' + t + '">' + t + '</label><input class="inp mono" id="setTier_' + t + '" type="text" spellcheck="false" placeholder="' + (window.AppModels ? window.AppModels.id(t) : '') + '">';
           tg.appendChild(f);
           refs.tiers[t] = f.querySelector('input'); refs.tiers[t].value = s.tiers[t] || '';
         });
